@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { listings, ownerProfiles } from "@/db/schema";
 import { getDatabase } from "@/lib/db";
 import { requireAccount } from "@/lib/session-user";
@@ -49,27 +49,28 @@ export async function createProperty(form: FormData) {
   }
   if (!profile) throw new Error("Could not initialize the owner profile.");
 
-  // Listings can only enter moderation, never publish directly from this action.
-  await db.insert(listings).values({
-    ownerId: profile.id,
-    slug: generateSlug(value.title, randomUUID().replace(/-/g, "")),
-    title: value.title,
-    description: value.description,
-    propertyType: value.propertyType,
-    rentalMode: value.rentalMode,
-    status: "pending_review",
-    city: value.city,
-    barangay: value.barangay,
-    province: "South Cotabato",
-    monthlyRentCentavos: value.monthlyRent * 100,
-    bedrooms: value.bedrooms === "" ? null : value.bedrooms,
-    bathrooms: value.bathrooms === "" ? null : value.bathrooms,
-    availableSlots: value.availableSlots === "" ? null : value.availableSlots,
-    furnished: value.furnished,
-    ownerContactKind: value.ownerContactKind,
-    ownerContactValue: value.ownerContactKind === "none" ? null : value.ownerContactValue,
-    lastConfirmedAt: new Date(),
-  });
+  // Create listing and its operational event together in one SQL statement.
+  const newId = randomUUID();
+  await db.execute(sql`
+    WITH created AS (
+      INSERT INTO listings (
+        id, owner_id, slug, title, description, property_type, rental_mode, status,
+        city, barangay, province, monthly_rent_centavos, bedrooms, bathrooms,
+        available_slots, furnished, owner_contact_kind, owner_contact_value, last_confirmed_at
+      ) VALUES (
+        ${newId}::uuid, ${profile.id}::uuid, ${generateSlug(value.title, newId.replace(/-/g, ""))},
+        ${value.title}, ${value.description}, ${value.propertyType}, ${value.rentalMode},
+        'pending_review', ${value.city}, ${value.barangay}, 'South Cotabato',
+        ${value.monthlyRent * 100}, ${value.bedrooms === "" ? null : value.bedrooms},
+        ${value.bathrooms === "" ? null : value.bathrooms},
+        ${value.availableSlots === "" ? null : value.availableSlots}, ${value.furnished},
+        ${value.ownerContactKind}, ${value.ownerContactKind === "none" ? null : value.ownerContactValue},
+        now()
+      ) RETURNING id
+    )
+    INSERT INTO platform_events (actor_user_id, kind, listing_id)
+    SELECT ${account.id}, 'listing.submitted', id FROM created
+  `);
   revalidatePath("/owner");
   redirect("/owner?submitted=1");
 }
@@ -83,8 +84,16 @@ export async function pauseProperty(form: FormData) {
   const [owner] = await db.select({ id: ownerProfiles.id }).from(ownerProfiles)
     .where(eq(ownerProfiles.userId, account.id)).limit(1);
   if (!owner) throw new Error("Owner profile not found.");
-  await db.update(listings).set({ status: "paused", updatedAt: new Date() })
-    .where(and(eq(listings.id, id), eq(listings.ownerId, owner.id), eq(listings.status, "published")));
+  // The ownership condition is evaluated in SQL. No other user's listing can be changed.
+  await db.execute(sql`
+    WITH paused AS (
+      UPDATE listings SET status = 'paused', updated_at = now()
+      WHERE id = ${id}::uuid AND owner_id = ${owner.id}::uuid AND status = 'published'
+      RETURNING id
+    )
+    INSERT INTO platform_events (actor_user_id, kind, listing_id)
+    SELECT ${account.id}, 'listing.paused', id FROM paused
+  `);
   revalidatePath("/owner");
   revalidatePath("/rentals");
 }

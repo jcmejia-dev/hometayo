@@ -35,7 +35,12 @@ export async function reviewProperty(form: FormData) {
       SELECT id, ${actor.id}, ${verdict}, ${explanation || null} FROM transitioned
       RETURNING id
     )
-    SELECT id FROM audited
+    , activity AS (
+      INSERT INTO platform_events (actor_user_id, kind, listing_id)
+      SELECT ${actor.id}, ${verdict === "approved" ? "listing.approved" : "listing.rejected"}, id FROM transitioned
+      RETURNING id
+    )
+    SELECT id FROM activity
   `);
   if (result.rows.length === 0) throw new Error("Listing was already reviewed or is unavailable.");
   revalidatePath("/admin");

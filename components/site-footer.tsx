@@ -12,6 +12,7 @@ export function SiteFooter() {
         <nav aria-label="Footer navigation">
           <Link href="/rentals">Explore</Link>
           <Link href="/owner">For owners</Link>
+          <Link href="/profile">My profile</Link>
           <Link href="/how-it-works">How it works</Link>
           <Link href="/safety">Safety</Link>
           <Link href="/privacy">Privacy</Link>
