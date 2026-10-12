@@ -12,6 +12,10 @@
 - Job 3 (optional setup): Google OAuth, owner submission dashboard, role-protected review queue
 - Planned later: photo uploads, property edits, account deletion, alerts
 
+## Renter and owner instructions
+
+The public **[How HomeTayo works](/how-it-works)** page provides role-specific step-by-step guidance. Owner dashboard, rental search and property submission screens include contextual guide links. Guides describe only features that already exist and distinguish planned capabilities.
+
 ## Local quick start (Node 20.9+ recommended, Node 24 tested by developer tool setup)
 
 ~~~powershell
