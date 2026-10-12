@@ -2,7 +2,7 @@
 
 **Hanap bahay. Dito tayo.** A mobile-first Philippine rental discovery platform, starting with Koronadal City.
 
-> **Development preview:** This branch is the first UI scaffold. It does not connect to a database, store rental requests, accept landlord registrations, publish live property listings, process payments, or deliver notifications. The app is not deployed.
+> **Development preview:** The current application is the first UI scaffold. It does not connect to a database, store rental requests, accept landlord registrations, publish live property listings, process payments, or deliver notifications. The app is not deployed.
 
 ## Technology
 - Next.js App Router, React, TypeScript, Tailwind CSS
@@ -36,7 +36,7 @@ npx playwright install chromium
 npm run test:e2e
 ~~~
 
-Note: npm cannot be reached from ChatGPT's build container. Until the developer runs these commands, compilation, lint, bundle output, PWA installability and browser E2E results are **not verified**. Playwright CLI was installed on the developer's Windows machine separately.
+**Verified in GitHub Actions (PR #4, 2026-10-12):** ESLint, TypeScript checks, production build and Playwright Chromium desktop/mobile smoke tests passed. Local Windows runtime, Android PWA installability, offline support and device-specific behavior remain **unverified**. Playwright CLI was installed on the developer's Windows machine separately.
 
 ## Scope and safety
 - Filters navigate to shareable URL query parameters.
