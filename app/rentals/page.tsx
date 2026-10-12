@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BedDouble, House, MapPin, SearchX } from "lucide-react";
 import { SearchForm } from "@/components/search-form";
+import { GuideNudge } from "@/components/guide-nudge";
 import { browsePublishedListings } from "@/lib/listings";
 import { formatRent, parseRentalFilters } from "@/lib/search-filters";
 
@@ -37,6 +38,7 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
         initialType={allowedTypes.includes(type) ? type : "all"}
         initialBudget={allowedBudgets.includes(budget) ? budget : ""}
         initialBedrooms={allowedRooms.includes(bedrooms) ? bedrooms : ""}/>
+      <GuideNudge audience="renter" compact />
       {result.state === "ready" && result.listings.length > 0 ? (
         <section aria-label="Rental properties" className="published-results">
           <div className="results-heading"><h2>Available listings</h2><p>{result.listings.length} approved result(s) · {filters.city}</p></div>

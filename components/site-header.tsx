@@ -13,7 +13,7 @@ export function SiteHeader() {
           </Link>
           <nav className="desktop-nav" aria-label="Primary navigation">
             <Link href="/rentals">Explore rentals</Link>
-            <Link href="/#how-it-works">How it works</Link>
+            <Link href="/how-it-works">How it works</Link>
             <Link href="/safety">Rental safety</Link>
           </nav>
           <Link className="header-owner" href="/owner">
@@ -23,7 +23,7 @@ export function SiteHeader() {
             <summary aria-label="Open navigation menu"><Menu size={23} /></summary>
             <nav aria-label="Mobile navigation">
               <Link href="/rentals">Explore rentals</Link>
-              <Link href="/#how-it-works">How it works</Link>
+              <Link href="/how-it-works">How it works</Link>
               <Link href="/safety">Rental safety</Link>
               <Link href="/owner">List your property</Link>
             </nav>
