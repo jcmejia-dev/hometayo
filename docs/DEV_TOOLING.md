@@ -8,7 +8,7 @@
 
 | Tool | Target environment | HomeTayo status |
 |---|---|---|
-| Context7 | Connected ChatGPT plugin or coding-agent MCP client | Plugin offered for user connection; not confirmed installed |
+| Context7 | Connected ChatGPT plugin or coding-agent MCP client | ChatGPT plugin connected and documentation lookup verified 2026-10-12; local MCP not installed |
 | Playwright CLI | Developer computer / coding agent runtime | Not installed in project yet |
 | Playwright Test | Dev dependency in scaffolded Next.js app | Not installed yet |
 | Supabase CLI | Supabase projects; NOT necessary with Neon + Drizzle | Deliberately not included |
@@ -17,7 +17,7 @@
 
 ## 1. Connect Context7 directly to ChatGPT
 
-Use the ChatGPT plugin suggestion for Context7 and explicitly approve its connection. Only once connected can ChatGPT call it for current package docs. When it is not connected, consult official sources directly rather than falsely claiming Context7 retrieval.
+**Verified 2026-10-12:** The user connected the Context7 ChatGPT plugin. A documentation lookup for `/vercel/next.js` succeeded, returning current App Router PWA instructions for `app/manifest.ts`, installability, and service workers. Context7 is available to this ChatGPT conversation; this does **not** install a Context7 MCP server on the user's computer or in the HomeTayo repository. If a later session is not connected, consult official sources instead of claiming a lookup occurred.
 
 Official guide: https://context7.com/docs/resources/all-clients
 
@@ -103,7 +103,7 @@ Do not run `skillui --dir ./src` until `src` actually exists. Ultra mode may req
 
 ## 6. How we verify agent tooling is truly ready
 
-- **Context7:** user has connected plugin; a real documentation lookup succeeds.
+- **Context7:** PASSED in this ChatGPT session (Next.js App Router PWA documentation retrieved 2026-10-12). Local coding-agent MCP remains separately uninstalled.
 - **Playwright CLI:** `playwright-cli --help` succeeds on the same machine that runs the app, and a screenshot of a local HomeTayo page is captured.
 - **Playwright Test:** a committed deterministic test passes in CI.
 - **Supabase CLI:** intentionally absent while Neon remains the chosen provider.
