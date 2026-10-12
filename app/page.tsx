@@ -1,9 +1,10 @@
 import Link from "next/link";
 import {
   ArrowRight, ArrowUpRight, BadgeCheck, BedDouble, Building2,
-  Heart, House, MapPin, SearchCheck, ShieldCheck, Sparkles, Users, Compass, HousePlus,
+  House, SearchCheck, ShieldCheck, Sparkles, Users, Compass, HousePlus,
 } from "lucide-react";
 import { SearchForm } from "@/components/search-form";
+import { MarketplacePreview } from "@/components/marketplace-preview";
 
 export default function Home() {
   return (
@@ -17,22 +18,7 @@ export default function Home() {
             <SearchForm />
             <div className="launch-note"><span className="pulse-dot" /> Starting in Koronadal City · Prelaunch preview</div>
           </div>
-          <div className="hero-art" aria-hidden="true">
-            <div className="orb orb-one" />
-            <div className="orb orb-two" />
-            <div className="illustration-card">
-              <div className="illustration-topbar"><span className="illus-mark"><House size={19} /></span><span>Space to call your own</span><span className="illus-dots">•••</span></div>
-              <div className="building-scene">
-                <div className="sun-circle" />
-                <div className="building building-back"><span /><span /><span /><span /></div>
-                <div className="building building-front"><div className="building-roof" /><div className="window-row"><i /><i /></div><div className="window-row"><i /><i /></div><div className="front-door" /></div>
-                <div className="tree tree-left" /><div className="tree tree-right" /><div className="ground" />
-              </div>
-              <div className="illustration-footer"><div><span className="tiny-label">YOUR NEXT CHAPTER</span><strong>Begins at home.</strong></div><div className="round-arrow"><ArrowUpRight size={21} /></div></div>
-            </div>
-            <div className="float-tag float-tag-top"><span className="tag-icon"><Heart size={18} fill="currentColor" /></span> Find your kind of home</div>
-            <div className="float-tag float-tag-bottom"><MapPin size={17} /> Starting local, growing together</div>
-          </div>
+          <MarketplacePreview />
         </div>
       </section>
 
