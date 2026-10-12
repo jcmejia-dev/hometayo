@@ -8,7 +8,8 @@
 - Next.js App Router, React, TypeScript, Tailwind CSS
 - Installable-PWA foundations: web manifest and vector app icon; service worker, raster icons and offline/update behavior will be implemented and device-tested later
 - Playwright Test E2E smoke tests and optional Playwright CLI inspection
-- Job 2: Neon PostgreSQL + Drizzle read-only public listings and explicit SQL migration runner (requires DATABASE_URL)\n- Planned later: Google OAuth; owner submissions and moderation; uploads
+- Job 2: Neon PostgreSQL + Drizzle read-only public listings and explicit SQL migration runner (requires DATABASE_URL)
+- Planned later: Google OAuth; owner submissions and moderation; uploads
 
 ## Local quick start (Node 20.9+ recommended, Node 24 tested by developer tool setup)
 
