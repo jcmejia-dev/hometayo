@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Building2, Plus, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, LogOut, Plus, ShieldCheck } from "lucide-react";
 import { eq, desc } from "drizzle-orm";
-import { authIsConfigured } from "@/auth";
+import { authIsConfigured, signOut } from "@/auth";
 import { currentUser } from "@/lib/session-user";
 import { getDatabase } from "@/lib/db";
 import { listings, ownerProfiles } from "@/db/schema";
@@ -47,7 +47,15 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
           {params.submitted === "1" && <div className="status-notice">Your rental was submitted for review. It is not public until approved.</div>}
           <div className="owner-toolbar">
             <span>Signed in as {user.displayName || user.email}</span>
-            <Link href="/owner/listings/new" className="button button-primary"><Plus size={18}/> Submit a property</Link>
+            <div className="owner-actions">
+              <Link href="/owner/listings/new" className="button button-primary"><Plus size={18}/> Submit a property</Link>
+              <form action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/sign-in" });
+              }}>
+                <button type="submit" className="button button-outline"><LogOut size={17}/> Sign out</button>
+              </form>
+            </div>
           </div>
           {owned.length === 0 ? (
             <div className="info-card">

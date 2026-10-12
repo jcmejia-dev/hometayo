@@ -354,3 +354,13 @@ input, select { min-width: 0; }
   .review-actions form { width: 100%; flex: auto; }
   .owner-form .button { width: 100%; }
 }
+
+/* Signed-in owner controls: touch-friendly on phones, inline on desktops. */
+.owner-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.owner-actions form { margin: 0; }
+.owner-actions .button { min-height: 44px; }
+@media(max-width:600px) {
+  .owner-actions { justify-content: stretch; }
+  .owner-actions > a, .owner-actions > form { flex: 1 1 100%; }
+  .owner-actions > form .button { width: 100%; }
+}
