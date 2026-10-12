@@ -7,6 +7,7 @@ import { getDatabase } from "@/lib/db";
 import { listings } from "@/db/schema";
 import { reviewProperty } from "./actions";
 import { formatRent } from "@/lib/search-filters";
+import { AdminOverview } from "@/components/admin-overview";
 
 export const dynamic = "force-dynamic";
 export default async function AdminPage() {
@@ -22,13 +23,15 @@ export default async function AdminPage() {
   }).from(listings).where(eq(listings.status, "pending_review")).orderBy(desc(listings.createdAt)).limit(50);
 
   return (
-    <section className="container interior-page narrow-page">
+    <section className="container interior-page admin-control-page">
       <Link href="/" className="back-link"><ArrowLeft size={17}/> HomeTayo</Link>
       <div className="interior-heading">
         <span className="page-icon"><ClipboardCheck size={27}/></span>
         <p className="section-kicker">MODERATION</p><h1>Rental review queue</h1>
         <p>Review property authorization and details. Approval is not a legal or physical guarantee.</p>
       </div>
+      <AdminOverview />
+      <div className="admin-section-heading admin-review-queue-heading"><div><p className="section-kicker">NEEDS YOUR ATTENTION</p><h2>Pending property reviews</h2></div></div>
       {submissions.length === 0 && <div className="info-card"><h2>You&apos;re all caught up.</h2><p>No rental submissions are waiting for review.</p></div>}
       <div className="owner-list">
         {submissions.map((item) => (
