@@ -51,7 +51,7 @@ Follow [Google OAuth local setup](docs/GOOGLE_OAUTH_SETUP.md) to enable private 
 ## Neon setup\n\nFollow [dedicated HomeTayo Neon development setup](docs/NEON_SETUP.md). Do not run migrations against Lakbay or a production database.\n\n## Scope and safety
 - Filters navigate to shareable URL query parameters.
 - No fake sample homes are shown as live listings. Only approved records are displayed when the user configures their own HomeTayo database.
-- Rental request and owner pages are informative previews until secure backend flows are implemented.
+- Rental requests remain a preview, but authenticated owners can submit genuine listings for admin review when Google OAuth and Neon are configured.
 - Use a non-commercial prototype hosting arrangement; commercial operation requires hosting and legal review.
 - Keep sensitive credentials in ignored .env.local; never send or commit them.
 
