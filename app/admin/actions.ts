@@ -1,0 +1,44 @@
+"use server";
+
+import { sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { getDatabase } from "@/lib/db";
+import { requireAccount } from "@/lib/session-user";
+
+export async function reviewProperty(form: FormData) {
+  const actor = await requireAccount();
+  if (actor.role !== "admin" && actor.role !== "moderator") throw new Error("Not authorized.");
+  const id = form.get("id");
+  const verdict = form.get("decision");
+  const reason = form.get("reason");
+  if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error("Invalid listing.");
+  if (verdict !== "approved" && verdict !== "rejected") throw new Error("Invalid review decision.");
+  const explanation = typeof reason === "string" ? reason.trim().slice(0, 500) : "";
+  if (verdict === "rejected" && explanation.length < 5) throw new Error("Please explain rejection.");
+  const db = getDatabase();
+  if (!db) throw new Error("Database not configured.");
+
+  // Single SQL statement ensures listing status and audit log are atomic.
+  // Only pending-review listings can transition.
+  const result = await db.execute(sql`
+    WITH transitioned AS (
+      UPDATE listings
+      SET status = ${verdict === "approved" ? "published" : "rejected"},
+          published_at = CASE WHEN ${verdict === "approved"} THEN now() ELSE NULL END,
+          updated_at = now()
+      WHERE id = ${id}::uuid AND status = 'pending_review'
+      RETURNING id
+    ),
+    audited AS (
+      INSERT INTO listing_reviews(listing_id, reviewer_id, decision, reason)
+      SELECT id, ${actor.id}, ${verdict}, ${explanation || null} FROM transitioned
+      RETURNING id
+    )
+    SELECT id FROM audited
+  `);
+  if (result.rows.length === 0) throw new Error("Listing was already reviewed or is unavailable.");
+  revalidatePath("/admin");
+  revalidatePath("/rentals");
+  redirect("/admin?reviewed=1");
+}

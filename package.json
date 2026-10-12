@@ -20,7 +20,9 @@
     "@neondatabase/serverless": "^1.0.0",
     "drizzle-orm": "^0.44.0",
     "pg": "^8.16.0",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "next-auth": "5.0.0-beta.32",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",

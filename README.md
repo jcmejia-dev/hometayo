@@ -2,14 +2,15 @@
 
 **Hanap bahay. Dito tayo.** A mobile-first Philippine rental discovery platform, starting with Koronadal City.
 
-> **Development preview:** Job 2 adds an optional Neon-backed, read-only view of admin-approved real listings. Database connection and migrations require separate user setup. Rental requests, landlord registration, submissions, uploads, payments, and notifications are not yet available. The application is not deployed.
+> **Development preview:** Job 2 adds an optional Neon-backed, read-only view of admin-approved real listings. Database connection and migrations require separate user setup. Job 3 adds Google OAuth and landlord submission/moderation when private credentials are configured; photo uploads, listing edits, payments, rental requests and notifications are not yet available. The application is not deployed.
 
 ## Technology
 - Next.js App Router, React, TypeScript, Tailwind CSS
 - Installable-PWA foundations: web manifest and vector app icon; service worker, raster icons and offline/update behavior will be implemented and device-tested later
 - Playwright Test E2E smoke tests and optional Playwright CLI inspection
 - Job 2: Neon PostgreSQL + Drizzle read-only public listings and explicit SQL migration runner (requires DATABASE_URL)
-- Planned later: Google OAuth; owner submissions and moderation; uploads
+- Job 3 (optional setup): Google OAuth, owner submission dashboard, role-protected review queue
+- Planned later: photo uploads, property edits, account deletion, alerts
 
 ## Local quick start (Node 20.9+ recommended, Node 24 tested by developer tool setup)
 
@@ -23,7 +24,7 @@ Open http://localhost:3000. When testing a PR branch, check it out by name first
 
 ~~~powershell
 git fetch origin
-git switch feat/job-2-listings-database
+git switch feat/job-3-google-auth-owner-mvp
 npm install
 npm run dev
 ~~~
@@ -38,6 +39,10 @@ npm run test:e2e
 ~~~
 
 **Verified in GitHub Actions (PR #4, 2026-10-12):** ESLint, TypeScript checks, production build and Playwright Chromium desktop/mobile smoke tests passed. Local Windows runtime, Android PWA installability, offline support and device-specific behavior remain **unverified**. Playwright CLI was installed on the developer's Windows machine separately.
+
+## Google OAuth and landlord submissions
+
+Follow [Google OAuth local setup](docs/GOOGLE_OAUTH_SETUP.md) to enable private sign-in and submit genuine rentals for admin review. The app continues showing prelaunch screens when credentials are absent. No live OAuth has been verified in CI.
 
 ## Neon setup\n\nFollow [dedicated HomeTayo Neon development setup](docs/NEON_SETUP.md). Do not run migrations against Lakbay or a production database.\n\n## Scope and safety
 - Filters navigate to shareable URL query parameters.
