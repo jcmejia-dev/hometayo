@@ -15,6 +15,7 @@ export function SiteHeader() {
             <Link href="/rentals">Explore rentals</Link>
             <Link href="/how-it-works">How it works</Link>
             <Link href="/safety">Rental safety</Link>
+            <Link href="/profile">My profile</Link>
           </nav>
           <Link className="header-owner" href="/owner">
             List your property <ArrowUpRight size={16} aria-hidden="true" />
@@ -26,6 +27,7 @@ export function SiteHeader() {
               <Link href="/how-it-works">How it works</Link>
               <Link href="/safety">Rental safety</Link>
               <Link href="/owner">List your property</Link>
+              <Link href="/profile">My profile</Link>
             </nav>
           </details>
         </div>
