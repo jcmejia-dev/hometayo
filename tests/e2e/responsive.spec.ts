@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const publicRoutes = ["/", "/rentals", "/owner", "/owner/listings/new", "/sign-in", "/requests/new", "/safety", "/privacy"];
+const publicRoutes = ["/", "/rentals", "/owner", "/owner/listings/new", "/sign-in", "/how-it-works", "/requests/new", "/safety", "/privacy"];
 
 test("all current public screens fit the viewport without horizontal page scrolling", async ({ page }) => {
   for (const route of publicRoutes) {
