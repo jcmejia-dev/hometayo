@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, Search, SlidersHorizontal } from "lucide-react";
+import { SearchSelect } from "@/components/search-select";
 
 const types = [
   { value: "all", label: "All property types" },
@@ -10,6 +11,23 @@ const types = [
   { value: "apartment", label: "Apartment" },
   { value: "boarding_house", label: "Boarding house" },
   { value: "bedspace", label: "Bedspace / dorm" },
+];
+
+const budgets = [
+  { value: "any", label: "Any price" },
+  { value: "3000", label: "Up to ₱3,000" },
+  { value: "5000", label: "Up to ₱5,000" },
+  { value: "8000", label: "Up to ₱8,000" },
+  { value: "12000", label: "Up to ₱12,000" },
+  { value: "20000", label: "Up to ₱20,000" },
+];
+
+const roomOptions = [
+  { value: "any", label: "Any" },
+  { value: "1", label: "1+ bedrooms" },
+  { value: "2", label: "2+ bedrooms" },
+  { value: "3", label: "3+ bedrooms" },
+  { value: "4", label: "4+ bedrooms" },
 ];
 
 interface SearchFormProps {
@@ -51,39 +69,15 @@ export function SearchForm({
       </div>
       <div className="field-grid">
         <label className="search-field location-field">
-          <span>Where?</span>
+          <span className="search-field-label">Where?</span>
           <span className="field-value-icon">
             <MapPin size={18} aria-hidden="true" />
             <input aria-label="City or location" value={city} onChange={(e) => setCity(e.target.value)} placeholder="City or barangay" maxLength={80} />
           </span>
         </label>
-        <label className="search-field">
-          <span>Property type</span>
-          <select aria-label="Property type" value={type} onChange={(e) => setType(e.target.value)}>
-            {types.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
-        </label>
-        <label className="search-field">
-          <span>Monthly budget</span>
-          <select aria-label="Maximum monthly rent" value={budget} onChange={(e) => setBudget(e.target.value)}>
-            <option value="">Any price</option>
-            <option value="3000">Up to ₱3,000</option>
-            <option value="5000">Up to ₱5,000</option>
-            <option value="8000">Up to ₱8,000</option>
-            <option value="12000">Up to ₱12,000</option>
-            <option value="20000">Up to ₱20,000</option>
-          </select>
-        </label>
-        <label className="search-field">
-          <span>Bedrooms</span>
-          <select aria-label="Minimum bedrooms" value={bedrooms} onChange={(e) => setBedrooms(e.target.value)}>
-            <option value="">Any</option>
-            <option value="1">1+ bedrooms</option>
-            <option value="2">2+ bedrooms</option>
-            <option value="3">3+ bedrooms</option>
-            <option value="4">4+ bedrooms</option>
-          </select>
-        </label>
+        <SearchSelect label="Property type" accessibleName="Property type" value={type} onValueChange={setType} options={types} emptyValue="any"/>
+        <SearchSelect label="Monthly budget" accessibleName="Maximum monthly rent" value={budget} onValueChange={setBudget} options={budgets}/>
+        <SearchSelect label="Bedrooms" accessibleName="Minimum bedrooms" value={bedrooms} onValueChange={setBedrooms} options={roomOptions}/>
       </div>
       <button type="submit" className="button button-primary search-button"><Search size={19} aria-hidden="true" /> Search rentals</button>
     </form>

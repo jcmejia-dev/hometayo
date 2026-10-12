@@ -9,9 +9,12 @@ test("home page explains the Koronadal prelaunch", async ({ page }) => {
 
 test("search filters navigate to a shareable results URL", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("combobox", { name: "Property type" }).selectOption("house");
-  await page.getByRole("combobox", { name: "Maximum monthly rent" }).selectOption("12000");
-  await page.getByRole("combobox", { name: "Minimum bedrooms" }).selectOption("4");
+  await page.getByRole("combobox", { name: "Property type" }).click();
+  await page.getByRole("option", { name: "Whole house" }).click();
+  await page.getByRole("combobox", { name: "Maximum monthly rent" }).click();
+  await page.getByRole("option", { name: "Up to ₱12,000" }).click();
+  await page.getByRole("combobox", { name: "Minimum bedrooms" }).click();
+  await page.getByRole("option", { name: "4+ bedrooms" }).click();
   await page.getByRole("button", { name: /Search rentals/i }).click();
   await expect(page).toHaveURL(/type=house/);
   await expect(page).toHaveURL(/maxRent=12000/);

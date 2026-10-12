@@ -25,8 +25,10 @@ test("home search, category navigation and listing empty state remain usable", a
   await expect(search.getByRole("button", { name: /Search rentals/i })).toBeVisible();
   await expect(page.getByRole("link", { name: /Houses.*Room to grow/i })).toBeVisible();
 
-  await search.getByRole("combobox", { name: "Property type" }).selectOption("house");
-  await search.getByRole("combobox", { name: "Minimum bedrooms" }).selectOption("4");
+  await search.getByRole("combobox", { name: "Property type" }).click();
+  await page.getByRole("option", { name: "Whole house" }).click();
+  await search.getByRole("combobox", { name: "Minimum bedrooms" }).click();
+  await page.getByRole("option", { name: "4+ bedrooms" }).click();
   await search.getByRole("button", { name: /Search rentals/i }).click();
   await expect(page).toHaveURL(/type=house/);
   await expect(page).toHaveURL(/bedrooms=4/);
