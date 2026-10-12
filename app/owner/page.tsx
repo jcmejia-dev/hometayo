@@ -7,6 +7,7 @@ import { getDatabase } from "@/lib/db";
 import { listings, ownerProfiles } from "@/db/schema";
 import { formatRent } from "@/lib/search-filters";
 import { pauseProperty } from "./actions";
+import { GuideNudge } from "@/components/guide-nudge";
 
 export const dynamic = "force-dynamic";
 export default async function OwnerPage({ searchParams }: { searchParams: Promise<{ submitted?: string }> }) {
@@ -31,6 +32,7 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
         <h1>{user ? "Your rental listings." : "Let people discover your space."}</h1>
         <p>{user ? "Manage your submissions and keep vacant rentals accurate." : "Share your rental with local renters. We review each new property before showing it publicly."}</p>
       </div>
+      <GuideNudge audience="owner" />
       {!user ? (
         <div className="info-card">
           <h2>What owners will get</h2>
