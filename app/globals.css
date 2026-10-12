@@ -296,3 +296,25 @@ input, select { min-width: 0; }
 .detail-contact { margin-top: 21px; }
 @media(max-width:850px){ .rental-results-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media(max-width:540px){ .rental-results-grid { grid-template-columns: 1fr; } .results-heading { flex-direction: column; gap: 0; } }
+
+
+/* Cross-device UX safeguards: small touch screens and safe area insets. */
+:where(.site-header, .site-footer) { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.site-footer { padding-bottom: max(46px, env(safe-area-inset-bottom, 0px)); }
+.mobile-menu summary { min-width: 44px; min-height: 44px; }
+.mobile-menu nav a { display: flex; align-items: center; min-height: 44px; }
+.footer-inner nav a { display: inline-flex; align-items: center; min-height: 44px; }
+@media (max-width: 800px) {
+  /* iOS Safari otherwise zooms when users focus small form controls. */
+  .search-field input, .search-field select { font-size: 16px; min-height: 34px; }
+  .search-field { min-width: 0; }
+  .owner-banner { min-width: 0; }
+}
+@media (max-width: 360px) {
+  .hero-art { max-width: 100%; }
+  .float-tag { white-space: normal; max-width: 220px; }
+  .eyebrow { letter-spacing: 0.4px; }
+  .hero-copy h1 { overflow-wrap: break-word; }
+  .category-card { min-width: 0; overflow-wrap: anywhere; }
+  .category-card > svg { opacity: .65; }
+}
