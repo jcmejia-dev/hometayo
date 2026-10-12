@@ -4,6 +4,10 @@ export const users = pgTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   displayName: text("display_name"),
+  preferredName: text("preferred_name"),
+  homeCity: text("home_city"),
+  preferredPropertyType: text("preferred_property_type", { enum: ["house","apartment","boarding_house","bedspace"] }),
+  preferredBudgetPesos: integer("preferred_budget_pesos"),
   role: text("role", { enum: ["renter","landlord","moderator","admin"] }).notNull().default("renter"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -60,4 +64,14 @@ export const listingReviews = pgTable("listing_reviews", {
   reason: text("reason"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+export const platformEvents = pgTable("platform_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  actorUserId: text("actor_user_id").notNull().references(() => users.id),
+  kind: text("kind", { enum: ["listing.submitted","listing.paused","listing.approved","listing.rejected"] }).notNull(),
+  listingId: uuid("listing_id").references(() => listings.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("platform_events_recent_idx").on(table.createdAt),
+  index("platform_events_actor_idx").on(table.actorUserId, table.createdAt),
+]);
 export type Listing = typeof listings.$inferSelect;
