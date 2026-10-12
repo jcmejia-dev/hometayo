@@ -2,13 +2,13 @@
 
 **Hanap bahay. Dito tayo.** A mobile-first Philippine rental discovery platform, starting with Koronadal City.
 
-> **Development preview:** The current application is the first UI scaffold. It does not connect to a database, store rental requests, accept landlord registrations, publish live property listings, process payments, or deliver notifications. The app is not deployed.
+> **Development preview:** Job 2 adds an optional Neon-backed, read-only view of admin-approved real listings. Database connection and migrations require separate user setup. Rental requests, landlord registration, submissions, uploads, payments, and notifications are not yet available. The application is not deployed.
 
 ## Technology
 - Next.js App Router, React, TypeScript, Tailwind CSS
 - Installable-PWA foundations: web manifest and vector app icon; service worker, raster icons and offline/update behavior will be implemented and device-tested later
 - Playwright Test E2E smoke tests and optional Playwright CLI inspection
-- Planned later: Neon PostgreSQL + Drizzle; Google OAuth; owner moderation + uploads
+- Job 2: Neon PostgreSQL + Drizzle read-only public listings and explicit SQL migration runner (requires DATABASE_URL)\n- Planned later: Google OAuth; owner submissions and moderation; uploads
 
 ## Local quick start (Node 20.9+ recommended, Node 24 tested by developer tool setup)
 
@@ -22,7 +22,7 @@ Open http://localhost:3000. When testing a PR branch, check it out by name first
 
 ~~~powershell
 git fetch origin
-git switch feat/job-1-app-foundation
+git switch feat/job-2-listings-database
 npm install
 npm run dev
 ~~~
@@ -38,9 +38,9 @@ npm run test:e2e
 
 **Verified in GitHub Actions (PR #4, 2026-10-12):** ESLint, TypeScript checks, production build and Playwright Chromium desktop/mobile smoke tests passed. Local Windows runtime, Android PWA installability, offline support and device-specific behavior remain **unverified**. Playwright CLI was installed on the developer's Windows machine separately.
 
-## Scope and safety
+## Neon setup\n\nFollow [dedicated HomeTayo Neon development setup](docs/NEON_SETUP.md). Do not run migrations against Lakbay or a production database.\n\n## Scope and safety
 - Filters navigate to shareable URL query parameters.
-- No fake sample homes are shown as live listings.
+- No fake sample homes are shown as live listings. Only approved records are displayed when the user configures their own HomeTayo database.
 - Rental request and owner pages are informative previews until secure backend flows are implemented.
 - Use a non-commercial prototype hosting arrangement; commercial operation requires hosting and legal review.
 - Keep sensitive credentials in ignored .env.local; never send or commit them.
