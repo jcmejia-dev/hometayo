@@ -29,7 +29,7 @@ export default async function AdminPage() {
         <p className="section-kicker">MODERATION</p><h1>Rental review queue</h1>
         <p>Review property authorization and details. Approval is not a legal or physical guarantee.</p>
       </div>
-      {submissions.length === 0 && <div className="info-card"><h2>You're all caught up.</h2><p>No rental submissions are waiting for review.</p></div>}
+      {submissions.length === 0 && <div className="info-card"><h2>You&apos;re all caught up.</h2><p>No rental submissions are waiting for review.</p></div>}
       <div className="owner-list">
         {submissions.map((item) => (
           <article key={item.id} className="owner-listing admin-listing">
@@ -38,7 +38,7 @@ export default async function AdminPage() {
               <h2>{item.title}</h2>
               <p>{item.barangay}, {item.city} · {formatRent(item.monthlyRentCentavos)}/month</p>
               <p className="admin-description">{item.description}</p>
-              <p className="owner-disclaimer"><ShieldCheck size={15}/> Verify the owner's authority before approving.</p>
+              <p className="owner-disclaimer"><ShieldCheck size={15}/> Verify the owner&apos;s authority before approving.</p>
             </div>
             <div className="review-actions">
               <form action={reviewProperty}>
