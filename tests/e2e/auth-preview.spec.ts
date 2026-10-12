@@ -17,3 +17,9 @@ test("admin dashboard is hidden without an authenticated moderator", async ({ pa
   const response = await page.goto("/admin");
   expect(response?.status()).toBe(404);
 });
+
+
+test("logged-out owner screen does not expose a sign-out control", async ({ page }) => {
+  await page.goto("/owner");
+  await expect(page.getByRole("button", { name: "Sign out" })).toHaveCount(0);
+});
