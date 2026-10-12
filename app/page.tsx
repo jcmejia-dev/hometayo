@@ -48,12 +48,12 @@ export default function Home() {
         <div className="home-path-heading">
           <span className="section-kicker">NEW TO HOMETAYO?</span>
           <h2 id="home-path-title">What brings you here?</h2>
-          <p>We'll help you get started, whether you're looking for a place or sharing one.</p>
+          <p>We&apos;ll help you get started, whether you&apos;re looking for a place or sharing one.</p>
         </div>
         <div className="home-path-grid">
           <Link href="/how-it-works#renters" className="home-path-card">
             <span className="home-path-symbol"><Compass size={27}/></span>
-            <span className="home-path-words"><strong>I'm looking for a home</strong><small>Learn to search and contact owners safely</small></span>
+            <span className="home-path-words"><strong>I&apos;m looking for a home</strong><small>Learn to search and contact owners safely</small></span>
             <ArrowUpRight size={19} aria-hidden="true"/>
           </Link>
           <Link href="/how-it-works#owners" className="home-path-card">
