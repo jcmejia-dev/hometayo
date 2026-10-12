@@ -14,7 +14,7 @@ Project: Koronadal-first rental marketplace, Next.js + TypeScript + Tailwind + N
 - Report work using **Prepared / Attempted / Executed / Verified / Not executed** with evidence; distinguish code review from runtime validation.
 
 ## Development assistants and tools
-1. **Context7 (ChatGPT plugin / optional coding-agent MCP):** Prefer current official library documentation and Context7 when connected. Connecting it requires user authorization; this repository cannot install a ChatGPT plugin.
+1. **Context7 (connected ChatGPT plugin / optional coding-agent MCP):** Context7 was connected and successfully queried for official Next.js App Router PWA documentation on 2026-10-12. Use it for current library APIs when available; this does not mean Context7 MCP has been installed on a local coding machine. Re-check connection status in each session.
 2. **Playwright CLI:** Preferred for agent-driven browser inspection/screenshots after the web app exists; install `@playwright/cli` in the local coding environment, and add project E2E tests with `@playwright/test` when implementing the UI. CI tests must be deterministic.
 3. **Neon + Drizzle:** Use tracked migrations. Do not use Supabase CLI or Supabase projects unless a specific, approved architecture change is made.
 4. **Strix:** Optional security scan on local/test assets **owned by the project only**, after preview is functional. Requires separate local/container setup, model credentials, an agreed budget and target permission; never run against third-party services.
