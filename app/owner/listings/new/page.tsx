@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { authIsConfigured } from "@/auth";
 import { currentUser } from "@/lib/session-user";
 import { createProperty } from "@/app/owner/actions";
+import { GuideNudge } from "@/components/guide-nudge";
 
 export const dynamic = "force-dynamic";
 export default async function NewListingPage() {
@@ -21,6 +22,12 @@ export default async function NewListingPage() {
         <span className="page-icon"><Home size={25}/></span>
         <p className="section-kicker">ADD A RENTAL</p><h1>Tell us about your property.</h1>
         <p>Only submit genuine, authorized rental offers. This form sends your property for human review — not immediate publication.</p>
+      </div>
+      <GuideNudge audience="owner" compact />
+      <div className="form-howto" aria-label="Before you submit">
+        <div><span>01</span><p><strong>Describe your actual rental</strong> Include its location, rent and basic facilities.</p></div>
+        <div><span>02</span><p><strong>Choose public contact details</strong> Share only a phone number or Messenger link you approve.</p></div>
+        <div><span>03</span><p><strong>Submit for review</strong> Your property stays private until an administrator approves it.</p></div>
       </div>
       <form className="owner-form info-card" action={createProperty}>
         <label>Property title <input required name="title" minLength={8} maxLength={120} placeholder="e.g. Spacious 4-bedroom family house"/></label>
