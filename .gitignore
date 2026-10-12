@@ -147,3 +147,11 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Playwright and browser automation
+.playwright-cli/
+playwright-report/
+test-results/
+
+# Local editor config
+.DS_Store
