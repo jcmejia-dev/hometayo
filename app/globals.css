@@ -318,3 +318,39 @@ input, select { min-width: 0; }
   .category-card { min-width: 0; overflow-wrap: anywhere; }
   .category-card > svg { opacity: .65; }
 }
+
+
+/* Job 3: mobile-first authentication, landlord forms and moderation */
+.owner-form { display: grid; gap: 22px; }
+.owner-form label { min-width: 0; display: flex; flex-direction: column; gap: 8px; color: #345342; font-weight: 730; font-size: 13px; }
+.owner-form input, .owner-form select, .owner-form textarea, .review-actions input {
+  width: 100%; max-width: 100%; border: 1px solid #dce8dd; border-radius: 10px;
+  min-height: 47px; background: white; padding: 11px 13px; color: #193d2c; font-size: 16px;
+}
+.owner-form textarea { min-height: 126px; resize: vertical; }
+.owner-form .button { justify-self: start; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 17px; }
+.auth-security, .owner-disclaimer { display: flex; align-items: flex-start; gap: 9px; color: #65796b; font-size: 12px; line-height: 1.8; margin: 20px 0; }
+.auth-security svg, .owner-disclaimer svg { flex: none; }
+.owner-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 24px 0; }
+.owner-toolbar > span { font-size: 13px; color: #59705f; overflow-wrap: anywhere; }
+.owner-list { display: flex; flex-direction: column; gap: 17px; margin-top: 24px; }
+.owner-listing { min-width: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 23px; border: 1px solid #e0eade; border-radius: 17px; background: white; }
+.owner-listing h2 { color: #173d32; font-size: 20px; margin: 8px 0; line-height: 1.35; overflow-wrap: anywhere; }
+.owner-listing p { color: #667d69; font-size: 13px; margin: 6px 0 16px; overflow-wrap: anywhere; }
+.owner-status { color: #236c4d; background: #e9f4e9; padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 750; text-transform: capitalize; }
+.owner-listing form { flex: none; }
+.admin-listing { display: block; }
+.admin-description { white-space: pre-wrap; }
+.review-actions { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.review-actions form { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 10px; }
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .owner-toolbar { flex-direction: column; align-items: stretch; }
+  .owner-toolbar .button { width: 100%; }
+  .owner-listing { flex-direction: column; }
+  .owner-listing form, .owner-listing form .button { width: 100%; }
+  .review-actions { flex-direction: column; }
+  .review-actions form { width: 100%; flex: auto; }
+  .owner-form .button { width: 100%; }
+}
