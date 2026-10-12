@@ -266,3 +266,33 @@ input, select { min-width: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+
+/* Job 2: genuine published listing cards */
+.published-results { margin: 42px 0 12px; }
+.results-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 15px; margin-bottom: 23px; }
+.results-heading h2 { color: var(--green); font-size: 25px; font-weight: 800; margin: 0; }
+.results-heading p { color: var(--muted); font-size: 12px; }
+.rental-results-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.rental-result-card { display: block; background: white; border: 1px solid var(--line); border-radius: 19px; overflow: hidden; transition: transform .2s, box-shadow .2s; }
+.rental-result-card:hover { transform: translateY(-3px); box-shadow: 0 12px 25px #173d3215; }
+.rental-card-photo { height: 175px; display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; color: #6d9d7a; background: #e5eee3; }
+.rental-card-photo span { font-size: 11px; color: #698472; }
+.rental-card-content { padding: 20px; }
+.rental-type { color: #4f9467; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; font-weight: 800; margin: 0 0 10px; }
+.rental-card-content h3 { font-size: 19px; color: var(--green); margin: 0 0 8px; }
+.rental-card-location { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; margin: 0 0 21px; }
+.rental-card-bottom { border-top: 1px solid var(--line); padding-top: 13px; display: flex; justify-content: space-between; align-items: center; gap: 7px; }
+.rental-card-bottom strong { font-size: 17px; color: var(--green); }
+.rental-card-bottom strong small { font-size: 11px; color: var(--muted); font-weight: 500; }
+.rental-card-bottom > span { display: flex; gap: 4px; align-items: center; font-size: 11px; color: var(--muted); }
+.rental-confirmed { color: #7a8e7c; font-size: 11px; margin: 12px 0 0; }
+.detail-icon { min-height: 185px; border-radius: 13px; background: #edf2eb; color: #71977a; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column; margin-bottom: 25px; }
+.detail-icon span { font-size: 11px; }
+.listing-detail h2 { font-size: 29px; margin-bottom: 15px; }
+.month-label { font-size: 13px; color: var(--muted); font-weight: 400; }
+.listing-detail > p { white-space: pre-wrap; font-size: 14px; line-height: 1.8; color: #4d6053; }
+.detail-facts { display: flex; flex-wrap: wrap; gap: 9px; margin: 22px 0; }
+.detail-facts span { display: flex; align-items: center; gap: 7px; padding: 9px 11px; border-radius: 9px; background: #edf3ec; font-size: 12px; }
+.detail-contact { margin-top: 21px; }
+@media(max-width:850px){ .rental-results-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:540px){ .rental-results-grid { grid-template-columns: 1fr; } .results-heading { flex-direction: column; gap: 0; } }

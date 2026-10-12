@@ -24,6 +24,8 @@ jobs:
         run: npm run lint
       - name: TypeScript checks
         run: npm run typecheck
+      - name: Unit tests
+        run: npm run test:unit
       - name: Production build
         run: npm run build
       - name: Install Chromium
