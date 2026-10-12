@@ -24,7 +24,7 @@ jobs:
         run: npm run lint
       - name: TypeScript checks
         run: npm run typecheck
-      - name: Production build
+      - name: Unit tests\n        run: npm run test:unit\n      - name: Production build
         run: npm run build
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
