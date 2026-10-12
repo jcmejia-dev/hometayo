@@ -33,7 +33,7 @@ test("home search, category navigation and listing empty state remain usable", a
   await expect(page.getByRole("heading", { name: /preparing the first listings/i })).toBeVisible();
 });
 
-test("navigation is available on touch and desktop layouts", async ({ page, isMobile }) => {
+test("navigation is available on touch and desktop layouts", async ({ page }) => {
   await page.goto("/");
 
   // Real CSS breakpoint, rather than Playwright's device label, determines the menu.
