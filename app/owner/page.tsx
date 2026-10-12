@@ -1,20 +1,83 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Camera, CheckCircle2, Megaphone, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Plus, ShieldCheck } from "lucide-react";
+import { eq, desc } from "drizzle-orm";
+import { authIsConfigured } from "@/auth";
+import { currentUser } from "@/lib/session-user";
+import { getDatabase } from "@/lib/db";
+import { listings, ownerProfiles } from "@/db/schema";
+import { formatRent } from "@/lib/search-filters";
+import { pauseProperty } from "./actions";
 
-export default function OwnerPage() {
+export const dynamic = "force-dynamic";
+export default async function OwnerPage({ searchParams }: { searchParams: Promise<{ submitted?: string }> }) {
+  const user = await currentUser();
+  const params = await searchParams;
+  const db = getDatabase();
+  let owned: Array<{ id: string; title: string; status: string; slug: string; monthlyRentCentavos: number }> = [];
+  if (user && db) {
+    const [owner] = await db.select({ id: ownerProfiles.id }).from(ownerProfiles)
+      .where(eq(ownerProfiles.userId, user.id)).limit(1);
+    if (owner) owned = await db.select({
+      id: listings.id, title: listings.title, status: listings.status,
+      slug: listings.slug, monthlyRentCentavos: listings.monthlyRentCentavos,
+    }).from(listings).where(eq(listings.ownerId, owner.id)).orderBy(desc(listings.createdAt));
+  }
+
   return (
     <section className="container interior-page narrow-page">
-      <Link href="/" className="back-link"><ArrowLeft size={17} /> Back to HomeTayo</Link>
-      <div className="interior-heading"><p className="section-kicker">FOR PROPERTY OWNERS</p><h1>Let people discover your space.</h1><p>HomeTayo will make it easier to showcase rental vacancies, stay organized, and share a single clear listing link.</p></div>
-      <div className="info-card">
-        <h2>What owners will get</h2>
-        <div className="info-step"><Camera size={22} /><p>A simple property page with owner-authorized photos, price, amenities, and rental terms.</p></div>
-        <div className="info-step"><Megaphone size={22} /><p>A shareable link to add to your existing Facebook posts. No need to leave Facebook.</p></div>
-        <div className="info-step"><ShieldCheck size={22} /><p>Control over what contact information is public and when the vacancy is available.</p></div>
-        <div className="info-step"><CheckCircle2 size={22} /><p>Basic listings planned to be free for initial pilot owners.</p></div>
-        <div className="status-notice">Owner registration and property submission are not enabled yet. We are preparing the Koronadal pilot.</div>
+      <Link href="/" className="back-link"><ArrowLeft size={17}/> Back to HomeTayo</Link>
+      <div className="interior-heading">
+        <p className="section-kicker">PROPERTY OWNER STUDIO</p>
+        <h1>{user ? "Your rental listings." : "Let people discover your space."}</h1>
+        <p>{user ? "Manage your submissions and keep vacant rentals accurate." : "Share your rental with local renters. We review each new property before showing it publicly."}</p>
       </div>
-      <Link href="/rentals" className="text-link bottom-link">See renter experience <ArrowRight size={18} /></Link>
+      {!user ? (
+        <div className="info-card">
+          <h2>What owners will get</h2>
+          <div className="info-step"><Building2 size={22}/><p>Submit property details, rent, location and contact preferences for review.</p></div>
+          <div className="info-step"><ShieldCheck size={22}/><p>Property submissions remain unpublished until an administrator approves them.</p></div>
+          {authIsConfigured() ? (
+            <Link className="button button-primary bottom-link" href="/sign-in">Sign in with Google <ArrowRight size={17}/></Link>
+          ) : (
+            <div className="status-notice">Owner registration and property submission are not enabled yet. We are preparing the Koronadal pilot. Configure Google OAuth in .env.local first.</div>
+          )}
+        </div>
+      ) : (
+        <>
+          {params.submitted === "1" && <div className="status-notice">Your rental was submitted for review. It is not public until approved.</div>}
+          <div className="owner-toolbar">
+            <span>Signed in as {user.displayName || user.email}</span>
+            <Link href="/owner/listings/new" className="button button-primary"><Plus size={18}/> Submit a property</Link>
+          </div>
+          {owned.length === 0 ? (
+            <div className="info-card">
+              <h2>No properties submitted yet</h2>
+              <p className="auth-security">Start by entering accurate details about a property you are authorized to list.</p>
+              <Link href="/owner/listings/new" className="button button-outline">Add first listing <ArrowRight size={17}/></Link>
+            </div>
+          ) : (
+            <div className="owner-list">
+              {owned.map((listing) => (
+                <article key={listing.id} className="owner-listing">
+                  <div>
+                    <span className="owner-status">{listing.status.replaceAll("_", " ")}</span>
+                    <h2>{listing.title}</h2>
+                    <p>{formatRent(listing.monthlyRentCentavos)} / month</p>
+                    {listing.status === "published" && <Link href={"/rentals/" + listing.slug} className="text-link">View public listing <ArrowRight size={16}/></Link>}
+                  </div>
+                  {listing.status === "published" && (
+                    <form action={pauseProperty}>
+                      <input type="hidden" name="id" value={listing.id}/>
+                      <button className="button button-outline" type="submit">Mark unavailable</button>
+                    </form>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+          <p className="owner-disclaimer">Photo uploads and edits are planned for the next milestone. Do not submit a property you do not own or have permission to advertise.</p>
+        </>
+      )}
     </section>
   );
 }
