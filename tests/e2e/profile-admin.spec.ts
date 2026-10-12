@@ -11,7 +11,7 @@ test("a visitor can find profile settings but cannot view a private account", as
     await page.getByRole("navigation", {name:"Primary navigation"}).getByRole("link", {name:"My profile"}).click();
   }
   await expect(page).toHaveURL(/\/profile$/);
-  await expect(page.getByText("Profile setup unavailable")).toBeVisible();
+  await expect(page.getByRole("heading",{ name: "Profile setup unavailable" })).toBeVisible();
   await expect(page.getByLabel("Google account")).toHaveCount(0);
 });
 
