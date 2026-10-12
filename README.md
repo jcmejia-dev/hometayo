@@ -4,6 +4,12 @@
 
 > **Development preview:** Job 2 adds an optional Neon-backed, read-only view of admin-approved real listings. Database connection and migrations require separate user setup. Job 3 adds Google OAuth and landlord submission/moderation when private credentials are configured; photo uploads, listing edits, payments, rental requests and notifications are not yet available. The application is not deployed.
 
+## Homepage design (UI refresh)
+- Replaced decorative house artwork with a **clearly labeled illustrative interface** and demo rental cards. No demo properties are linked or published as real inventory.
+- Sample photos are licensed under the Unsplash free license; the images are hosted remotely by Unsplash and may be unavailable when offline. Credits: [Eli Chamoun](https://unsplash.com/photos/a-modern-house-with-a-stylish-exterior-coqmBSuXOE4) and [Caroline Badran](https://unsplash.com/photos/a-modern-bedroom-shows-a-cozy-bed-YktL-k8ErB8).
+- Search dropdowns now use accessible Radix UI Select menus with keyboard/touch support and preserve the original URL query semantics.
+- Marketing demonstration prices and photographs are **illustrative only** and must not be mistaken for approved HomeTayo listings. Remove sample previews when live listing imagery is implemented, or explicitly maintain their preview status.
+
 ## Technology
 - Next.js App Router, React, TypeScript, Tailwind CSS
 - Installable-PWA foundations: web manifest and vector app icon; service worker, raster icons and offline/update behavior will be implemented and device-tested later
