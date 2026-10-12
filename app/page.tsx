@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight, ArrowUpRight, BadgeCheck, BedDouble, Building2,
-  Heart, House, MapPin, SearchCheck, ShieldCheck, Sparkles, Users,
+  Heart, House, MapPin, SearchCheck, ShieldCheck, Sparkles, Users, Compass, HousePlus,
 } from "lucide-react";
 import { SearchForm } from "@/components/search-form";
 
@@ -44,6 +44,25 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="container home-choose-path" aria-labelledby="home-path-title">
+        <div className="home-path-heading">
+          <span className="section-kicker">NEW TO HOMETAYO?</span>
+          <h2 id="home-path-title">What brings you here?</h2>
+          <p>We'll help you get started, whether you're looking for a place or sharing one.</p>
+        </div>
+        <div className="home-path-grid">
+          <Link href="/how-it-works#renters" className="home-path-card">
+            <span className="home-path-symbol"><Compass size={27}/></span>
+            <span className="home-path-words"><strong>I'm looking for a home</strong><small>Learn to search and contact owners safely</small></span>
+            <ArrowUpRight size={19} aria-hidden="true"/>
+          </Link>
+          <Link href="/how-it-works#owners" className="home-path-card">
+            <span className="home-path-symbol"><HousePlus size={27}/></span>
+            <span className="home-path-words"><strong>I want to list a property</strong><small>Learn how submissions and approval work</small></span>
+            <ArrowUpRight size={19} aria-hidden="true"/>
+          </Link>
+        </div>
+      </section>
       <section className="categories-section container" id="categories">
         <div className="section-heading"><div><p className="section-kicker">FIND YOUR FIT</p><h2>A space for every story.</h2><p>From a first bedspace to a new family home.</p></div><Link href="/rentals" className="text-link">Explore rentals <ArrowUpRight size={18} /></Link></div>
         <div className="category-grid">
@@ -59,7 +78,7 @@ export default function Home() {
           <div className="steps-title"><p className="section-kicker">THE HOMETAYO WAY</p><h2>Renting shouldn&apos;t feel like a guessing game.</h2><p>We&apos;re building a more organized way to search, connect, and settle in — without scrolling through endless posts.</p><Link href="/rentals" className="button button-primary">Start exploring <ArrowRight size={18} /></Link></div>
           <div className="steps-list">
             <div><span className="step-count">01</span><div><h3>Tell us what you need</h3><p>Choose a location, rental type, monthly budget, and the space you need.</p></div></div>
-            <div><span className="step-count">02</span><div><h3>See the important details</h3><p>Compare clear rental terms, photos, amenities, and availability once listings launch.</p></div></div>
+            <div><span className="step-count">02</span><div><h3>See the important details</h3><p>Review the rental price, location, description and availability when an approved listing is available.</p></div></div>
             <div><span className="step-count">03</span><div><h3>Connect with the owner</h3><p>Get in touch using an owner-approved contact method. No surprise booking fees.</p></div></div>
           </div>
         </div>
@@ -69,7 +88,7 @@ export default function Home() {
         <div className="owner-banner"><div className="owner-symbol"><BadgeCheck size={32} /></div><div><p className="section-kicker">FOR PROPERTY OWNERS</p><h2>Have a place to rent out?</h2><p>Help people find your available space. Keep sharing on Facebook, with a cleaner listing page when our pilot opens.</p></div><Link href="/owner" className="button button-light">Learn about listing <ArrowUpRight size={18} /></Link></div>
       </section>
 
-      <section className="container pilot-banner"><Sparkles size={20} /><p><strong>We&apos;re just getting started.</strong> HomeTayo is in development, beginning with Koronadal City. There are no published rental listings on this preview yet.</p></section>
+      <section className="container pilot-banner"><Sparkles size={20} /><p><strong>We&apos;re just getting started.</strong> HomeTayo is in development, beginning with Koronadal City. Public results depend on genuine, admin-approved listings. Some features are still in progress.</p></section>
     </>
   );
 }
