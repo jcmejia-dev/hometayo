@@ -10,6 +10,13 @@
 - Search dropdowns now use accessible Radix UI Select menus with keyboard/touch support and preserve the original URL query semantics.
 - Marketing demonstration prices and photographs are **illustrative only** and must not be mistaken for approved HomeTayo listings. Remove sample previews when live listing imagery is implemented, or explicitly maintain their preview status.
 
+## Job 4 profile and admin operations
+
+- Google-authenticated Profile & Settings (`/profile`) stores renter preferences.
+- Admin operations (`/admin`) displays actual account/listing counts, moderation queue and a scoped event log.
+- **Required**: Apply `002_profiles_admin_activity.sql` after updating your existing dedicated HomeTayo Neon DB. This upgrade is not run automatically on GitHub or Vercel.
+- [Migration and verification guide](docs/PROFILE_ADMIN_SETUP.md). The activity timeline tracks listing operations, **not** page views or private renter behavior.
+
 ## Technology
 - Next.js App Router, React, TypeScript, Tailwind CSS
 - Installable-PWA foundations: web manifest and vector app icon; service worker, raster icons and offline/update behavior will be implemented and device-tested later
