@@ -19,7 +19,7 @@ export function EmailLoginForm({enabled}:{enabled:boolean}) {
     <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="login-password" name="password" type="password" autoComplete="current-password" minLength={1} maxLength={128} required placeholder="Enter your password" disabled={!enabled}/></span>
     {state.message && <p className="auth-form-status" role="alert">{state.message}</p>}
     <button className="auth-submit" type="submit" disabled={!enabled || pending}>{pending ? "Signing in…" : "Sign in"}</button>
-    {!enabled && <p className="auth-unavailable" role="status">Email sign-in isn\'t available yet. Use Google to continue.</p>}
+    {!enabled && <p className="auth-unavailable" role="status">Email sign-in is not available yet. Use Google to continue.</p>}
   </form>;
 }
 export function EmailSignUpForm({enabled}:{enabled:boolean}) {
@@ -36,7 +36,7 @@ export function EmailSignUpForm({enabled}:{enabled:boolean}) {
     {enabled && <p className="auth-field-help">We’ll send a verification link to your email.</p>}
     {state.message && <p className={state.success?"auth-form-success":"auth-form-status"} role="status">{state.message}</p>}
     <button className="auth-submit" type="submit" disabled={!enabled||pending}>{pending?"Creating account…":"Create account"}</button>
-    {!enabled && <p className="auth-unavailable" role="status">Email registration isn\'t available yet. Use Google to create an account.</p>}
+    {!enabled && <p className="auth-unavailable" role="status">Email registration is not available yet. Use Google to create an account.</p>}
   </form>;
 }
 export function ForgotPasswordForm({enabled}:{enabled:boolean}){
