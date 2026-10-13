@@ -1,7 +1,7 @@
 import "server-only";
 import { desc, eq, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { Activity, Building2, ClipboardList, House, ShieldCheck, UsersRound } from "lucide-react";
+import { Activity, Building2, ChevronDown, ClipboardList, House, ShieldCheck, UsersRound } from "lucide-react";
 import { listingReviews, listings, ownerProfiles, platformEvents, users } from "@/db/schema";
 import { getDatabase } from "@/lib/db";
 import { currentUser } from "@/lib/session-user";
@@ -73,7 +73,9 @@ export async function AdminOverview() {
         ))}
       </div>
       <div className="admin-summary-line">Total submitted listings: <strong>{totalListings}</strong> · Rejected: <strong>{byStatus.rejected ?? 0}</strong> · Unavailable: <strong>{(byStatus.paused ?? 0) + (byStatus.occupied ?? 0)}</strong></div>
-      <div className="admin-data-grid">
+      <details className="admin-extra-details">
+        <summary className="admin-expand-toggle">Activity, accounts and review history <ChevronDown size={17} aria-hidden="true"/></summary>
+        <div className="admin-data-grid">
         <section className="admin-data-card" aria-labelledby="admin-activity-title">
           <div className="admin-data-heading"><Activity size={19}/><h3 id="admin-activity-title">Recent listing activity</h3></div>
           {activity.length === 0 ? <p className="admin-data-empty">No recorded events yet. Activity appears here after Job 4 is migrated and new actions occur.</p> :
@@ -105,6 +107,7 @@ export async function AdminOverview() {
           </li>)}</ul>}
       </section>
       <p className="admin-tracking-disclaimer">These are database counts and explicitly recorded property operations, not website traffic, visitor surveillance, revenue, payments, or private renter searches. Earlier actions will not be backfilled automatically.</p>
+      </details>
     </section>
   );
 }

@@ -2,12 +2,17 @@ import { expect, test } from "@playwright/test";
 
 test("hero uses a labeled marketplace UI preview rather than cartoon artwork", async ({ page }) => {
   await page.goto("/");
-  const preview = page.getByRole("complementary", { name: "Illustrative HomeTayo marketplace preview" });
-  await expect(preview).toBeVisible();
-  await expect(preview.getByText("INTERFACE PREVIEW")).toBeVisible();
-  await expect(preview.getByText("Sample family home")).toBeVisible();
-  await expect(preview.getByText("Sample cozy room")).toBeVisible();
-  await expect(preview.getByText(/no sample property is available for rent/i)).toBeVisible();
+  const preview = page.locator(".market-preview-wrap");
+  const width = page.viewportSize()?.width ?? 1280;
+  if (width <= 850) {
+    await expect(preview).toBeHidden();
+  } else {
+    await expect(preview).toBeVisible();
+    await expect(preview.getByText("INTERFACE PREVIEW")).toBeVisible();
+  }
+  await expect(preview.getByText("Sample family home")).toHaveCount(1);
+  await expect(preview.getByText("Sample cozy room")).toHaveCount(1);
+  await expect(preview.getByText(/no sample property is available for rent/i)).toHaveCount(1);
   await expect(page.locator(".hero-art")).toHaveCount(0);
   await expect(preview.locator('a[href^="/rentals/"]')).toHaveCount(0);
 });

@@ -1,8 +1,5 @@
 import Link from "next/link";
-import {
-  ArrowRight, ArrowUpRight, BadgeCheck, BedDouble, Building2,
-  House, SearchCheck, ShieldCheck, Sparkles, Users, Compass, HousePlus,
-} from "lucide-react";
+import { ArrowUpRight, BedDouble, Building2, House, Users, Compass, HousePlus, Sparkles } from "lucide-react";
 import { SearchForm } from "@/components/search-form";
 import { MarketplacePreview } from "@/components/marketplace-preview";
 
@@ -14,19 +11,11 @@ export default function Home() {
           <div className="hero-copy">
             <div className="eyebrow"><span className="eyebrow-dot" /> MADE FOR RENTING IN THE PHILIPPINES</div>
             <h1>A better place to <span>find your place.</span></h1>
-            <p className="hero-description">Looking for a family home, a quiet apartment, or an affordable bedspace? A simpler rental search starts here.</p>
+            <p className="hero-description">Looking for a family home, a quiet apartment, or an affordable bedspace? Search local rentals in one place.</p>
             <SearchForm />
             <div className="launch-note"><span className="pulse-dot" /> Starting in Koronadal City · Prelaunch preview</div>
           </div>
           <MarketplacePreview />
-        </div>
-      </section>
-
-      <section className="features-strip">
-        <div className="container features-grid">
-          <span><SearchCheck size={19} /> Search by what matters</span>
-          <span><ShieldCheck size={19} /> Clearer listing information</span>
-          <span><Users size={19} /> Built for local communities</span>
         </div>
       </section>
 
@@ -57,21 +46,6 @@ export default function Home() {
           <Link href="/rentals?type=boarding_house" className="category-card card-boarding"><span className="category-icon"><BedDouble size={27} /></span><span><strong>Boarding houses</strong><small>Simple and practical</small></span><ArrowUpRight size={19} /></Link>
           <Link href="/rentals?type=bedspace" className="category-card card-bed"><span className="category-icon"><Users size={27} /></span><span><strong>Bedspaces</strong><small>Start somewhere new</small></span><ArrowUpRight size={19} /></Link>
         </div>
-      </section>
-
-      <section className="steps-section" id="how-it-works">
-        <div className="container steps-grid">
-          <div className="steps-title"><p className="section-kicker">THE HOMETAYO WAY</p><h2>Renting shouldn&apos;t feel like a guessing game.</h2><p>We&apos;re building a more organized way to search, connect, and settle in — without scrolling through endless posts.</p><Link href="/rentals" className="button button-primary">Start exploring <ArrowRight size={18} /></Link></div>
-          <div className="steps-list">
-            <div><span className="step-count">01</span><div><h3>Tell us what you need</h3><p>Choose a location, rental type, monthly budget, and the space you need.</p></div></div>
-            <div><span className="step-count">02</span><div><h3>See the important details</h3><p>Review the rental price, location, description and availability when an approved listing is available.</p></div></div>
-            <div><span className="step-count">03</span><div><h3>Connect with the owner</h3><p>Get in touch using an owner-approved contact method. No surprise booking fees.</p></div></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="container owner-section">
-        <div className="owner-banner"><div className="owner-symbol"><BadgeCheck size={32} /></div><div><p className="section-kicker">FOR PROPERTY OWNERS</p><h2>Have a place to rent out?</h2><p>Help people find your available space. Keep sharing on Facebook, with a cleaner listing page when our pilot opens.</p></div><Link href="/owner" className="button button-light">Learn about listing <ArrowUpRight size={18} /></Link></div>
       </section>
 
       <section className="container pilot-banner"><Sparkles size={20} /><p><strong>We&apos;re just getting started.</strong> HomeTayo is in development, beginning with Koronadal City. Public results depend on genuine, admin-approved listings. Some features are still in progress.</p></section>

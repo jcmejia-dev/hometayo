@@ -27,11 +27,11 @@ export default async function AdminPage() {
       <Link href="/" className="back-link"><ArrowLeft size={17}/> HomeTayo</Link>
       <div className="interior-heading">
         <span className="page-icon"><ClipboardCheck size={27}/></span>
-        <p className="section-kicker">MODERATION</p><h1>Rental review queue</h1>
-        <p>Review property authorization and details. Approval is not a legal or physical guarantee.</p>
+        <p className="section-kicker">MODERATION</p><h1>Admin dashboard</h1>
+        <p>Review new listings and manage platform operations.</p>
       </div>
       <AdminOverview />
-      <div className="admin-section-heading admin-review-queue-heading"><div><p className="section-kicker">NEEDS YOUR ATTENTION</p><h2>Pending property reviews</h2></div></div>
+      <div className="admin-section-heading admin-review-queue-heading"><div><p className="section-kicker">NEEDS YOUR ATTENTION</p><h2>Rental review queue</h2></div></div>
       {submissions.length === 0 && <div className="info-card"><h2>You&apos;re all caught up.</h2><p>No rental submissions are waiting for review.</p></div>}
       <div className="owner-list">
         {submissions.map((item) => (
