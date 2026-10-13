@@ -4,6 +4,12 @@
 
 > **Development preview:** Job 2 adds an optional Neon-backed, read-only view of admin-approved real listings. Database connection and migrations require separate user setup. Job 3 adds Google OAuth and landlord submission/moderation when private credentials are configured; photo uploads, listing edits, payments, rental requests and notifications are not yet available. The application is not deployed.
 
+## Authentication: Sign in or Create account
+
+- Separate responsive `/sign-in` and `/sign-up` experiences, with accessible email/password labels and preserved Google OAuth.
+- Email signup is **disabled by default** until a verified transactional email sender, explicit `ENABLE_EMAIL_SIGNUP=true`, and Neon migration `003_email_accounts.sql` have been configured.
+- [Read the setup, security constraints, and password recovery guide](docs/EMAIL_AUTH_DEPLOYMENT.md). Do not publicize email/password authentication until this setup and audit are complete.
+
 ## HomeTayo brand icon
 
 - The app name stays **HomeTayo**. The *HomePin* house-and-location-pin symbol is the visual mark, not a rename.

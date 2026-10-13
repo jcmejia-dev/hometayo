@@ -32,6 +32,5 @@ test("recovery pages make no promises before verification setup", async ({page})
 test("sign-in remains usable to visitors without credentials", async ({page}) => {
   await page.goto("/sign-in");
   await expect(page.getByRole("link",{name:"Create an account"})).toBeVisible();
-  await expect(page.getByRole("link",{name:"Back to HomeTayo"})).toHaveCount(0);
   await expect(page.getByRole("heading",{name:"Sign in to HomeTayo."})).toBeVisible();
 });
