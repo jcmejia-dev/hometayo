@@ -24,7 +24,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      # ubuntu-latest already provides the Android SDK via ANDROID_HOME.
+      # Avoid obsolete "sdkmanager tools" installation performed by setup-android@v3.
+      - name: Verify runner Android SDK
+        run: test -d "$ANDROID_HOME/platforms" && echo "Android SDK ready"
       - name: Install dependencies
         working-directory: apps/mobile
         run: npm install --no-audit --no-fund
