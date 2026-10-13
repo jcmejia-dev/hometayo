@@ -25,14 +25,14 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
   }
 
   return (
-    <section className="container interior-page narrow-page">
+    <section className="container interior-page narrow-page compact-owner-page">
       <Link href="/" className="back-link"><ArrowLeft size={17}/> Back to HomeTayo</Link>
       <div className="interior-heading">
         <p className="section-kicker">PROPERTY OWNER STUDIO</p>
-        <h1>{user ? "Your rental listings." : "Let people discover your space."}</h1>
-        <p>{user ? "Manage your submissions and keep vacant rentals accurate." : "Share your rental with local renters. We review each new property before showing it publicly."}</p>
+        <h1>{user ? "My properties" : "List a property"}</h1>
+        <p>{user ? "Track and manage your submissions." : "Submit your rental for HomeTayo review."}</p>
       </div>
-      <GuideNudge audience="owner" />
+      <GuideNudge audience="owner" compact />
       {!user ? (
         <div className="info-card">
           <h2>What owners will get</h2>
