@@ -62,3 +62,34 @@ test("PWA manifest advertises HomeTayo without relying on device-specific markup
   expect(manifest.start_url).toBe("/");
   expect(manifest.icons.length).toBeGreaterThan(0);
 });
+
+
+test("mobile bottom tabs navigate the application without removing help menu", async ({ page }) => {
+  await page.goto("/");
+  const tabs = page.getByRole("navigation", { name: "App navigation" });
+  const width = page.viewportSize()?.width ?? 1280;
+  if (width <= 800) {
+    await expect(tabs).toBeVisible();
+    await expect(tabs.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    await tabs.getByRole("link", { name: "Explore" }).click();
+    await expect(page).toHaveURL(/\/rentals$/);
+    await expect(tabs.getByRole("link", { name: "Explore" })).toHaveAttribute("aria-current", "page");
+    await tabs.getByRole("link", { name: "My listings" }).click();
+    await expect(page).toHaveURL(/\/owner$/);
+    await tabs.getByRole("link", { name: "Profile" }).click();
+    await expect(page).toHaveURL(/\/profile$/);
+    await expect(page.locator(".mobile-menu")).toBeVisible();
+  } else {
+    await expect(tabs).toBeHidden();
+  }
+});
+
+test("homepage is compact and keeps search/category paths available", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("search")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What brings you here?" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Houses.*Room to grow/i })).toBeVisible();
+  await expect(page.locator(".steps-section")).toHaveCount(0);
+  await expect(page.locator(".features-strip")).toHaveCount(0);
+  await expect(page.locator(".owner-section")).toHaveCount(0);
+});
