@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("home page focuses on rental search without prelaunch placeholders", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /A better place to find your place/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Find a place to call home/i })).toBeVisible();
   await expect(page.locator(".eyebrow-dot, .pulse-dot")).toHaveCount(0);
   await expect(page.getByText(/Koronadal pilot|Prelaunch preview/i)).toHaveCount(0);
   await expect(page.locator(".featured-panel")).toHaveCount(1);
