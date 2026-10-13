@@ -9,14 +9,14 @@ import { GuideNudge } from "@/components/guide-nudge";
 export const dynamic = "force-dynamic";
 export default async function NewListingPage() {
   if (!authIsConfigured()) return (
-    <section className="container interior-page narrow-page">
+    <section className="container interior-page narrow-page compact-owner-form">
       <Link href="/owner" className="back-link"><ArrowLeft size={17}/> Owner studio</Link>
       <div className="info-card"><h2>Google sign-in setup is required.</h2><p>Property submission will become available once HomeTayo OAuth settings are configured.</p></div>
     </section>
   );
   if (!(await currentUser())) redirect("/sign-in");
   return (
-    <section className="container interior-page narrow-page">
+    <section className="container interior-page narrow-page compact-owner-form">
       <Link href="/owner" className="back-link"><ArrowLeft size={17}/> Owner dashboard</Link>
       <div className="interior-heading">
         <span className="page-icon"><Home size={25}/></span>
