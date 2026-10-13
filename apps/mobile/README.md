@@ -50,3 +50,7 @@ Future native account integration needs OAuth Authorization Code + PKCE, secure 
 To enable background JS updates, separately install/configure expo-updates, an EAS project ID and a compatible runtimeVersion before promising one-tap updates. Native code, permissions and icon changes require a new signed binary.
 
 Re-run Android device checks and safety/privacy review before inviting public users.
+
+## Optional CI-built testing APK
+
+The GitHub Actions workflow Android native APK preview also builds a standalone React Native APK from source, with a temporary **debug signing certificate**. It uploads the artifact under the Actions run for internal testers. This is not an app-store release and is not a replacement for properly managed EAS signing credentials. Build success is not guaranteed until the workflow finishes green and a real Android device has installed the APK.
