@@ -1,21 +1,24 @@
 import Link from "next/link";
-import { ArrowUpRight, BedDouble, Building2, House, Users, Compass, HousePlus, Sparkles } from "lucide-react";
+import { ArrowUpRight, BedDouble, Building2, House, Users, Compass, HousePlus, ShieldCheck } from "lucide-react";
 import { SearchForm } from "@/components/search-form";
-import { MarketplacePreview } from "@/components/marketplace-preview";
+import { FeaturedRentalsPanel } from "@/components/featured-rentals";
+import { getLatestPublishedListings } from "@/lib/listings";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const latest = await getLatestPublishedListings();
   return (
     <>
       <section className="hero-section">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <div className="eyebrow"><span className="eyebrow-dot" /> MADE FOR RENTING IN THE PHILIPPINES</div>
+            <div className="eyebrow">RENTING, MADE SIMPLE</div>
             <h1>A better place to <span>find your place.</span></h1>
             <p className="hero-description">Looking for a family home, a quiet apartment, or an affordable bedspace? Search local rentals in one place.</p>
             <SearchForm />
-            <div className="launch-note"><span className="pulse-dot" /> Starting in Koronadal City · Prelaunch preview</div>
           </div>
-          <MarketplacePreview />
+          <FeaturedRentalsPanel result={latest} />
         </div>
       </section>
 
@@ -48,7 +51,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="container pilot-banner"><Sparkles size={20} /><p><strong>We&apos;re just getting started.</strong> HomeTayo is in development, beginning with Koronadal City. Public results depend on genuine, admin-approved listings. Some features are still in progress.</p></section>
+      <section className="container pilot-banner"><ShieldCheck size={20} /><p><strong>Rent with confidence.</strong> Properties appear publicly only after administrator review. Always verify the owner and terms before paying.</p></section>
     </>
   );
 }
