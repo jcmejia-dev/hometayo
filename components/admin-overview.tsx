@@ -73,6 +73,8 @@ export async function AdminOverview() {
         ))}
       </div>
       <div className="admin-summary-line">Total submitted listings: <strong>{totalListings}</strong> · Rejected: <strong>{byStatus.rejected ?? 0}</strong> · Unavailable: <strong>{(byStatus.paused ?? 0) + (byStatus.occupied ?? 0)}</strong></div>
+      <details className="admin-insights-details">
+        <summary>Activity &amp; recent registrations <span>Show details</span></summary>
       <div className="admin-data-grid">
         <section className="admin-data-card" aria-labelledby="admin-activity-title">
           <div className="admin-data-heading"><Activity size={19}/><h3 id="admin-activity-title">Recent listing activity</h3></div>
@@ -104,6 +106,7 @@ export async function AdminOverview() {
             <div><strong>{review.title}</strong><p>{review.reviewerName ?? "Moderator"} · {dateTime(review.occurredAt)}</p></div>
           </li>)}</ul>}
       </section>
+      </details>
       <p className="admin-tracking-disclaimer">These are database counts and explicitly recorded property operations, not website traffic, visitor surveillance, revenue, payments, or private renter searches. Earlier actions will not be backfilled automatically.</p>
     </section>
   );
