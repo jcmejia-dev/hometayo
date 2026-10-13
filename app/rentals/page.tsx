@@ -27,12 +27,12 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
   const allowedRooms = ["","1","2","3","4"];
 
   return (
-    <div className="container interior-page">
-      <div className="breadcrumb"><Link href="/">Home</Link><ArrowRight size={14}/> Explore rentals</div>
+    <div className="container interior-page compact-rentals-page">
+      
       <div className="interior-heading">
-        <p className="section-kicker">EXPLORE HOMES</p>
-        <h1>Your next place starts here.</h1>
-        <p>Search by location, price and property type. Only admin-approved properties can appear here.</p>
+        <p className="section-kicker">RENTAL SEARCH</p>
+        <h1>Explore rentals</h1>
+        <p>Find a place that fits your budget. Only admin-approved rentals appear here.</p>
       </div>
       <SearchForm compact initialCity={filters.city}
         initialType={allowedTypes.includes(type) ? type : "all"}
