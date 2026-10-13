@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { ArrowRight, LockKeyhole, Mail, UserRound } from "lucide-react";
 import {
-  loginWithEmail, requestResetAction, resetPasswordAction,
+  type AuthFormState, loginWithEmail, requestResetAction, resetPasswordAction,
   signUpWithEmail, verifyEmailAction,
 } from "@/app/auth/actions";
 
-const initial={message:""};
+const initial: AuthFormState = {message:""};
 
 export function EmailLoginForm() {
   const [state,action,pending]=useActionState(loginWithEmail,initial);

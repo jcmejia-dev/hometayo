@@ -47,7 +47,7 @@ async function sendEmail(to:string,subject:string,url:string,description:string)
 export async function consumeRateLimit(kind:string,subject:string,maximum:number,seconds:number):Promise<boolean>{
   if (!sessionReady()) return false;
   const db=database();
-  const rows=await db(
+  const rows=await db.query(
     "INSERT INTO auth_rate_limits (key,attempts,window_started_at) VALUES ($1,1,now()) "+
     "ON CONFLICT (key) DO UPDATE SET "+
     "attempts=CASE WHEN auth_rate_limits.window_started_at < now()-$2*interval '1 second' THEN 1 ELSE auth_rate_limits.attempts+1 END, "+
@@ -75,7 +75,7 @@ export async function authenticateEmailPassword(rawEmail:unknown,rawPassword:unk
   const {email,password}=validated.data;
   try {
     if (!await consumeRateLimit("login",email,8,15*60)) return null;
-    const rows=await database()(
+    const rows=await database().query(
       "SELECT u.id,u.email,u.display_name,c.password_hash FROM users u "+
       "INNER JOIN email_password_credentials c ON c.user_id=u.id "+
       "WHERE u.email=$1 AND c.verified_at IS NOT NULL LIMIT 1",[email]);
@@ -93,8 +93,8 @@ async function issueEmailToken(id:string,email:string,purpose:"verify"|"reset"):
   const value=randomToken(),digest=hashToken(value);
   const lifetime=purpose==="verify"?86400:1800;
   // Existing tokens are invalidated whenever a new one is issued.
-  await db("DELETE FROM auth_email_tokens WHERE user_id=$1 AND purpose=$2",[id,purpose]);
-  await db("INSERT INTO auth_email_tokens (token_hash,user_id,purpose,expires_at) "+
+  await db.query("DELETE FROM auth_email_tokens WHERE user_id=$1 AND purpose=$2",[id,purpose]);
+  await db.query("INSERT INTO auth_email_tokens (token_hash,user_id,purpose,expires_at) "+
     "VALUES ($1,$2,$3,now()+$4*interval '1 second')",[digest,id,purpose,lifetime]);
   const path=purpose==="verify"?"/verify-email?token=":"/reset-password?token=";
   await sendEmail(email,purpose==="verify"?"Verify your HomeTayo email":"Reset your HomeTayo password",
@@ -105,7 +105,7 @@ export async function registerEmailUser(email:string,name:string,password:string
   if (!emailSignUpConfigured()) throw Error("Email registration disabled");
   if (!await consumeRateLimit("signup",email,3,24*3600)) return;
   const db=database();
-  const found=await db(
+  const found=await db.query(
     "SELECT u.id,c.password_hash,c.verified_at FROM users u "+
     "LEFT JOIN email_password_credentials c ON c.user_id=u.id WHERE u.email=$1 LIMIT 1",[email]);
   const entry=found[0];
@@ -117,7 +117,7 @@ export async function registerEmailUser(email:string,name:string,password:string
     return;
   }
   const id="email:"+randomUUID(),passwordHash=await hashPassword(password);
-  const inserted=await db(
+  const inserted=await db.query(
     "WITH created AS (INSERT INTO users (id,email,display_name,role) VALUES ($1,$2,$3,'renter') "+
     "ON CONFLICT (email) DO NOTHING RETURNING id) "+
     "INSERT INTO email_password_credentials (user_id,password_hash) "+
@@ -126,7 +126,7 @@ export async function registerEmailUser(email:string,name:string,password:string
 }
 export async function verifyEmailToken(value:string):Promise<boolean>{
   if (!sessionReady() || !/^[A-Za-z0-9_-]{40,60}$/.test(value)) return false;
-  const rows=await database()(
+  const rows=await database().query(
     "WITH claimed AS (DELETE FROM auth_email_tokens WHERE token_hash=$1 "+
     "AND purpose='verify' AND expires_at>now() RETURNING user_id) "+
     "UPDATE email_password_credentials c SET verified_at=now() "+
@@ -140,7 +140,7 @@ export async function requestPasswordReset(rawEmail:string):Promise<void>{
   if (!parsed.success) return;
   const email=parsed.data;
   if (!await consumeRateLimit("password-reset",email,3,3600)) return;
-  const rows=await database()(
+  const rows=await database().query(
     "SELECT u.id FROM users u JOIN email_password_credentials c ON u.id=c.user_id "+
     "WHERE u.email=$1 AND c.verified_at IS NOT NULL AND u.id LIKE 'email:%' LIMIT 1",[email]);
   if (rows.length) await issueEmailToken(rows[0].id as string,email,"reset");
@@ -148,7 +148,7 @@ export async function requestPasswordReset(rawEmail:string):Promise<void>{
 export async function resetEmailPassword(value:string,password:string):Promise<boolean>{
   if (!sessionReady() || !/^[A-Za-z0-9_-]{40,60}$/.test(value)) return false;
   const passwordHash=await hashPassword(password);
-  const rows=await database()(
+  const rows=await database().query(
     "WITH claimed AS (DELETE FROM auth_email_tokens "+
     "WHERE token_hash=$1 AND purpose='reset' AND expires_at>now() RETURNING user_id) "+
     "UPDATE email_password_credentials c SET password_hash=$2,password_updated_at=now() "+
