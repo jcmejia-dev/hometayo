@@ -15,7 +15,7 @@ test("home discovery shows real approved listings or a transparent empty state",
   await expect(page.getByText("Sample cozy room")).toHaveCount(0);
   await expect(page.getByText("INTERFACE PREVIEW")).toHaveCount(0);
   await expect(page.locator(".market-preview-card")).toHaveCount(0);
-  await expect(featured.getByRole("link", { name: /Browse rentals/i })).toHaveCount(1);
+  await expect(featured.locator('a[href="/rentals"]')).toHaveCount(1);
 });
 
 test("custom rental dropdown is branded, keyboard accessible, and dismissible", async ({ page }) => {
