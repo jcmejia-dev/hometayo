@@ -17,6 +17,15 @@
 - **Required**: Apply `002_profiles_admin_activity.sql` after updating your existing dedicated HomeTayo Neon DB. This upgrade is not run automatically on GitHub or Vercel.
 - [Migration and verification guide](docs/PROFILE_ADMIN_SETUP.md). The activity timeline tracks listing operations, **not** page views or private renter behavior.
 
+## Compact app experience
+
+- Homepage focuses on property search, four categories and two quick-start paths; long promotional sections were removed.
+- On mobile, the app has a persistent Home / Explore / List / Profile bottom navigation, with help/safety accessible through the header menu.
+- Large illustrative marketplace artwork is hidden on narrow displays; no fictional properties appear in actual search results.
+- Profile account details collapse into a native disclosure; admin overview and review queue use separate tabs. Recent operations are available in a disclosure on the overview.
+- **No database migrations or new environment variables** are required for this visual/navigation release.
+- Authenticated owner/profile/admin interactions must still be tested locally with your Google/Neon configuration because CI uses a guest environment.
+
 ## Technology
 - Next.js App Router, React, TypeScript, Tailwind CSS
 - Installable-PWA foundations: web manifest and vector app icon; service worker, raster icons and offline/update behavior will be implemented and device-tested later
