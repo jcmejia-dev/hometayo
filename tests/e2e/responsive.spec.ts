@@ -98,3 +98,24 @@ test("homepage is compact and keeps search/category paths available", async ({ p
   await expect(page.locator(".features-strip")).toHaveCount(0);
   await expect(page.locator(".owner-section")).toHaveCount(0);
 });
+
+
+test("footer links form balanced rows with Privacy beside Safety, and no pilot label", async ({ page }) => {
+  await page.goto("/");
+  const footer = page.locator(".site-footer");
+  const navigation = footer.getByRole("navigation", { name: "Footer navigation" });
+  const width = page.viewportSize()?.width ?? 1280;
+  if (width <= 800) {
+    await expect(footer).toBeHidden();
+  } else {
+    await expect(footer).toBeVisible();
+    const links = navigation.getByRole("link");
+    await expect(links).toHaveCount(6);
+    const safetyBox = await navigation.getByRole("link", { name: "Safety" }).boundingBox();
+    const privacyBox = await navigation.getByRole("link", { name: "Privacy" }).boundingBox();
+    expect(safetyBox && privacyBox).toBeTruthy();
+    expect(Math.abs(safetyBox!.y - privacyBox!.y)).toBeLessThan(3);
+    await expect(footer).toContainText("HomeTayo");
+    await expect(footer).not.toContainText("Koronadal pilot");
+  }
+});

@@ -4,7 +4,7 @@ export function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="container footer-inner">
-        <div>
+        <div className="footer-identity">
           <Link href="/" className="footer-brand" aria-label="HomeTayo home"><span className="footer-mark" aria-hidden="true" /><span>Home<span className="brand-accent">Tayo</span></span></Link>
           <p>Finding a place to belong, together.</p>
         </div>
@@ -16,7 +16,7 @@ export function SiteFooter() {
           <Link href="/safety">Safety</Link>
           <Link href="/privacy">Privacy</Link>
         </nav>
-        <p className="footer-note">Koronadal pilot · © {new Date().getFullYear()} HomeTayo</p>
+        <p className="footer-note">© {new Date().getFullYear()} HomeTayo</p>
       </div>
     </footer>
   );

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BedDouble, House, MapPin, SearchX } from "lucide-react";
+import { ArrowRight, BedDouble, House, MapPin, SearchX, ShieldCheck } from "lucide-react";
 import { SearchForm } from "@/components/search-form";
 import { GuideNudge } from "@/components/guide-nudge";
 import { browsePublishedListings } from "@/lib/listings";
@@ -8,7 +8,7 @@ import { formatRent, parseRentalFilters } from "@/lib/search-filters";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Explore rentals", description: "Browse approved rental listings in HomeTayo's Koronadal pilot.",
+  title: "Explore rentals", description: "Browse current administrator-approved rental listings on HomeTayo.",
 };
 type Params = { city?: string | string[]; type?: string | string[]; maxRent?: string | string[]; bedrooms?: string | string[] };
 function first(value: string | string[] | undefined): string {
@@ -65,7 +65,7 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
       ) : (
         <section className="empty-state" aria-labelledby="rental-empty-title">
           <span className="empty-icon"><SearchX size={37}/></span>
-          <span className="launch-pill"><MapPin size={14}/> Koronadal pilot · Prelaunch</span>
+          <span className="launch-pill"><ShieldCheck size={14}/> Administrator-reviewed listings</span>
           <h2 id="rental-empty-title">{result.state === "not_configured" ? "We're preparing the first listings."
             : result.state === "error" ? "Search is temporarily unavailable."
             : "No approved listings match yet."}</h2>

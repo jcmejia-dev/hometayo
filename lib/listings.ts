@@ -63,3 +63,23 @@ export function safePublicContact(kind: string, value: string | null): string | 
   }
   return null;
 }
+
+
+/**
+ * Home page discovery only: fetch genuine published records, independent of city.
+ * Never returns owner contact details or unpublished property submissions.
+ */
+export async function getLatestPublishedListings(limit = 2): Promise<BrowseResult> {
+  const db = getDatabase();
+  if (!db) return { state: "not_configured", listings: [] };
+  try {
+    const rows = await db.select(publicFields).from(listings)
+      .where(eq(listings.status, "published"))
+      .orderBy(desc(listings.publishedAt), desc(listings.createdAt))
+      .limit(Math.min(Math.max(limit, 1), 4));
+    return { state: "ready", listings: rows };
+  } catch (error) {
+    console.error("HomeTayo featured listing lookup failed", error instanceof Error ? error.name : "UnknownError");
+    return { state: "error", listings: [] };
+  }
+}
