@@ -1,7 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">HomeTayo</title>
-  <rect width="512" height="512" rx="112" fill="#173d32"/>
-  <path d="M118 245 256 133l138 112" fill="none" stroke="#e8b778" stroke-width="29" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M163 236v133a19 19 0 0 0 19 19h148a19 19 0 0 0 19-19V236" fill="none" stroke="#f7f6f1" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M233 387V291a23 23 0 0 1 46 0v96" fill="none" stroke="#e8b778" stroke-width="27" stroke-linecap="round"/>
+  <title id="title">HomeTayo — house and location pin</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#196247"/>
+      <stop offset=".52" stop-color="#0c4332"/>
+      <stop offset="1" stop-color="#072a22"/>
+    </linearGradient>
+    <linearGradient id="ivory" x1="0" y1="0" x2=".86" y2="1">
+      <stop offset="0" stop-color="#fffdf5"/>
+      <stop offset="1" stop-color="#eee8d6"/>
+    </linearGradient>
+    <radialGradient id="gold" cx=".35" cy=".22" r=".85">
+      <stop offset="0" stop-color="#f8d98b"/>
+      <stop offset=".66" stop-color="#e5b558"/>
+      <stop offset="1" stop-color="#ba8736"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#tile)"/>
+  <rect x="4" y="4" width="504" height="504" rx="105" fill="none" stroke="#f1f5dd" stroke-opacity=".09" stroke-width="6"/>
+  <rect x="341" y="140" width="36" height="88" rx="12" fill="url(#ivory)"/>
+  <path d="M119 229 256 109 391 229" fill="none" stroke="url(#ivory)" stroke-width="36" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M163 227v97c0 19 9 31 24 44l69 64 69-64c15-13 24-25 24-44v-97" fill="none" stroke="url(#ivory)" stroke-width="33" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M193 335c0-36 28-65 63-65s63 29 63 65c0 42-63 96-63 96s-63-54-63-96Z" fill="none" stroke="url(#ivory)" stroke-width="29" stroke-linejoin="round"/>
+  <circle cx="256" cy="335" r="28" fill="url(#gold)"/>
 </svg>
