@@ -45,7 +45,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <div className="profile-primary">
           <form action={updateProfile} className="info-card profile-form">
             <div className="profile-section-title"><Settings2 size={21}/><h2>Personal settings</h2></div>
-            <p className="profile-help">Your preferred name and search preferences stay in your HomeTayo account. Your Google email is managed by Google.</p>
+            <p className="profile-help">Your preferred name and search preferences stay in your HomeTayo account. Your sign-in email cannot be changed here.</p>
             <div className="profile-fields-grid">
             <label>Display name <input name="preferredName" minLength={2} maxLength={80} defaultValue={profile.preferredName ?? ""} placeholder={account.displayName ?? "What should we call you?"}/></label>
             <label>Preferred location <input name="homeCity" minLength={2} maxLength={80} defaultValue={profile.homeCity ?? ""} placeholder="e.g. Koronadal City"/></label>
@@ -63,11 +63,11 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           <details className="info-card profile-account" aria-label="Account and security">
             <summary className="profile-account-summary"><LockKeyhole size={21}/><strong>Account and security</strong><span>View</span></summary>
             <dl className="profile-details">
-              <div><dt>Google account</dt><dd>{account.email}</dd></div>
+              <div><dt>Account email</dt><dd>{account.email}</dd></div>
               <div><dt>Access role</dt><dd>{account.role === "admin" ? "Administrator" : account.role === "moderator" ? "Moderator" : "Member"}</dd></div>
               <div><dt>Member since</dt><dd>{new Intl.DateTimeFormat("en-PH",{dateStyle:"medium",timeZone:"Asia/Manila"}).format(profile.createdAt)}</dd></div>
             </dl>
-            <p className="profile-help">You cannot change your email or grant yourself an administrator role here. HomeTayo never stores your Google password.</p>
+            <p className="profile-help">You cannot change your email or grant yourself an administrator role here. HomeTayo does not store readable passwords; Google passwords always remain with Google.</p>
             <form action={async () => { "use server"; await signOut({redirectTo:"/sign-in"}); }}>
               <button className="button button-outline" type="submit">Sign out</button>
             </form>

@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 
 test("auth screens do not offer live login before secret configuration", async ({ page }) => {
   await page.goto("/sign-in");
-  await expect(page.getByRole("heading", { name: /Sign in to manage your rentals/i })).toBeVisible();
-  await expect(page.getByText(/Google login is awaiting owner setup/i)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Sign in to HomeTayo/i })).toBeVisible();
+  await expect(page.getByText(/Sign-in is awaiting secure server configuration/i)).toBeVisible();
   await expect(page.getByRole("button", { name: /Continue with Google/i })).toHaveCount(0);
 });
 

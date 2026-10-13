@@ -8,7 +8,7 @@ export async function currentUser() {
   if (!authIsConfigured()) return null;
   const session = await auth();
   const id = session?.user?.id;
-  if (!id || !id.startsWith("google:")) return null;
+  if (!id || !(id.startsWith("google:") || id.startsWith("email:"))) return null;
   const db = getDatabase();
   if (!db) return null;
   const [account] = await db.select({

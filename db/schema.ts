@@ -74,4 +74,22 @@ export const platformEvents = pgTable("platform_events", {
   index("platform_events_recent_idx").on(table.createdAt),
   index("platform_events_actor_idx").on(table.actorUserId, table.createdAt),
 ]);
+export const emailPasswordCredentials = pgTable("email_password_credentials", {
+  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  passwordHash: text("password_hash").notNull(),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  passwordUpdatedAt: timestamp("password_updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const authEmailTokens = pgTable("auth_email_tokens", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  purpose: text("purpose", {enum:["verify","reset"]}).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, table => [index("auth_email_tokens_user_idx").on(table.userId, table.purpose)]);
+export const authRateLimits = pgTable("auth_rate_limits", {
+  key: text("key").primaryKey(),
+  attempts: integer("attempts").notNull().default(0),
+  windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull().defaultNow(),
+});
 export type Listing = typeof listings.$inferSelect;

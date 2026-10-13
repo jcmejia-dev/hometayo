@@ -1,34 +1,28 @@
 import Link from "next/link";
-import { ArrowLeft, KeyRound, ShieldCheck } from "lucide-react";
-import { authIsConfigured, signIn } from "@/auth";
-import { currentUser } from "@/lib/session-user";
 import { redirect } from "next/navigation";
+import { signIn } from "@/auth";
+import { googleSignInConfigured, emailPasswordSignInConfigured } from "@/lib/email-auth";
+import { currentUser } from "@/lib/session-user";
+import { AuthShell } from "@/components/auth-shell";
+import { EmailLoginForm } from "@/components/auth-forms";
 
 export const dynamic = "force-dynamic";
-
-export default async function SignIn() {
+export default async function SignInPage({searchParams}:{searchParams:Promise<{verified?:string}>}) {
   if (await currentUser()) redirect("/owner");
-  const configured = authIsConfigured();
-  return (
-    <div className="container interior-page narrow-page">
-      <Link href="/" className="back-link"><ArrowLeft size={17}/> Back to HomeTayo</Link>
-      <div className="interior-heading">
-        <span className="page-icon"><KeyRound size={26}/></span>
-        <p className="section-kicker">WELCOME TO HOMETAYO</p>
-        <h1>Sign in to manage your rentals.</h1>
-        <p>Google sign-in is free. Browse rental listings without an account.</p>
-      </div>
-      <div className="info-card">
-        {configured ? (
-          <form action={async () => {
-            "use server";
-            await signIn("google", { redirectTo: "/owner" });
-          }}>
-            <button type="submit" className="button button-primary">Continue with Google</button>
-          </form>
-        ) : <div className="status-notice">Google login is awaiting owner setup. Add AUTH_SECRET, AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET to your private .env.local file to enable it.</div>}
-        <p className="auth-security"><ShieldCheck size={16}/> Sign-in uses Google OAuth. HomeTayo never requests your Google password.</p>
-      </div>
-    </div>
-  );
+  const google=googleSignInConfigured(),email=emailPasswordSignInConfigured();
+  const {verified}=await searchParams;
+  return <AuthShell mode="login" eyebrow="WELCOME BACK" title="Sign in to HomeTayo."
+    description="Find a place, manage your rentals, and pick up where you left off.">
+    {verified==="1" && <p className="auth-form-success" role="status">Email verified. You can sign in now.</p>}
+    {email ? <EmailLoginForm/> :
+      <p className="auth-setup-notice" role="status">Email sign-in is being configured. You can browse rentals without signing in.</p>}
+    {google && <>
+      {email && <div className="auth-divider"><span>or continue with</span></div>}
+      <form action={async()=>{"use server";await signIn("google",{redirectTo:"/owner"});}}>
+        <button type="submit" className="auth-google-button"><span className="auth-google-letter" aria-hidden="true">G</span> Continue with Google</button>
+      </form>
+    </>}
+    {!google && !email && <p className="auth-setup-notice">Sign-in is awaiting secure server configuration.</p>}
+    <p className="auth-switch-note">New to HomeTayo? <Link href="/sign-up">Create an account</Link></p>
+  </AuthShell>;
 }
