@@ -61,6 +61,11 @@ test("PWA manifest advertises HomeTayo without relying on device-specific markup
   expect(manifest.display).toBe("standalone");
   expect(manifest.start_url).toBe("/");
   expect(manifest.icons.length).toBeGreaterThan(0);
+  expect(manifest.icons).toEqual(expect.arrayContaining([
+    expect.objectContaining({ src: "/pwa-icon-192.png", sizes: "192x192", type: "image/png" }),
+    expect.objectContaining({ src: "/pwa-icon-512.png", sizes: "512x512", type: "image/png" }),
+    expect.objectContaining({ src: "/pwa-maskable-512.png", purpose: "maskable" }),
+  ]));
 });
 
 

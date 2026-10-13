@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { House } from "lucide-react";
 
 export function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="container footer-inner">
         <div>
-          <Link href="/" className="footer-brand"><House size={18} /> hometayo.</Link>
+          <Link href="/" className="footer-brand" aria-label="HomeTayo home"><span className="footer-mark" aria-hidden="true" /><span>Home<span className="brand-accent">Tayo</span></span></Link>
           <p>Finding a place to belong, together.</p>
         </div>
         <nav aria-label="Footer navigation">

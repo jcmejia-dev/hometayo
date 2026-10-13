@@ -4,6 +4,13 @@
 
 > **Development preview:** Job 2 adds an optional Neon-backed, read-only view of admin-approved real listings. Database connection and migrations require separate user setup. Job 3 adds Google OAuth and landlord submission/moderation when private credentials are configured; photo uploads, listing edits, payments, rental requests and notifications are not yet available. The application is not deployed.
 
+## HomeTayo brand icon
+
+- The app name stays **HomeTayo**. The *HomePin* house-and-location-pin symbol is the visual mark, not a rename.
+- The same forest-green / ivory / gold vector appears as the site header/footer mark and the scalable SVG favicon.
+- 192px and 512px PWA PNG icon routes, a maskable 512px version and Apple touch icon are generated with Next.js ImageResponse. They require no external image hosting.
+- Icons are referenced in the PWA manifest and metadata. Users with an already-installed version may need to refresh/reinstall if their OS caches the previous launcher icon.
+
 ## Homepage design (UI refresh)
 - Replaced decorative house artwork with a **clearly labeled illustrative interface** and demo rental cards. No demo properties are linked or published as real inventory.
 - Sample photos are licensed under the Unsplash free license; the images are hosted remotely by Unsplash and may be unavailable when offline. Credits: [Eli Chamoun](https://unsplash.com/photos/a-modern-house-with-a-stylish-exterior-coqmBSuXOE4) and [Caroline Badran](https://unsplash.com/photos/a-modern-bedroom-shows-a-cozy-bed-YktL-k8ErB8).

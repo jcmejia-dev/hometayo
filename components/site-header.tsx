@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, House, Menu } from "lucide-react";
+import { ArrowUpRight, Menu } from "lucide-react";
 
 export function SiteHeader() {
   return (
@@ -8,8 +8,8 @@ export function SiteHeader() {
       <header className="site-header">
         <div className="container header-inner">
           <Link href="/" className="brand" aria-label="HomeTayo home">
-            <span className="brand-icon"><House size={21} strokeWidth={2.4} /></span>
-            <span>hometayo<span className="brand-dot">.</span></span>
+            <span className="brand-icon" aria-hidden="true" />
+            <span className="brand-wordmark">Home<span className="brand-accent">Tayo</span></span>
           </Link>
           <nav className="desktop-nav" aria-label="Primary navigation">
             <Link href="/rentals">Explore rentals</Link>
