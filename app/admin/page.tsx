@@ -8,6 +8,7 @@ import { listings } from "@/db/schema";
 import { reviewProperty } from "./actions";
 import { formatRent } from "@/lib/search-filters";
 import { AdminOverview } from "@/components/admin-overview";
+import { DashboardTabs } from "@/components/dashboard-tabs";
 
 export const dynamic = "force-dynamic";
 export default async function AdminPage() {
@@ -27,10 +28,14 @@ export default async function AdminPage() {
       <Link href="/" className="back-link"><ArrowLeft size={17}/> HomeTayo</Link>
       <div className="interior-heading">
         <span className="page-icon"><ClipboardCheck size={27}/></span>
-        <p className="section-kicker">MODERATION</p><h1>Rental review queue</h1>
-        <p>Review property authorization and details. Approval is not a legal or physical guarantee.</p>
+        <p className="section-kicker">PLATFORM MANAGEMENT</p><h1>Admin control center</h1>
+        <p>Review the numbers, manage pending listings, and inspect platform activity.</p>
       </div>
-      <AdminOverview />
+      <DashboardTabs tabs={[
+        { id: "overview", label: "Overview", content: <AdminOverview /> },
+        { id: "reviews", label: "Reviews", badge: submissions.length,
+          content: (
+            <div className="admin-review-tab">
       <div className="admin-section-heading admin-review-queue-heading"><div><p className="section-kicker">NEEDS YOUR ATTENTION</p><h2>Pending property reviews</h2></div></div>
       {submissions.length === 0 && <div className="info-card"><h2>You&apos;re all caught up.</h2><p>No rental submissions are waiting for review.</p></div>}
       <div className="owner-list">
@@ -59,6 +64,11 @@ export default async function AdminPage() {
           </article>
         ))}
       </div>
+            </div>
+          ),
+        },
+      ]}/>
+
     </section>
   );
 }
