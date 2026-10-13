@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { ArrowRight, House, LockKeyhole, MapPin, Settings2, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowRight, House, LockKeyhole, MapPin, Settings2, ShieldCheck, UserRound, PlayCircle } from "lucide-react";
 import { authIsConfigured, signOut } from "@/auth";
 import { users } from "@/db/schema";
 import { getDatabase } from "@/lib/db";
@@ -74,6 +74,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </details>
         </div>
         <aside className="profile-side" aria-label="Quick links">
+          <div className="profile-side-card"><PlayCircle size={22}/><h2>Introduction</h2><p>Review how to get started.</p><Link href="/?intro=1" className="button button-outline">Replay tutorial <ArrowRight size={16}/></Link></div>
           <div className="profile-side-card"><MapPin size={22}/><h2>Find a place</h2><p>Search using your saved preferences.</p><Link href={browse} className="button button-outline">Browse with preferences <ArrowRight size={16}/></Link></div>
           <div className="profile-side-card"><House size={22}/><h2>Have a rental?</h2><p>Manage your properties.</p><Link href="/owner" className="button button-outline">Owner dashboard <ArrowRight size={16}/></Link></div>
           {account.role === "admin" || account.role === "moderator" ? (

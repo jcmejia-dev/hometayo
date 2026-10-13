@@ -92,7 +92,7 @@ test("mobile bottom tabs navigate the application without removing help menu", a
 test("homepage is compact and keeps search/category paths available", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("search")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "What brings you here?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What are you looking for?" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Houses.*Room to grow/i })).toBeVisible();
   await expect(page.locator(".steps-section")).toHaveCount(0);
   await expect(page.locator(".features-strip")).toHaveCount(0);

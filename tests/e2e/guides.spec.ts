@@ -1,9 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("home page offers renter and owner onboarding paths", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "What brings you here?" })).toBeVisible();
-  await page.getByRole("link", { name: /I'm looking for a home.*Learn to search/i }).click();
+test("public guide introduces renter and owner journeys", async ({ page }) => {
+  await page.goto("/how-it-works");
+  await page.getByRole("link", { name: /I'm looking for a home.*Step-by-step rental search/i }).click();
   await expect(page).toHaveURL(/\/how-it-works#renters$/);
   await expect(page.getByRole("heading", { name: "Renter guide" })).toBeVisible();
 });

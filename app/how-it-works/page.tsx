@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   ArrowRight, BadgeCheck, BookOpenCheck, CircleHelp,
   ClipboardCheck, Compass, HousePlus, KeyRound, MapPin,
-  Search, ShieldCheck, SlidersHorizontal, Sparkles,
+  Search, ShieldCheck, SlidersHorizontal, Sparkles, PlayCircle,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -33,6 +33,7 @@ export default function HowItWorks() {
           <span className="guide-eyebrow"><BookOpenCheck size={16} /> YOUR HOMETAYO GUIDE</span>
           <h1>Find a home or list a place.<br/><span>Know exactly what to do.</span></h1>
           <p>New here? Choose your path below. We&apos;ll show you what works today, and what we&apos;re still building.</p>
+          <Link href="/?intro=1" className="guide-replay-link"><PlayCircle size={17}/> Replay the introduction</Link>
           <div className="guide-role-grid" aria-label="Choose your HomeTayo guide">
             <a href="#renters" className="guide-role-card">
               <span className="guide-role-icon"><Compass size={25} /></span>

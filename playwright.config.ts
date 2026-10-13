@@ -7,7 +7,16 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 3 : undefined,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: "http://127.0.0.1:3000", trace: "on-first-retry" },
+  use: {
+    baseURL: "http://127.0.0.1:3000",
+    trace: "on-first-retry",
+    // Legacy screen tests should not interact with the first-time dialog.
+    // The dedicated onboarding suite explicitly overrides this state.
+    storageState: { cookies: [], origins: [{
+      origin: "http://127.0.0.1:3000",
+      localStorage: [{ name: "hometayo.intro.v1", value: "done" }],
+    }] },
+  },
   projects: [
     {
       name: "small-phone-320",
