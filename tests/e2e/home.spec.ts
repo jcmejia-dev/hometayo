@@ -29,7 +29,7 @@ test("no invented property listings and accessible owner route", async ({ page }
   await expect(page.getByText(/doesn't have published rentals yet/i)).toBeVisible();
   await page.getByRole("link", { name: /Own a rental/i }).click();
   await expect(page).toHaveURL(/\/owner$/);
-  await expect(page.getByText(/Owner registration and property submission are not enabled yet/i)).toBeVisible();
+  await expect(page.getByText(/Owner sign-in is unavailable until authentication is configured/i)).toBeVisible();
 });
 
 test("rental-request preview never claims to accept information", async ({ page }) => {
