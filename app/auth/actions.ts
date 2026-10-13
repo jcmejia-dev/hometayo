@@ -41,16 +41,14 @@ export async function signUpWithEmail(_:AuthFormState,form:FormData):Promise<Aut
   }
 }
 export async function verifyEmailAction(_:AuthFormState,form:FormData):Promise<AuthFormState> {
+  let verified=false;
   try {
-    if (await verifyEmailToken(empty(form,"token"))) redirect("/sign-in?verified=1");
-    return {message:"This verification link is invalid or has expired."};
-  } catch(error) {
-    // Preserve NEXT_REDIRECT control-flow exception.
-    if (error instanceof Error && error.message==="NEXT_REDIRECT") throw error;
-    if (typeof error==="object" && error !== null && "digest" in error &&
-      String(error.digest).startsWith("NEXT_REDIRECT")) throw error;
+    verified=await verifyEmailToken(empty(form,"token"));
+  } catch {
     return {message:"Could not verify the address. Please try again."};
   }
+  if (verified) redirect("/sign-in?verified=1");
+  return {message:"This verification link is invalid or has expired."};
 }
 export async function requestResetAction(_:AuthFormState,form:FormData):Promise<AuthFormState> {
   if (!emailSignUpConfigured()) return {message:"Email recovery is not enabled yet."};
