@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, BackHandler, FlatList, KeyboardAvoidingView, Linking,
+  ActivityIndicator, Alert, BackHandler, FlatList, Image, Linking,
   Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -33,7 +33,7 @@ function PrimaryButton({text,onPress,outlined=false}:{
 }
 function Brand({subtitle}:{subtitle?:string}){
   return <View style={styles.brandWrap}>
-    <View style={styles.brandIcon}><Text style={styles.brandHouse}>⌂</Text><View style={styles.brandPin}/></View>
+    <Image source={require("./assets/icon.png")} style={{width:34,height:34,borderRadius:10}} accessibilityLabel="HomeTayo icon"/>
     <View><Text style={styles.brandWord}>Home<Text style={styles.brandGold}>Tayo</Text></Text>
       {subtitle?<Text style={styles.brandSubtitle}>{subtitle}</Text>:null}
     </View>

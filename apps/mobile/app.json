@@ -10,14 +10,17 @@
     "android": {
       "package": "app.hometayo.mobile",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#173D32"
       }
     },
     "ios": {
-      "bundleIdentifier": "app.hometayo.mobile"
+      "bundleIdentifier": "app.hometayo.mobile",
+      "icon": "./assets/icon.png"
     },
     "extra": {
       "note": "Public API only; never put DB or OAuth secrets in EXPO_PUBLIC vars."
-    }
+    },
+    "icon": "./assets/icon.png"
   }
 }
