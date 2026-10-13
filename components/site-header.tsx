@@ -28,6 +28,7 @@ export function SiteHeader() {
               <Link href="/safety">Rental safety</Link>
               <Link href="/owner">List your property</Link>
               <Link href="/profile">My profile</Link>
+              <Link href="/privacy">Privacy</Link>
             </nav>
           </details>
         </div>

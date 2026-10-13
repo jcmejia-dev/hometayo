@@ -31,8 +31,8 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
       <div className="breadcrumb"><Link href="/">Home</Link><ArrowRight size={14}/> Explore rentals</div>
       <div className="interior-heading">
         <p className="section-kicker">EXPLORE HOMES</p>
-        <h1>Your next place starts here.</h1>
-        <p>Search by location, price and property type. Only admin-approved properties can appear here.</p>
+        <h1>Explore rentals</h1>
+        <p>Filter approved rentals by location, price and type.</p>
       </div>
       <SearchForm compact initialCity={filters.city}
         initialType={allowedTypes.includes(type) ? type : "all"}

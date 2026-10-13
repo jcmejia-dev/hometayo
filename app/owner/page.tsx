@@ -30,9 +30,9 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
       <div className="interior-heading">
         <p className="section-kicker">PROPERTY OWNER STUDIO</p>
         <h1>{user ? "Your rental listings." : "Let people discover your space."}</h1>
-        <p>{user ? "Manage your submissions and keep vacant rentals accurate." : "Share your rental with local renters. We review each new property before showing it publicly."}</p>
+        <p>{user ? "See listing status and manage availability." : "List a space for review before it appears publicly."}</p>
       </div>
-      <GuideNudge audience="owner" />
+      <GuideNudge audience="owner" compact />
       {!user ? (
         <div className="info-card">
           <h2>What owners will get</h2>
@@ -58,6 +58,11 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
                 <button type="submit" className="button button-outline"><LogOut size={17}/> Sign out</button>
               </form>
             </div>
+          </div>
+          <div className="owner-quick-stats" aria-label="Your listing overview">
+            <span><strong>{owned.length}</strong> Total</span>
+            <span><strong>{owned.filter((item) => item.status === "pending_review").length}</strong> In review</span>
+            <span><strong>{owned.filter((item) => item.status === "published").length}</strong> Live</span>
           </div>
           {owned.length === 0 ? (
             <div className="info-card">
