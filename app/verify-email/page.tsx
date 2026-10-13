@@ -6,8 +6,7 @@ export const metadata:Metadata={title:"Verify your email",referrer:"no-referrer"
 export const dynamic="force-dynamic";
 export default async function VerifyEmailPage({searchParams}:{searchParams:Promise<{token?:string}>}) {
   const {token}=await searchParams;
-  return <AuthShell mode="other" eyebrow="ONE LAST STEP" title="Verify your email."
-    description="Confirm your address to activate your HomeTayo account.">
+  return <AuthShell mode="other" title="Verify your email.">
     {typeof token==="string"&&/^[A-Za-z0-9_-]{40,60}$/.test(token) ?
       <VerifyEmailForm token={token}/> :
       <p className="auth-setup-notice">That verification link is missing or invalid.</p>}
