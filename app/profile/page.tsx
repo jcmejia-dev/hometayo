@@ -36,7 +36,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <div>
           <p className="section-kicker">YOUR HOME, YOUR SETTINGS</p>
           <h1>My profile</h1>
-          <p>Manage your preferences and choose how you explore HomeTayo.</p>
+          <p>Your account, rental preferences and shortcuts.</p>
         </div>
         <span className="profile-avatar"><UserRound size={34}/></span>
       </div>
@@ -45,7 +45,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <div className="profile-primary">
           <form action={updateProfile} className="info-card profile-form">
             <div className="profile-section-title"><Settings2 size={21}/><h2>Personal settings</h2></div>
-            <p className="profile-help">Your preferred name and search preferences stay in your HomeTayo account. Your Google email is managed by Google.</p>
+            <p className="profile-help">Your saved preferences are private. Your Google email remains unchanged.</p>
             <label>Display name <input name="preferredName" minLength={2} maxLength={80} defaultValue={profile.preferredName ?? ""} placeholder={account.displayName ?? "What should we call you?"}/></label>
             <label>Preferred location <input name="homeCity" minLength={2} maxLength={80} defaultValue={profile.homeCity ?? ""} placeholder="e.g. Koronadal City"/></label>
             <label>Preferred property type <select name="preferredPropertyType" defaultValue={profile.preferredPropertyType ?? ""}>
@@ -58,8 +58,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <label>Preferred maximum rent (₱/month) <input name="preferredBudgetPesos" type="number" min={100} max={5000000} step={1} defaultValue={profile.preferredBudgetPesos ?? ""} placeholder="Optional"/></label>
             <button className="button button-primary profile-save" type="submit">Save preferences</button>
           </form>
-          <section className="info-card profile-account" aria-label="Account and security">
-            <div className="profile-section-title"><LockKeyhole size={21}/><h2>Account and security</h2></div>
+          <details className="info-card profile-account" aria-label="Account and security">
+            <summary className="profile-section-title"><LockKeyhole size={21}/><strong>Account and security</strong><span className="profile-summary-hint">View details</span></summary>
             <dl className="profile-details">
               <div><dt>Google account</dt><dd>{account.email}</dd></div>
               <div><dt>Access role</dt><dd>{account.role === "admin" ? "Administrator" : account.role === "moderator" ? "Moderator" : "Member"}</dd></div>
@@ -69,7 +69,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <form action={async () => { "use server"; await signOut({redirectTo:"/sign-in"}); }}>
               <button className="button button-outline" type="submit">Sign out</button>
             </form>
-          </section>
+          </details>
         </div>
         <aside className="profile-side" aria-label="Quick links">
           <div className="profile-side-card"><MapPin size={22}/><h2>Find a place</h2><p>Use your saved location and budget to start searching.</p><Link href={browse} className="button button-outline">Browse with preferences <ArrowRight size={16}/></Link></div>
