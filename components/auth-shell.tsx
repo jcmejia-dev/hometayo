@@ -5,7 +5,7 @@ import { ArrowLeft, CheckCircle2, HousePlus, MapPin, ShieldCheck } from "lucide-
 export function AuthShell({mode,eyebrow,title,description,children}:{
  mode:"login"|"signup"|"other";eyebrow:string;title:string;description:string;children:ReactNode;
 }){
- return <main className="auth-screen">
+ return <div className="auth-screen">
    <div className="container auth-layout">
      <section className="auth-editorial" aria-label="Why HomeTayo">
        <Link href="/" className="auth-back-link"><ArrowLeft size={17}/> Back to HomeTayo</Link>
@@ -33,5 +33,5 @@ export function AuthShell({mode,eyebrow,title,description,children}:{
        <div className="auth-privacy-line"><CheckCircle2 size={15}/><span>Your account role is managed by HomeTayo. No public admin registration.</span></div>
      </section>
    </div>
- </main>;
+ </div>;
 }

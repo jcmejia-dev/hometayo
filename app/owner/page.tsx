@@ -39,9 +39,9 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
           <div className="info-step"><Building2 size={22}/><p>Submit property details, rent, location and contact preferences for review.</p></div>
           <div className="info-step"><ShieldCheck size={22}/><p>Property submissions remain unpublished until an administrator approves them.</p></div>
           {authIsConfigured() ? (
-            <Link className="button button-primary bottom-link" href="/sign-in">Sign in with Google <ArrowRight size={17}/></Link>
+            <Link className="button button-primary bottom-link" href="/sign-in">Sign in or create account <ArrowRight size={17}/></Link>
           ) : (
-            <div className="status-notice">Owner registration and property submission are not enabled yet. We are preparing the Koronadal pilot. Configure Google OAuth in .env.local first.</div>
+            <div className="status-notice">Owner sign-in is unavailable until authentication is configured. Browse existing rentals while we complete setup.</div>
           )}
         </div>
       ) : (
