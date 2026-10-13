@@ -6,8 +6,7 @@ export const metadata:Metadata={title:"Change password",referrer:"no-referrer"};
 export const dynamic="force-dynamic";
 export default async function ResetPasswordPage({searchParams}:{searchParams:Promise<{token?:string}>}) {
   const {token}=await searchParams;
-  return <AuthShell mode="other" eyebrow="ACCOUNT RECOVERY" title="Choose a new password."
-    description="Use at least 12 characters to secure your HomeTayo account.">
+  return <AuthShell mode="other" title="Choose a new password.">
     {typeof token==="string"&&/^[A-Za-z0-9_-]{40,60}$/.test(token) ?
       <ResetPasswordForm token={token}/> :
       <p className="auth-setup-notice">That password reset link is missing or invalid.</p>}

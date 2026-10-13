@@ -10,15 +10,16 @@ import {
 
 const initial: AuthFormState = {message:""};
 
-export function EmailLoginForm() {
+export function EmailLoginForm({enabled}:{enabled:boolean}) {
   const [state,action,pending]=useActionState(loginWithEmail,initial);
   return <form action={action} className="auth-input-form">
     <label htmlFor="login-email">Email address</label>
-    <span className="auth-input-wrap"><Mail size={17}/><input id="login-email" name="email" type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com"/></span>
-    <div className="auth-label-row"><label htmlFor="login-password">Password</label><Link href="/forgot-password">Forgot password?</Link></div>
-    <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="login-password" name="password" type="password" autoComplete="current-password" minLength={1} maxLength={128} required placeholder="Enter your password"/></span>
+    <span className="auth-input-wrap"><Mail size={17}/><input id="login-email" name="email" type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com" disabled={!enabled}/></span>
+    <div className="auth-label-row"><label htmlFor="login-password">Password</label>{enabled && <Link href="/forgot-password">Forgot password?</Link>}</div>
+    <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="login-password" name="password" type="password" autoComplete="current-password" minLength={1} maxLength={128} required placeholder="Enter your password" disabled={!enabled}/></span>
     {state.message && <p className="auth-form-status" role="alert">{state.message}</p>}
-    <button className="auth-submit" type="submit" disabled={pending}>{pending ? "Signing in…" : "Sign in with email"} <ArrowRight size={17}/></button>
+    <button className="auth-submit" type="submit" disabled={!enabled || pending}>{pending ? "Signing in…" : "Sign in"}</button>
+    {!enabled && <p className="auth-unavailable" role="status">Email sign-in isn\'t available yet. Use Google to continue.</p>}
   </form>;
 }
 export function EmailSignUpForm({enabled}:{enabled:boolean}) {
@@ -32,9 +33,10 @@ export function EmailSignUpForm({enabled}:{enabled:boolean}) {
     <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="signup-password" name="password" type="password" autoComplete="new-password" required minLength={12} maxLength={128} placeholder="At least 12 characters" disabled={!enabled}/></span>
     <label htmlFor="signup-confirm">Confirm password</label>
     <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="signup-confirm" name="confirmPassword" type="password" autoComplete="new-password" required minLength={12} maxLength={128} placeholder="Repeat your password" disabled={!enabled}/></span>
-    <p className="auth-field-help">We verify your email before activating a new account. Google accounts are kept separate.</p>
+    {enabled && <p className="auth-field-help">We’ll send a verification link to your email.</p>}
     {state.message && <p className={state.success?"auth-form-success":"auth-form-status"} role="status">{state.message}</p>}
-    <button className="auth-submit" type="submit" disabled={!enabled||pending}>{pending?"Creating account…":"Create account"} <ArrowRight size={17}/></button>
+    <button className="auth-submit" type="submit" disabled={!enabled||pending}>{pending?"Creating account…":"Create account"}</button>
+    {!enabled && <p className="auth-unavailable" role="status">Email registration isn\'t available yet. Use Google to create an account.</p>}
   </form>;
 }
 export function ForgotPasswordForm({enabled}:{enabled:boolean}){
