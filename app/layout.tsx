@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s | HomeTayo",
   },
   description:
-    "HomeTayo is building a simpler way to discover affordable rental homes, apartments, boarding houses and bedspaces in the Philippines. Starting in Koronadal.",
+    "HomeTayo is building a simpler way to discover affordable rental homes, apartments, boarding houses and bedspaces in the Philippines. Find places that fit your needs.",
   applicationName: "HomeTayo",
   icons: {
     icon: [

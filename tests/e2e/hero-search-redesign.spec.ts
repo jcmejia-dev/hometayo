@@ -1,20 +1,21 @@
 import { expect, test } from "@playwright/test";
 
-test("hero uses a labeled marketplace UI preview rather than cartoon artwork", async ({ page }) => {
+test("home discovery shows real approved listings or a transparent empty state", async ({ page }) => {
   await page.goto("/");
-  const preview = page.locator(".market-preview-wrap");
+  const featured = page.locator(".featured-wrap");
+  await expect(featured).toHaveCount(1);
   const width = page.viewportSize()?.width ?? 1280;
   if (width <= 850) {
-    await expect(preview).toBeHidden();
+    await expect(featured).toBeHidden();
   } else {
-    await expect(preview).toBeVisible();
-    await expect(preview.getByText("INTERFACE PREVIEW")).toBeVisible();
+    await expect(featured).toBeVisible();
+    await expect(featured.getByRole("heading", { name: "Recently added rentals" })).toBeVisible();
   }
-  await expect(preview.getByText("Sample family home")).toHaveCount(1);
-  await expect(preview.getByText("Sample cozy room")).toHaveCount(1);
-  await expect(preview.getByText(/no sample property is available for rent/i)).toHaveCount(1);
-  await expect(page.locator(".hero-art")).toHaveCount(0);
-  await expect(preview.locator('a[href^="/rentals/"]')).toHaveCount(0);
+  await expect(page.getByText("Sample family home")).toHaveCount(0);
+  await expect(page.getByText("Sample cozy room")).toHaveCount(0);
+  await expect(page.getByText("INTERFACE PREVIEW")).toHaveCount(0);
+  await expect(page.locator(".market-preview-card")).toHaveCount(0);
+  await expect(featured.getByRole("link", { name: /Browse rentals/i })).toHaveCount(1);
 });
 
 test("custom rental dropdown is branded, keyboard accessible, and dismissible", async ({ page }) => {

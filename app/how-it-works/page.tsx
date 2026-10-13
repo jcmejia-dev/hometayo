@@ -8,7 +8,7 @@ import {
 
 export const metadata: Metadata = {
   title: "How HomeTayo works",
-  description: "A step-by-step guide for renters and property owners using HomeTayo's Koronadal rental marketplace.",
+  description: "A step-by-step guide for renters and property owners using HomeTayo's rental marketplace.",
 };
 
 const renterSteps = [
@@ -92,7 +92,7 @@ export default function HowItWorks() {
             ))}
           </div>
           <div className="guide-inline-action">
-            <div><strong>Have a place to list?</strong><p>Basic property submission is free during our pilot. An administrator reviews every new listing before publication.</p></div>
+            <div><strong>Have a place to list?</strong><p>Basic property submission is currently free. An administrator reviews every new listing before publication.</p></div>
             <Link className="button button-primary" href="/owner">Open owner dashboard <ArrowRight size={17}/></Link>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function HowItWorks() {
           <div><h3>Can owners upload photos or edit listings?</h3><p>Not yet. Those features are in development. The current form supports property details, and published listings can be marked unavailable.</p></div>
           <div><h3>Can anyone become an admin?</h3><p>No. Google sign-in alone does not grant administrator access. Administrative roles are controlled by HomeTayo on the server.</p></div>
         </div>
-        <div className="guide-safety-note"><Sparkles size={21}/><p><strong>HomeTayo is still in its Koronadal pilot.</strong> Availability depends on genuine, approved listings. For a safer search, review our <Link href="/safety">rental safety guide</Link>.</p></div>
+        <div className="guide-safety-note"><Sparkles size={21}/><p><strong>HomeTayo publishes approved listings as owners submit them.</strong> Availability depends on genuine, approved listings. For a safer search, review our <Link href="/safety">rental safety guide</Link>.</p></div>
       </section>
     </div>
   );

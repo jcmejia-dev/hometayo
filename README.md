@@ -13,9 +13,8 @@
 
 ## Homepage design (UI refresh)
 - Replaced decorative house artwork with a **clearly labeled illustrative interface** and demo rental cards. No demo properties are linked or published as real inventory.
-- Sample photos are licensed under the Unsplash free license; the images are hosted remotely by Unsplash and may be unavailable when offline. Credits: [Eli Chamoun](https://unsplash.com/photos/a-modern-house-with-a-stylish-exterior-coqmBSuXOE4) and [Caroline Badran](https://unsplash.com/photos/a-modern-bedroom-shows-a-cozy-bed-YktL-k8ErB8).
 - Search dropdowns now use accessible Radix UI Select menus with keyboard/touch support and preserve the original URL query semantics.
-- Marketing demonstration prices and photographs are **illustrative only** and must not be mistaken for approved HomeTayo listings. Remove sample previews when live listing imagery is implemented, or explicitly maintain their preview status.
+- The homepage discovery panel displays **only real published listings from Neon**. Without approved listings or a configured database, it shows an honest empty state and navigation options. There are no demo rental cards.
 
 ## Job 4 profile and admin operations
 
