@@ -11,13 +11,14 @@ Existing Google identities, user permissions, owner listings and administrators 
 
 ## IMPORTANT — staging before enabling public email registration
 
-**DO NOT ENABLE EMAIL SIGN-UP UNTIL** a verified Resend sending domain, security and privacy review, abuse controls and the corresponding migration are ready. The form is explicitly disabled until the required configuration is present. Google sign-in remains an option.
+**DO NOT ENABLE EMAIL PASSWORD AUTH OR EMAIL SIGN-UP UNTIL** a verified Resend sending domain, security and privacy review, abuse controls and the corresponding migration are ready. The form is explicitly disabled until the required configuration is present. Google sign-in remains an option.
 
 1. In your **dedicated HomeTayo Neon project**, make a backup/snapshot. Confirm it is not the Lakbay database. From the latest GitHub code run \`npm run db:migrate\`. The migration runner must print \`Applied migration: 003_email_accounts.sql\` and the old filenames should be \`Already applied\`. Existing accounts/roles are not modified.
 2. In Vercel **Production** environment variables, preserve \`DATABASE_URL\`, \`AUTH_SECRET\`, \`AUTH_GOOGLE_ID\`, \`AUTH_GOOGLE_SECRET\`. To use email registration, additionally add the following private values (do not paste them in GitHub, screenshots or chat):
 
 \`\`\`dotenv
 APP_BASE_URL=https://hometayo-snyn.vercel.app
+ENABLE_EMAIL_PASSWORD_AUTH=true
 RESEND_API_KEY=<private-Resend-key>
 AUTH_EMAIL_FROM=HomeTayo <verify@your-verified-domain.example>
 ENABLE_EMAIL_SIGNUP=true
@@ -35,7 +36,7 @@ ENABLE_EMAIL_SIGNUP=true
 - Email login requires verified email and is rate-limited by an atomic database counter (8 attempts/email/15 minutes).
 - Signup and password reset requests are also rate-limited by email; email identifiers are HMAC-hashed in the limiter table.
 - Verification tokens (24h) and reset tokens (30m) are random, stored as SHA-256 digests, single-use and deleted upon consumption; reset/verify pages have a no-referrer policy.
-- Registration is OFF by default unless mail delivery and \`ENABLE_EMAIL_SIGNUP=true\` are configured. Email sign-in remains accessible for existing verified email accounts when the sending provider is temporarily unavailable.
+- Registration is OFF by default unless mail delivery and \`ENABLE_EMAIL_SIGNUP=true\` are configured. After migration 003, set \`ENABLE_EMAIL_PASSWORD_AUTH=true\` to enable email login. Email login remains accessible for existing verified accounts when the sending provider is temporarily unavailable; new sign-ups still require \`ENABLE_EMAIL_SIGNUP=true\` and a verified mail sender.
 - The public-facing app **is not yet production-security certified**. Before opening registration publicly, add IP/network-level anti-abuse (Vercel WAF or equivalent), CAPTCHA/bot controls, operational monitoring, session revocation upon password reset, audited deletion/export and retention policies, and address dependency vulnerabilities. Fix exposed auth/provider/Neon credentials.
 - Existing Google users have separate sign-in and account recovery. Google passwords are never stored by HomeTayo.
 

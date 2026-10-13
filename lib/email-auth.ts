@@ -8,10 +8,10 @@ const scrypt = promisify(nodeScrypt);
 const sessionReady = () => Boolean(process.env.DATABASE_URL && process.env.AUTH_SECRET);
 
 export function emailSignUpConfigured() {
-  return Boolean(sessionReady() && process.env.ENABLE_EMAIL_SIGNUP === "true" &&
+  return Boolean(emailPasswordSignInConfigured() && process.env.ENABLE_EMAIL_SIGNUP === "true" &&
     process.env.RESEND_API_KEY && process.env.AUTH_EMAIL_FROM && process.env.APP_BASE_URL);
 }
-export function emailPasswordSignInConfigured() { return sessionReady(); }
+export function emailPasswordSignInConfigured() { return sessionReady() && process.env.ENABLE_EMAIL_PASSWORD_AUTH === "true"; }
 export function googleSignInConfigured() {
   return Boolean(sessionReady() && process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 }
