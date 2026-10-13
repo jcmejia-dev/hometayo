@@ -851,3 +851,22 @@ input, select { min-width: 0; }
 @media(prefers-reduced-motion: reduce) {
   .admin-expand-toggle svg { transition: none; }
 }
+
+
+/* HomeTayo brand refresh: house + location pin (never changes product name). */
+.brand-icon, .footer-mark, .market-preview-mark {
+  background: transparent url("/icon.svg") center / contain no-repeat;
+  box-shadow: none;
+  transform: none;
+  flex: none;
+}
+.brand-icon { width: 37px; height: 37px; border-radius: 10px; }
+.brand-icon svg { display: none; }
+.brand-wordmark { letter-spacing: -1.1px; }
+.brand-accent { color: #bd8d40; }
+.footer-mark { display: inline-block; width: 25px; height: 25px; border-radius: 7px; }
+.market-preview-mark { display: inline-block; width: 20px; height: 20px; border-radius: 5px; }
+.market-preview-brand > span:last-child { margin-left: 0; }
+@media (max-width: 800px) {
+  .brand-icon { width: 32px; height: 32px; }
+}

@@ -10,7 +10,7 @@ export function MarketplacePreview() {
     <aside className="market-preview-wrap" aria-label="Illustrative HomeTayo marketplace preview">
       <div className="market-preview">
         <div className="market-preview-toolbar">
-          <span className="market-preview-brand"><span className="market-preview-mark" /> hometayo<span>.</span></span>
+          <span className="market-preview-brand"><span className="market-preview-mark" aria-hidden="true" /> Home<span className="brand-accent">Tayo</span></span>
           <span className="market-preview-mode">INTERFACE PREVIEW</span>
         </div>
         <div className="market-preview-content">

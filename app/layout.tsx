@@ -13,7 +13,13 @@ export const metadata: Metadata = {
   description:
     "HomeTayo is building a simpler way to discover affordable rental homes, apartments, boarding houses and bedspaces in the Philippines. Starting in Koronadal.",
   applicationName: "HomeTayo",
-  icons: { icon: "/icon.svg" },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/pwa-icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+  },
   robots: { index: false, follow: false },
 };
 
