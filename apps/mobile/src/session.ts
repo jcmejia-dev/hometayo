@@ -8,11 +8,23 @@ let onExpired:(()=>void)|null=null;
 export function watchSessionExpired(callback:()=>void) {onExpired=callback;return()=>{if(onExpired===callback)onExpired=null;};}
 export async function api(path:string,body?:unknown,method?:"PATCH") {
   const token=await SecureStore.getItemAsync(KEY);
-  const response=await fetch(origin.origin+path,{method:method || (body?"POST":"GET"),headers:{Accept:"application/json",...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});
-  const data=await response.json();
-  if(response.status===401&&token){await SecureStore.deleteItemAsync(KEY);onExpired?.();}
-  if(!response.ok)throw Error(data.message || "HomeTayo is temporarily unavailable.");
-  return data;
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),20000);
+  try{
+    const response=await fetch(origin.origin+path,{signal:controller.signal,method:method || (body?"POST":"GET"),headers:{Accept:"application/json",...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});
+    const data=await response.json().catch(()=>null);
+    if(response.status===401&&token){await SecureStore.deleteItemAsync(KEY);onExpired?.();}
+    if(!response.ok){
+      if(response.status===503&&typeof data?.message==="string"&&data.message.includes("awaiting setup"))throw Error("Account service setup is pending. You can explore rentals as a guest until sign-in is enabled.");
+      throw Error(data?.message || "HomeTayo is temporarily unavailable. Please try again.");
+    }
+    if(!data||typeof data!=="object")throw Error("HomeTayo returned an incomplete response. Please try again.");
+    return data;
+  }catch(error){
+    if(controller.signal.aborted)throw Error("The connection timed out. Check your internet and try again.");
+    if(error instanceof TypeError)throw Error("Could not connect to HomeTayo. Check your internet and try again.");
+    throw error;
+  }finally{clearTimeout(timeout);}
 }
 export async function accountAction(body:unknown) {
   const data=await api("/api/mobile/auth",body);

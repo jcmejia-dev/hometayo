@@ -1,0 +1,16 @@
+const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict"),ts=require("typescript");
+const mod={exports:{}};
+new Function("exports",ts.transpileModule(fs.readFileSync(path.join(__dirname,"../src/account-validation.ts"),"utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(mod.exports);
+const validate=mod.exports.accountValidation;
+const valid={name:"Jamie Example",email:"jamie@example.test",password:"correct-password-123",confirm:"correct-password-123",code:"012345"};
+assert.equal(validate("sign-up",valid),null);
+assert.equal(validate("verify",valid),null);
+assert.equal(validate("sign-in",{...valid,password:"legacy"}),null);
+assert.match(validate("sign-up",{...valid,password:"short"}),/12 characters/);
+assert.match(validate("sign-up",{...valid,confirm:"different"}),/do not match/);
+assert.match(validate("sign-up",{...valid,name:"J"}),/full name/);
+assert.match(validate("sign-in",{...valid,email:"bad-email"}),/valid email/);
+assert.match(validate("verify",{...valid,code:"123"}),/six-digit/);
+assert.match(validate("sign-in",{...valid,password:""}),/password/);
+assert.match(validate("sign-in",{...valid,password:"a".repeat(129)}),/128 characters/);
+console.log("Passed native account email/password/confirmation and verification-code validation.");

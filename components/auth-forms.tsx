@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
-import { ArrowRight, LockKeyhole, Mail, UserRound } from "lucide-react";
+import { useActionState, useState, type InputHTMLAttributes } from "react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, UserRound } from "lucide-react";
 import {
   type AuthFormState, loginWithEmail, requestResetAction, resetPasswordAction,
   signUpWithEmail, verifyEmailAction,
 } from "@/app/auth/actions";
+
+function PasswordInput({label,...props}:InputHTMLAttributes<HTMLInputElement>&{label:string}){
+  const [visible,setVisible]=useState(false);
+  return <span className="auth-input-wrap"><LockKeyhole size={17}/><input {...props} type={visible?"text":"password"}/><button type="button" className="auth-password-toggle" disabled={props.disabled} aria-label={(visible?"Hide ":"Show ")+label.toLowerCase()} aria-pressed={visible} onClick={()=>setVisible(!visible)}>{visible?<EyeOff size={18}/>:<Eye size={18}/>}</button></span>;
+}
 
 const initial: AuthFormState = {message:""};
 
@@ -16,7 +21,7 @@ export function EmailLoginForm({enabled}:{enabled:boolean}) {
     <label htmlFor="login-email">Email address</label>
     <span className="auth-input-wrap"><Mail size={17}/><input id="login-email" name="email" type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com" disabled={!enabled}/></span>
     <div className="auth-label-row"><label htmlFor="login-password">Password</label>{enabled && <Link href="/forgot-password">Forgot password?</Link>}</div>
-    <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="login-password" name="password" type="password" autoComplete="current-password" minLength={1} maxLength={128} required placeholder="Enter your password" disabled={!enabled}/></span>
+    <PasswordInput label="password" id="login-password" name="password" autoComplete="current-password" minLength={1} maxLength={128} required placeholder="Enter your password" disabled={!enabled}/>
     {state.message && <p className="auth-form-status" role="alert">{state.message}</p>}
     <button className="auth-submit" type="submit" disabled={!enabled || pending}>{pending ? "Signing in…" : "Sign in"}</button>
     {!enabled && <p className="auth-unavailable" role="status">Email sign-in is not available yet. Use Google to continue.</p>}
@@ -30,9 +35,9 @@ export function EmailSignUpForm({enabled}:{enabled:boolean}) {
     <label htmlFor="signup-email">Email address</label>
     <span className="auth-input-wrap"><Mail size={17}/><input id="signup-email" name="email" type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com" disabled={!enabled}/></span>
     <label htmlFor="signup-password">Password</label>
-    <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="signup-password" name="password" type="password" autoComplete="new-password" required minLength={12} maxLength={128} placeholder="At least 12 characters" disabled={!enabled}/></span>
+    <PasswordInput label="password" id="signup-password" name="password" autoComplete="new-password" required minLength={12} maxLength={128} placeholder="At least 12 characters" disabled={!enabled}/>
     <label htmlFor="signup-confirm">Confirm password</label>
-    <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="signup-confirm" name="confirmPassword" type="password" autoComplete="new-password" required minLength={12} maxLength={128} placeholder="Repeat your password" disabled={!enabled}/></span>
+    <PasswordInput label="confirm password" id="signup-confirm" name="confirmPassword" autoComplete="new-password" required minLength={12} maxLength={128} placeholder="Repeat your password" disabled={!enabled}/>
     {enabled && <p className="auth-field-help">We’ll send a verification link to your email.</p>}
     {state.message && <p className={state.success?"auth-form-success":"auth-form-status"} role="status">{state.message}</p>}
     <button className="auth-submit" type="submit" disabled={!enabled||pending}>{pending?"Creating account…":"Create account"}</button>
@@ -62,9 +67,9 @@ export function ResetPasswordForm({token}:{token:string}){
   return <form action={action} className="auth-input-form">
     <input type="hidden" name="token" value={token}/>
     <label htmlFor="reset-password">New password</label>
-    <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="reset-password" name="password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required placeholder="At least 12 characters"/></span>
+    <PasswordInput label="new password" id="reset-password" name="password" autoComplete="new-password" minLength={12} maxLength={128} required placeholder="At least 12 characters"/>
     <label htmlFor="reset-confirm">Confirm new password</label>
-    <span className="auth-input-wrap"><LockKeyhole size={17}/><input id="reset-confirm" name="confirmPassword" type="password" autoComplete="new-password" minLength={12} maxLength={128} required placeholder="Repeat new password"/></span>
+    <PasswordInput label="confirm new password" id="reset-confirm" name="confirmPassword" autoComplete="new-password" minLength={12} maxLength={128} required placeholder="Repeat new password"/>
     {state.message && <p className="auth-form-status" role="alert">{state.message}</p>}
     <button className="auth-submit" type="submit" disabled={!token||pending}>Update password <ArrowRight size={17}/></button>
   </form>;
