@@ -1,0 +1,18 @@
+const fs=require("node:fs");
+const path=require("node:path");
+const assert=require("node:assert/strict");
+const ts=require("typescript");
+const fixtures={exports:{}};
+const source=fs.readFileSync(path.join(__dirname,"../src/demo-rentals.ts"),"utf8");
+new Function("exports",ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(fixtures.exports);
+const {demoRentals,demoLandmarks,selectDemoRentals}=fixtures.exports;
+const mall=demoLandmarks[0];
+assert.equal(demoRentals.length,6);
+assert.equal(selectDemoRentals(null,5,"","house").length,3);
+assert.equal(selectDemoRentals(null,5,"Other city","").length,0);
+const nearby=selectDemoRentals(mall,1,"","");
+assert.equal(nearby.length,2);
+assert(nearby[0].distanceKm<nearby[1].distanceKm);
+assert.equal(selectDemoRentals(mall,10,"","").length,6);
+assert(demoRentals.every(r=>r.demo&&r.slug.startsWith("demo-")&&r.contactUrl===null&&r.inclusions.length));
+console.log("Passed demo distance ordering, radius, city/type filters, inclusions and disabled contact.");

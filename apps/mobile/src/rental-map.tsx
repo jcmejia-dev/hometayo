@@ -2,9 +2,11 @@ import React,{useCallback,useEffect,useRef,useState} from "react";
 import {ActivityIndicator,Alert,Pressable,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
 import MapView,{Circle,Marker,PROVIDER_GOOGLE} from "react-native-maps";
 import * as Location from "expo-location";
-import {mapsAvailable} from "./runtime";
+import {isExpoGo,mapsAvailable} from "./runtime";
 import {api,type Account} from "./session";
 import {rentLabel,type Rental} from "./api";
+
+import {demoLandmarks,selectDemoRentals} from "./demo-rentals";
 
 type Point={latitude:number;longitude:number};
 type Place=Point&{id:string;name:string;address:string};
@@ -14,6 +16,7 @@ function distance(a:Point,b:Point) {const rad=(v:number)=>v*Math.PI/180;const h=
 export function RentalMap({account,onSelect,initialCity="",initialType=""}: {account:Account|null;onSelect:(slug:string)=>void;initialCity?:string;initialType?:string}) {
   const [center,setCenter]=useState<Point|null>(null),[userLocation,setUserLocation]=useState<Point|null>(null),[label,setLabel]=useState("All locations"),[radius,setRadius]=useState(5);
   const [query,setQuery]=useState(""),[city,setCity]=useState(initialCity),[type,setType]=useState(initialType),[places,setPlaces]=useState<Place[]>([]),[rentals,setRentals]=useState<MapRental[]>([]),[error,setError]=useState(""),[busy,setBusy]=useState(false),[nextOffset,setNextOffset]=useState<number|null>(null);
+  const [demo,setDemo]=useState(isExpoGo);
   const map=useRef<MapView>(null);
   const generation=useRef(0);
   const mapsConfigured=mapsAvailable;
@@ -21,6 +24,7 @@ export function RentalMap({account,onSelect,initialCity="",initialType=""}: {acc
   const load=useCallback(async(offset=0)=>{
     const current=++generation.current;
     setBusy(true);setError("");
+    if(demo){setRentals(selectDemoRentals(center,radius,city,type));setNextOffset(null);setBusy(false);return;}
     const params=new URLSearchParams({map:"1",offset:String(offset)});
     if(city.trim())params.set("city",city.trim());
     if(type)params.set("type",type);
@@ -34,7 +38,7 @@ export function RentalMap({account,onSelect,initialCity="",initialType=""}: {acc
       setRentals(old=>offset?old.concat(data.listings):data.listings);setNextOffset(data.nextOffset);
     }catch(e){if(current===generation.current){setRentals([]);setError(e instanceof Error?e.message:"Map unavailable.");}}
     finally{if(current===generation.current)setBusy(false);}
-  },[center,radius,city,type]);
+  },[center,radius,city,type,demo]);
   useEffect(()=>{void load();return()=>{generation.current++;};},[load]);
   async function locate() {
     try {
@@ -45,15 +49,17 @@ export function RentalMap({account,onSelect,initialCity="",initialType=""}: {acc
     }catch {setError("Could not find your location. Use a destination or a map point instead.");}
   }
   async function searchPlace() {
+    if(demo){const matches=demoLandmarks.filter(p=>p.name.toLowerCase().includes(query.trim().toLowerCase()));setPlaces(matches);setError(matches.length?"":"Try shopping centre or school. These are fictional test landmarks.");return;}
     try {if(!account)throw Error("Sign in to search destinations, or long-press the map to choose a point.");setPlaces((await api("/api/mobile/places?q="+encodeURIComponent(query))).places);setError("");}
     catch(e){setError(e instanceof Error?e.message:"Destination search unavailable.");}
   }
   const pinned=rentals.filter((r)=>typeof r.latitude==="number"&&typeof r.longitude==="number");
   useEffect(()=>{if(!center&&mapsConfigured&&pinned.length)map.current?.fitToCoordinates(pinned.map(r=>({latitude:r.latitude!,longitude:r.longitude!})),{edgePadding:{top:40,right:40,bottom:40,left:40},animated:true});},[rentals,center,mapsConfigured]);
   return <ScrollView contentContainerStyle={s.body}>
+    {isExpoGo&&<View style={s.result}><Text style={s.bold}>{demo?"Demo rentals - fictional test data":"Live listings"}</Text><Text style={s.help}>{demo?"Six sample rentals with map pins and inclusions. None are available for rent. Search shopping centre or school to test nearest results.":"Published rentals from HomeTayo."}</Text><Pressable accessibilityRole="button" onPress={()=>{setDemo(!demo);setCenter(null);setCity("");setPlaces([]);setQuery("");setLabel("All locations");}}><Text style={s.bold}>{demo?"View real listings":"Try demo rentals"}</Text></Pressable></View>}
     <Text style={s.heading}>Find a home near what matters.</Text>
     <Text style={s.help}>Search a destination, use your location, or long-press the map. Matching rentals are sorted nearest your chosen point.</Text>
-    <TextInput accessibilityLabel="Destination or landmark" value={query} onChangeText={setQuery} placeholder="e.g. KCC Mall, Koronadal" style={s.input} onSubmitEditing={()=>void searchPlace()}/>
+    <TextInput accessibilityLabel="Destination or landmark" value={query} onChangeText={setQuery} placeholder={demo?"Try shopping centre or school":"e.g. KCC Mall, Koronadal"} style={s.input} onSubmitEditing={()=>void searchPlace()}/>
     <Pressable accessibilityRole="button" onPress={()=>void searchPlace()} style={s.button}><Text style={s.buttonText}>Search destination</Text></Pressable>
     {places.map(place=><Pressable key={place.id} accessibilityRole="button" onPress={()=>{setCity("");choose(place,place.name);}} style={s.result}><Text style={s.bold}>{place.name}</Text><Text style={s.help}>{place.address}</Text></Pressable>)}
     <View style={s.row}><Pressable accessibilityRole="button" onPress={()=>void locate()} style={s.chip}><Text>Use my location</Text></Pressable><Pressable accessibilityRole="button" onPress={()=>{setCenter(null);setCity("");setLabel("All locations");}} style={s.chip}><Text>All locations</Text></Pressable></View>
@@ -61,7 +67,8 @@ export function RentalMap({account,onSelect,initialCity="",initialType=""}: {acc
     <View style={s.row}>{["","house","apartment","boarding_house","bedspace"].map(value=><Pressable accessibilityRole="radio" accessibilityState={{checked:value===type}} key={value} onPress={()=>setType(value)} style={[s.chip,value===type&&{backgroundColor:"#dcebdc"}]}><Text>{value.replaceAll("_"," ")||"All types"}</Text></Pressable>)}</View>
     {center&&<View style={s.row}>{[1,3,5,10,25].map(km=><Pressable accessibilityRole="button" key={km} onPress={()=>setRadius(km)} style={[s.chip,radius===km&&{backgroundColor:"#dcebdc"}]}><Text>{km} km</Text></Pressable>)}</View>}
     <Text style={s.bold}>{center?"Near "+label:label}</Text>
-    {mapsConfigured?<MapView ref={map} provider={PROVIDER_GOOGLE} style={s.map} initialRegion={{latitude:12.88,longitude:121.77,latitudeDelta:15,longitudeDelta:15}} onLongPress={e=>{setCity("");choose(e.nativeEvent.coordinate,"Selected map point");}}>
+    {mapsConfigured?<MapView ref={map} provider={PROVIDER_GOOGLE} style={s.map} initialRegion={demo?{...demoLandmarks[0],latitudeDelta:.16,longitudeDelta:.16}:{latitude:12.88,longitude:121.77,latitudeDelta:15,longitudeDelta:15}} onLongPress={e=>{setCity("");choose(e.nativeEvent.coordinate,"Selected map point");}}>
+      {demo&&demoLandmarks.map(p=><Marker key={p.id} coordinate={p} title={p.name} description={p.address} pinColor="#8765aa" onCalloutPress={()=>{setCity("");choose(p,p.name);}}/>)}
       {center&&<><Marker coordinate={center} title={label} pinColor="#c58c3c"/><Circle center={center} radius={radius*1000} strokeColor="#173d32" fillColor="#173d3215"/></>}
       {userLocation&&<Marker coordinate={userLocation} title="Your location" pinColor="#4285f4"/>}
       {pinned.map(r=><Marker key={r.slug} coordinate={{latitude:r.latitude!,longitude:r.longitude!}} title={r.title} description={rentLabel(r.monthlyRentCentavos)+" /month"} onCalloutPress={()=>onSelect(r.slug)}/>)}
