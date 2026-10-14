@@ -41,6 +41,7 @@ export async function getPublishedListing(slug: string) {
   try {
     const rows = await db.select({
       ...publicFields, description: listings.description,
+      ...(process.env.ENABLE_NATIVE_AUTH==="true"?{latitude:listings.latitude,longitude:listings.longitude}:{}),
       province: listings.province, furnished: listings.furnished,
       availableSlots: listings.availableSlots, ownerContactKind: listings.ownerContactKind,
       ownerContactValue: listings.ownerContactValue,

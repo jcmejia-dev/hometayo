@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-test("a visitor can find profile settings but cannot view a private account", async ({ page }) => {
+test("a visitor sees sign-in navigation before private profile access", async ({ page }) => {
   await page.goto("/");
   const navigation = page.locator(".mobile-menu");
   if (await navigation.isVisible()) {
     await navigation.locator("summary").click();
-    await expect(navigation.getByRole("link", {name:"My profile"})).toBeVisible();
-    await navigation.getByRole("link", {name:"My profile"}).click();
+    await expect(navigation.getByRole("link", {name:"Sign in"})).toBeVisible();
+    await navigation.getByRole("link", {name:"Sign in"}).click();
   } else {
-    await page.getByRole("navigation", {name:"Primary navigation"}).getByRole("link", {name:"My profile"}).click();
+    await page.getByRole("navigation", {name:"Primary navigation"}).getByRole("link", {name:"Sign in"}).click();
   }
-  await expect(page).toHaveURL(/\/profile$/);
-  await expect(page.getByRole("heading",{ name: "Profile setup unavailable" })).toBeVisible();
+  await expect(page).toHaveURL(/\/sign-in$/);
+  await expect(page.getByRole("heading",{ name: "Sign in", exact:true })).toBeVisible();
   await expect(page.getByLabel("Google account")).toHaveCount(0);
 });
 

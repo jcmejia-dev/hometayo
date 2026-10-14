@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "HomeTayo",
+    "slug": "hometayo-native",
+    "scheme": "hometayo",
+    "version": "0.1.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F8F7F2",
+    "android": {
+      "versionCode": 2,
+      "package": "app.hometayo.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#173D32"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "app.hometayo.mobile",
+      "icon": "./assets/icon.png"
+    },
+    "extra": {
+      "note": "Public API only; never put DB or OAuth secrets in EXPO_PUBLIC vars."
+    },
+    "icon": "./assets/icon.png",
+    "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}

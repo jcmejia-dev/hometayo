@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash, createHmac, randomBytes, randomUUID, scrypt as nodeScrypt, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomInt, randomUUID, scrypt as nodeScrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { neon } from "@neondatabase/serverless";
 import { emailSchema, signInSchema } from "@/lib/auth-validation";
@@ -101,7 +101,7 @@ async function issueEmailToken(id:string,email:string,purpose:"verify"|"reset"):
     applicationOrigin()+path+encodeURIComponent(value),
     purpose==="verify"?"verify your email address":"reset your password");
 }
-export async function registerEmailUser(email:string,name:string,password:string):Promise<void>{
+export async function registerEmailUser(email:string,name:string,password:string,delivery:"web"|"native"="web"):Promise<void>{
   if (!emailSignUpConfigured()) throw Error("Email registration disabled");
   if (!await consumeRateLimit("signup",email,3,24*3600)) return;
   const db=database();
@@ -112,7 +112,8 @@ export async function registerEmailUser(email:string,name:string,password:string
   if (entry) {
     if (entry.verified_at || !entry.password_hash || !String(entry.id).startsWith("email:")) return;
     if (await verifyPassword(password,entry.password_hash as string)){
-      await issueEmailToken(entry.id as string,email,"verify");
+      if(delivery==="native") await issueNativeEmailCode(entry.id as string,email);
+      else await issueEmailToken(entry.id as string,email,"verify");
     }
     return;
   }
@@ -122,7 +123,24 @@ export async function registerEmailUser(email:string,name:string,password:string
     "ON CONFLICT (email) DO NOTHING RETURNING id) "+
     "INSERT INTO email_password_credentials (user_id,password_hash) "+
     "SELECT id,$4 FROM created RETURNING user_id",[id,email,name,passwordHash]);
-  if (inserted.length) await issueEmailToken(id,email,"verify");
+  if (inserted.length) {
+    if(delivery==="native") await issueNativeEmailCode(id,email);
+    else await issueEmailToken(id,email,"verify");
+  }
+}
+async function issueNativeEmailCode(id:string,email:string) {
+  const code=String(randomInt(0,1000000)).padStart(6,"0");
+  const db=database();
+  await db.query("DELETE FROM auth_email_tokens WHERE user_id=$1 AND purpose='verify'",[id]);
+  await db.query("INSERT INTO auth_email_tokens(token_hash,user_id,purpose,expires_at) VALUES($1,$2,'verify',now()+interval '10 minutes')",[stableKey("native-verify",email+":"+code),id]);
+  const response=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+process.env.RESEND_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({from:process.env.AUTH_EMAIL_FROM,to:[email],subject:"Your HomeTayo verification code",html:"<h1>HomeTayo</h1><p>Enter this code in the HomeTayo app:</p><h2>"+code+"</h2><p>Expires in 10 minutes. If you didn’t request it, ignore this email.</p>"})});
+  if(!response.ok)throw Error("Verification email unavailable");
+}
+export async function verifyNativeEmailCode(rawEmail:string,code:string) {
+  const parsed=emailSchema.safeParse(rawEmail);
+  if(!parsed.success || !/^\d{6}$/.test(code) || !await consumeRateLimit("native-verify",parsed.data,5,900))return false;
+  const rows=await database().query("WITH claimed AS (DELETE FROM auth_email_tokens WHERE token_hash=$1 AND purpose='verify' AND expires_at>now() RETURNING user_id) UPDATE email_password_credentials c SET verified_at=now() FROM claimed JOIN users u ON u.id=claimed.user_id WHERE c.user_id=claimed.user_id AND u.email=$2 AND c.verified_at IS NULL RETURNING c.user_id",[stableKey("native-verify",parsed.data+":"+code),parsed.data]);
+  return rows.length>0;
 }
 export async function verifyEmailToken(value:string):Promise<boolean>{
   if (!sessionReady() || !/^[A-Za-z0-9_-]{40,60}$/.test(value)) return false;
@@ -154,5 +172,6 @@ export async function resetEmailPassword(value:string,password:string):Promise<b
     "UPDATE email_password_credentials c SET password_hash=$2,password_updated_at=now() "+
     "FROM claimed WHERE c.user_id=claimed.user_id AND c.verified_at IS NOT NULL RETURNING c.user_id",
     [hashToken(value),passwordHash]);
+  if(rows.length && process.env.ENABLE_NATIVE_AUTH==="true")await database().query("DELETE FROM native_sessions WHERE user_id=$1",[rows[0].user_id]);
   return rows.length>0;
 }

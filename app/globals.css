@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+.web-purpose-section { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:24px; padding-block:54px; }
+.web-purpose-section h2 { font-size:32px; line-height:1.15; letter-spacing:-1px; margin:0 0 18px; }
+.web-purpose-section article { background:white; border:1px solid var(--line); border-radius:22px; padding:28px; }
+.web-purpose-section p { color:var(--muted); font-size:14px; line-height:1.8; }
+.web-auth-layout { width:min(1020px, calc(100% - 40px)); margin:auto; display:grid; grid-template-columns:1fr 1fr; gap:32px; align-items:center; }
+.web-auth-layout .auth-layout { width:100%; max-width:none; margin:0; min-width:0; }
+.web-auth-story { background:var(--green); color:white; border-radius:28px; padding:42px; }
+.web-auth-story .section-kicker { color:var(--gold); }
+.web-auth-story h2 { font-size:36px; line-height:1.16; letter-spacing:-1.2px; margin:18px 0; }
+.web-auth-story p,.web-auth-story li { font-size:14px; line-height:1.8; color:#d7e5dc; }
+.web-auth-story ul { padding-left:20px; margin:24px 0; }
+.account-choice-page h1 { font-size:40px; line-height:1.2; letter-spacing:-1px; }
+.account-choice-page > p { color:var(--muted); line-height:1.8; }
+.account-options { border:0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:28px 0; }
+.account-options legend { margin-bottom:18px; font-weight:700; }
+.account-option { position:relative; background:white; border:2px solid var(--line); border-radius:20px; display:flex; flex-direction:column; gap:14px; padding:26px; cursor:pointer; }
+.account-option:has(input:checked) { border-color:var(--green); background:#eef5ee; }
+.account-option input { position:absolute; right:18px; top:18px; accent-color:var(--green); width:18px; height:18px; }
+.account-option span { color:var(--muted); font-size:14px; line-height:1.7; }
+@media(max-width:760px) { .web-purpose-section { grid-template-columns:1fr; padding-block:32px; } .web-auth-layout { grid-template-columns:1fr; gap:20px; } .web-auth-story { padding:26px; } .web-auth-story h2 { font-size:28px; } .web-auth-story ul { display:none; } .account-options { grid-template-columns:1fr; } }
+
+.welcome-entry-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 24px; }
+
 :root {
   --green: #173d32;
   --green-deep: #112f27;
@@ -1058,4 +1081,4 @@ input, select { min-width: 0; }
 .intro-secondary { min-height: 45px; border: 1px solid #cdded0; background: white; color: #25553d; font-size: 13px; font-weight: 740; border-radius: 11px; display: flex; align-items: center; justify-content: center; }
 .intro-guest { color: #4c7960; background: transparent; border: 0; display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; font-size: 12px; font-weight: 750; }
 @media(max-width: 490px) { .intro-shell { min-height: 430px; padding: 18px; } .intro-art { height: 133px; margin: 14px 0 17px; } }
-@media(prefers-reduced-motion: reduce) { .intro-dialog { scroll-behavior: auto; } }
+@media(prefers-reduced-motion: reduce) { html, .intro-dialog { scroll-behavior: auto; } }

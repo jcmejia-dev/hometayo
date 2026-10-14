@@ -16,6 +16,7 @@ const tabs = [
  */
 export function MobileBottomNav() {
   const pathname = usePathname();
+  if (["/", "/sign-in", "/sign-up", "/account/start", "/download"].includes(pathname)) return null;
   return (
     <nav className="app-bottom-nav" aria-label="App navigation">
       {tabs.map(({ href, label, icon: Icon }) => {

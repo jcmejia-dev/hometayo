@@ -41,7 +41,10 @@ export default async function NewListingPage() {
             <option value="whole_unit">Whole unit / house</option><option value="per_room">Per room</option><option value="per_bed">Per bed</option>
           </select></label>
           <label>City / municipality <input name="city" minLength={2} maxLength={80} defaultValue="Koronadal City" required/></label>
+          <label>Province <input name="province" minLength={2} maxLength={80} defaultValue="South Cotabato" required/></label>
           <label>Barangay <input name="barangay" minLength={2} maxLength={80} required placeholder="e.g. Zone III"/></label>
+          <label>Property latitude <input name="latitude" type="number" step="any" min={-90} max={90} placeholder="Optional map pin latitude"/></label>
+          <label>Property longitude <input name="longitude" type="number" step="any" min={-180} max={180} placeholder="Optional map pin longitude"/></label>
           <label>Monthly rent (₱) <input name="monthlyRent" type="number" required min={100} max={5000000} step={1} placeholder="5000"/></label>
           <label>Bedrooms <input name="bedrooms" type="number" min={0} max={99} step={1} placeholder="Optional"/></label>
           <label>Bathrooms <input name="bathrooms" type="number" min={0} max={99} step={1} placeholder="Optional"/></label>

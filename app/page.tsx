@@ -4,25 +4,37 @@ import { SearchForm } from "@/components/search-form";
 import { FeaturedRentalsPanel } from "@/components/featured-rentals";
 import { getLatestPublishedListings } from "@/lib/listings";
 import { FirstVisitIntro } from "@/components/first-visit-intro";
+import { currentUser } from "@/lib/session-user";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }:{searchParams:Promise<{intro?:string}>}) {
-  const [latest, params] = await Promise.all([getLatestPublishedListings(), searchParams]);
+  const [latest, params, user] = await Promise.all([getLatestPublishedListings(), searchParams, currentUser()]);
   return (
     <>
-      <FirstVisitIntro forceOpen={params.intro === "1"}/>
+      {params.intro === "1" && <FirstVisitIntro forceOpen/>}
       <section className="hero-section">
         <div className="container hero-grid">
           <div className="hero-copy">
             <div className="eyebrow">HANAP BAHAY. DITO TAYO.</div>
             <h1>Find a place <span>to call home.</span></h1>
-            <p className="hero-description">Explore available homes and rooms in one simple search. No account needed.</p>
+            <p className="hero-description">A simpler way to find rental homes, rooms and bedspaces in Koronadal. Explore local listings, compare rental details, or share a property you’re authorized to rent.</p>
+            {user ? <p className="launch-note">Welcome back, {user.displayName || "neighbor"}. <Link href="/profile" className="text-link">My profile</Link></p> : <div className="welcome-entry-actions">
+              <Link className="button button-primary" href="/sign-up">Get started</Link>
+              <Link className="text-link" href="/sign-in">Sign in</Link>
+              <Link className="button button-outline" href="/download">Install Android app</Link>
+            </div>}
             <SearchForm />
           </div>
           <FeaturedRentalsPanel result={latest} />
         </div>
       </section>
+
+      {!user && <section className="container web-purpose-section" aria-label="What HomeTayo does">
+        <div><p className="section-kicker">ONE COMMUNITY. TWO WAYS TO BELONG.</p><h2>A home for renters.<br/>A place for your rental.</h2><p>Discover what fits your next chapter, with clear details and listings reviewed before publication.</p></div>
+        <article><House size={28}/><h3>Looking for a home?</h3><p>Search by location, property type and budget. Review the details and contact the owner.</p><Link href="/sign-up?audience=renter" className="text-link">Join as a renter <ArrowUpRight size={16}/></Link></article>
+        <article><Building2 size={28}/><h3>Have a space to rent?</h3><p>Submit your property for review, track its status and manage its availability.</p><Link href="/sign-up?audience=owner" className="text-link">Join as a property owner <ArrowUpRight size={16}/></Link></article>
+      </section>}
 
       <section className="categories-section container" id="categories">
         <div className="section-heading"><div><p className="section-kicker">EXPLORE BY TYPE</p><h2>What are you looking for?</h2></div><Link href="/rentals" className="text-link">See all rentals <ArrowUpRight size={18}/></Link></div>

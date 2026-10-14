@@ -6,8 +6,10 @@ import { AuthShell } from "@/components/auth-shell";
 import { EmailSignUpForm } from "@/components/auth-forms";
 
 export const dynamic = "force-dynamic";
-export default async function SignUpPage() {
-  if (await currentUser()) redirect("/owner");
+export default async function SignUpPage({searchParams}: {searchParams: Promise<{audience?:string}>}) {
+  if (await currentUser()) redirect("/account/start");
+  const {audience} = await searchParams;
+  const destination = audience === "owner" ? "/account/start?audience=owner" : "/account/start";
   const enabled = emailSignUpConfigured();
   const google = googleSignInConfigured();
   return (
@@ -15,7 +17,7 @@ export default async function SignUpPage() {
       <EmailSignUpForm enabled={enabled}/>
       {google && <>
         <div className="auth-divider"><span>or continue with</span></div>
-        <form action={async () => { "use server"; await signIn("google",{redirectTo:"/owner"}); }}>
+        <form action={async () => { "use server"; await signIn("google",{redirectTo:destination}); }}>
           <button className="auth-google-button" type="submit">
             <span className="auth-google-letter" aria-hidden="true">G</span>
             Continue with Google

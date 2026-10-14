@@ -9,7 +9,7 @@ test("compact sign-in shows the exact requested fields and navigation",async ({p
   await expect(page.getByLabel("Password",{exact:true})).toBeVisible();
   await expect(page.getByRole("button",{name:"Sign in",exact:true})).toBeDisabled();
   await expect(page.getByText(/Email sign-in is not available yet/)).toBeVisible();
-  await page.getByRole("link",{name:"Create account"}).click();
+  await page.locator(".auth-switch-note").getByRole("link",{name:"Create account"}).click();
   await expect(page).toHaveURL(/\/sign-up$/);
   await expect(page.getByRole("heading",{name:"Create account",exact:true})).toBeVisible();
 });
@@ -22,7 +22,7 @@ test("signup is compact and unavailable email registration cannot be submitted",
   await expect(page.getByLabel("Confirm password")).toBeVisible();
   await expect(page.getByRole("button",{name:"Create account"})).toBeDisabled();
   await expect(page.getByText(/Email registration is not available yet/)).toBeVisible();
-  await page.getByRole("link",{name:"Sign in",exact:true}).click();
+  await page.locator(".auth-switch-note").getByRole("link",{name:"Sign in",exact:true}).click();
   await expect(page).toHaveURL(/\/sign-in$/);
 });
 

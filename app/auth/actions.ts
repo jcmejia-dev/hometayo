@@ -17,7 +17,7 @@ export async function loginWithEmail(_:AuthFormState,form:FormData):Promise<Auth
   if (!result.success) return {message:"Enter a valid email and password."};
   try {
     await signIn("credentials",{
-      email:result.data.email,password:result.data.password,redirectTo:"/owner",
+      email:result.data.email,password:result.data.password,redirectTo:"/account/start",
     });
     return {message:""};
   } catch(error) {

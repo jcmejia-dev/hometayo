@@ -8,19 +8,20 @@ import { EmailLoginForm } from "@/components/auth-forms";
 export const dynamic = "force-dynamic";
 
 export default async function SignInPage({searchParams}:{
-  searchParams:Promise<{verified?:string}>
+  searchParams:Promise<{verified?:string;audience?:string}>
 }) {
-  if (await currentUser()) redirect("/owner");
+  if (await currentUser()) redirect("/account/start");
   const google = googleSignInConfigured();
   const email = emailPasswordSignInConfigured();
-  const {verified} = await searchParams;
+  const {verified, audience} = await searchParams;
+  const destination = audience === "owner" ? "/account/start?audience=owner" : "/account/start";
   return (
     <AuthShell mode="login" title="Sign in">
       {verified === "1" && <p className="auth-form-success" role="status">Email verified. You can sign in now.</p>}
       <EmailLoginForm enabled={email}/>
       {google && <>
         <div className="auth-divider"><span>or continue with</span></div>
-        <form action={async () => { "use server"; await signIn("google",{redirectTo:"/owner"}); }}>
+        <form action={async () => { "use server"; await signIn("google",{redirectTo:destination}); }}>
           <button type="submit" className="auth-google-button">
             <span className="auth-google-letter" aria-hidden="true">G</span>
             Continue with Google

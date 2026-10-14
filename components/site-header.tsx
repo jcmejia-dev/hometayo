@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowUpRight, Menu } from "lucide-react";
+import { currentUser } from "@/lib/session-user";
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const user = await currentUser();
   return (
     <>
       <a className="skip-link" href="#main-content">Skip to content</a>
@@ -15,10 +17,11 @@ export function SiteHeader() {
             <Link href="/rentals">Explore rentals</Link>
             <Link href="/how-it-works">How it works</Link>
             <Link href="/safety">Rental safety</Link>
-            <Link href="/profile">My profile</Link>
+            {user ? <Link href="/profile">My profile</Link> : <Link href="/sign-in">Sign in</Link>}
+            <Link href="/download">Install app</Link>
           </nav>
-          <Link className="header-owner" href="/owner">
-            List your property <ArrowUpRight size={16} aria-hidden="true" />
+          <Link className="header-owner" href={user ? "/owner" : "/sign-up"}>
+            {user ? "List your property" : "Create account"} <ArrowUpRight size={16} aria-hidden="true" />
           </Link>
           <details className="mobile-menu">
             <summary aria-label="Open navigation menu"><Menu size={23} /></summary>
@@ -27,7 +30,8 @@ export function SiteHeader() {
               <Link href="/how-it-works">How it works</Link>
               <Link href="/safety">Rental safety</Link>
               <Link href="/owner">List your property</Link>
-              <Link href="/profile">My profile</Link>
+              {user ? <Link href="/profile">My profile</Link> : <><Link href="/sign-in">Sign in</Link><Link href="/sign-up">Create account</Link></>}
+              <Link href="/download">Install Android app</Link>
               <Link href="/privacy">Privacy</Link>
             </nav>
           </details>

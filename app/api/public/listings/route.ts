@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { browsePublishedListings } from "@/lib/listings";
 import { parseRentalFilters } from "@/lib/search-filters";
+import { browseMapRentals } from "@/lib/geo-listings";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,10 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  if(url.searchParams.get("map")==="1") {
+    try {return NextResponse.json(await browseMapRentals(url),{headers:{"Cache-Control":"no-store"}});}
+    catch(error) {const bad=error instanceof Error && error.message.startsWith("Invalid");return NextResponse.json({message:bad?error.message:"Map listings temporarily unavailable.",listings:[]},{status:bad?400:503,headers:{"Cache-Control":"no-store"}});}
+  }
   const filters = parseRentalFilters({
     city:url.searchParams.get("city") || undefined,
     type:url.searchParams.get("type") || undefined,
