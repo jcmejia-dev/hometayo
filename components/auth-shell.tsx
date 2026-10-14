@@ -10,7 +10,9 @@ export function AuthShell({mode,title,children}:{
 }){
   return (
     <div className="auth-screen">
-      <section className="auth-layout" aria-labelledby="auth-title">
+      <div className="web-auth-layout">
+        <aside className="web-auth-story"><p className="section-kicker">FIND YOUR PLACE WITH HOMETAYO</p><h2>Your next chapter starts with a place to belong.</h2><p>Discover local rentals or share your space with someone looking for home.</p><ul><li>Houses, apartments, rooms and bedspaces</li><li>Clear rental details and location filters</li><li>Property submissions reviewed before publication</li></ul><p>After signing in, choose renter or property owner to get started.</p></aside>
+        <section className="auth-layout" aria-labelledby="auth-title">
         <div className="auth-card-header">
           <h1 id="auth-title">{title}</h1>
           <Link href="/" className="auth-mini-brand" aria-label="HomeTayo home">
@@ -26,6 +28,7 @@ export function AuthShell({mode,title,children}:{
         <p className="auth-guest-link"><Link href="/rentals">Explore rentals without an account →</Link></p>
         <p className="auth-guest-link"><Link href="/?intro=1">Discover what HomeTayo does →</Link></p>
       </section>
+      </div>
     </div>
   );
 }

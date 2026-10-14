@@ -37,6 +37,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           <p className="section-kicker">YOUR HOME, YOUR SETTINGS</p>
           <h1>My profile</h1>
           <p>Manage your preferences and choose how you explore HomeTayo.</p>
+          <Link href="/account/start" className="text-link">Switch renter / property owner experience <ArrowRight size={16}/></Link>
         </div>
         <span className="profile-avatar"><UserRound size={34}/></span>
       </div>

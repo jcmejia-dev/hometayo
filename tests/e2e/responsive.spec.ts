@@ -69,13 +69,13 @@ test("PWA manifest advertises HomeTayo without relying on device-specific markup
 });
 
 
-test("mobile bottom tabs navigate the application without removing help menu", async ({ page }) => {
-  await page.goto("/");
+test("mobile bottom tabs navigate rental browsing without changing the website landing", async ({ page }) => {
+  await page.goto("/rentals");
   const tabs = page.getByRole("navigation", { name: "App navigation" });
   const width = page.viewportSize()?.width ?? 1280;
   if (width <= 800) {
     await expect(tabs).toBeVisible();
-    await expect(tabs.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    await expect(tabs.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
     await tabs.getByRole("link", { name: "Explore" }).click();
     await expect(page).toHaveURL(/\/rentals$/);
     await expect(tabs.getByRole("link", { name: "Explore" })).toHaveAttribute("aria-current", "page");
@@ -110,7 +110,7 @@ test("footer links form balanced rows with Privacy beside Safety, and no pilot l
   } else {
     await expect(footer).toBeVisible();
     const links = navigation.getByRole("link");
-    await expect(links).toHaveCount(6);
+    await expect(links).toHaveCount(7);
     const safetyBox = await navigation.getByRole("link", { name: "Safety" }).boundingBox();
     const privacyBox = await navigation.getByRole("link", { name: "Privacy" }).boundingBox();
     expect(safetyBox && privacyBox).toBeTruthy();

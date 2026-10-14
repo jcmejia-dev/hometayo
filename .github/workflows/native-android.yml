@@ -1,0 +1,28 @@
+name: Native Android Typecheck
+on:
+  pull_request:
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/native-android.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/native-android.yml'
+jobs:
+  native-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install native dependencies
+        working-directory: apps/mobile
+        run: npm install --no-audit --no-fund
+      - name: Native type check
+        working-directory: apps/mobile
+        run: npm run check
+      - name: Verify Expo config
+        working-directory: apps/mobile
+        run: npx expo config --type public --json > /dev/null

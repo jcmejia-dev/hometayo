@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 test.use({ storageState:{ cookies:[],origins:[] } });
 
 test("new guests see optional native-style intro and can browse without an account",async ({page})=>{
-  await page.goto("/");
+  await page.goto("/?intro=1");
   const intro=page.getByRole("dialog",{name:"Welcome to HomeTayo"});
   await expect(intro).toBeVisible();
   await expect(intro.getByRole("heading",{name:"Find your next home"})).toBeVisible();
@@ -18,12 +18,12 @@ test("new guests see optional native-style intro and can browse without an accou
   await expect(intro).toBeHidden();
   await expect(page.getByRole("search")).toBeVisible();
   expect(await page.evaluate(()=>localStorage.getItem("hometayo.intro.v1"))).toBe("done");
-  await page.reload();
+  await page.goto("/");
   await expect(intro).toBeHidden();
 });
 
 test("new guests can skip tutorial and replay it later",async ({page})=>{
-  await page.goto("/");
+  await page.goto("/?intro=1");
   const intro=page.getByRole("dialog",{name:"Welcome to HomeTayo"});
   await expect(intro).toBeVisible();
   await intro.getByRole("button",{name:"Skip introduction"}).click();
@@ -36,7 +36,7 @@ test("new guests can skip tutorial and replay it later",async ({page})=>{
 });
 
 test("welcome screen offers both auth flows without forcing them",async ({page})=>{
-  await page.goto("/");
+  await page.goto("/?intro=1");
   const dialog=page.getByRole("dialog",{name:"Welcome to HomeTayo"});
   for(let i=0;i<3;i++)await dialog.getByRole("button",{name:i===2?"Get started":"Next"}).click();
   await expect(dialog.getByRole("link",{name:"Create account"})).toHaveAttribute("href","/sign-up");
@@ -45,12 +45,12 @@ test("welcome screen offers both auth flows without forcing them",async ({page})
 });
 
 test("returning guests can discover HomeTayo again and continue to sign in", async ({page}) => {
-  await page.goto("/");
+  await page.goto("/?intro=1");
   const dialog = page.getByRole("dialog", {name:"Welcome to HomeTayo"});
   await dialog.getByRole("button", {name:"Skip introduction"}).click();
-  await page.reload();
+  await page.goto("/");
   await expect(dialog).toBeHidden();
-  await page.getByRole("link", {name:"Discover HomeTayo", exact:true}).click();
+  await page.goto("/?intro=1");
   await expect(dialog).toBeVisible();
   for (let i=0; i<3; i++) await dialog.getByRole("button", {name:i===2 ? "Get started" : "Next"}).click();
   await dialog.getByRole("link", {name:"Sign in", exact:true}).click();

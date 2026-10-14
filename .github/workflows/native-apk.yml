@@ -1,0 +1,45 @@
+name: Android native APK preview
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/native-apk.yml'
+permissions:
+  contents: read
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_API_URL: https://hometayo-snyn.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      # ubuntu-latest already provides the Android SDK via ANDROID_HOME.
+      # Avoid obsolete "sdkmanager tools" installation performed by setup-android@v3.
+      - name: Verify runner Android SDK
+        run: test -d "$ANDROID_HOME/platforms" && echo "Android SDK ready"
+      - name: Install dependencies
+        working-directory: apps/mobile
+        run: npm install --no-audit --no-fund
+      - name: Create native Android project
+        working-directory: apps/mobile
+        run: npx expo prebuild --platform android --non-interactive --clean
+      - name: Build standalone Android APK for internal testing
+        working-directory: apps/mobile/android
+        run: ./gradlew :app:assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hometayo-native-testing-apk
+          path: apps/mobile/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 7
