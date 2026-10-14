@@ -21,7 +21,10 @@ export async function createProperty(form: FormData) {
     propertyType: stringField(form, "propertyType"),
     rentalMode: stringField(form, "rentalMode"),
     city: stringField(form, "city"),
+    province: stringField(form,"province") || "South Cotabato",
     barangay: stringField(form, "barangay"),
+    latitude: stringField(form,"latitude"),
+    longitude: stringField(form,"longitude"),
     monthlyRent: stringField(form, "monthlyRent"),
     bedrooms: stringField(form, "bedrooms"),
     bathrooms: stringField(form, "bathrooms"),
@@ -32,6 +35,10 @@ export async function createProperty(form: FormData) {
   });
   if (!parsed.success) throw new Error("Please correct your rental information and try again.");
   const value = parsed.data;
+  const locationsReady=process.env.ENABLE_NATIVE_AUTH==="true";
+  if(!locationsReady && value.latitude!==null)throw new Error("Property map pins are awaiting backend setup.");
+  const coordinateColumns=locationsReady?sql`, latitude, longitude`:sql``;
+  const coordinateValues=locationsReady?sql`, ${value.latitude}, ${value.longitude}`:sql``;
   if (!validateContact(value.ownerContactKind, value.ownerContactValue)) {
     throw new Error("Enter a valid owner-approved phone number or HTTPS Messenger link, or select none.");
   }
@@ -55,12 +62,12 @@ export async function createProperty(form: FormData) {
     WITH created AS (
       INSERT INTO listings (
         id, owner_id, slug, title, description, property_type, rental_mode, status,
-        city, barangay, province, monthly_rent_centavos, bedrooms, bathrooms,
+        city, barangay, province${coordinateColumns}, monthly_rent_centavos, bedrooms, bathrooms,
         available_slots, furnished, owner_contact_kind, owner_contact_value, last_confirmed_at
       ) VALUES (
         ${newId}::uuid, ${profile.id}::uuid, ${generateSlug(value.title, newId.replace(/-/g, ""))},
         ${value.title}, ${value.description}, ${value.propertyType}, ${value.rentalMode},
-        'pending_review', ${value.city}, ${value.barangay}, 'South Cotabato',
+        'pending_review', ${value.city}, ${value.barangay}, ${value.province}${coordinateValues},
         ${value.monthlyRent * 100}, ${value.bedrooms === "" ? null : value.bedrooms},
         ${value.bathrooms === "" ? null : value.bathrooms},
         ${value.availableSlots === "" ? null : value.availableSlots}, ${value.furnished},

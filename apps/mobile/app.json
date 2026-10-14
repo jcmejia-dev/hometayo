@@ -22,6 +22,9 @@
     "extra": {
       "note": "Public API only; never put DB or OAuth secrets in EXPO_PUBLIC vars."
     },
-    "icon": "./assets/icon.png"
+    "icon": "./assets/icon.png",
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

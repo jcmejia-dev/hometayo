@@ -17,6 +17,7 @@ export async function GET(_request:Request, {params}:{params:Promise<{slug:strin
     rentalMode:listing.rentalMode,
     city:listing.city,
     barangay:listing.barangay,
+    latitude:listing.latitude ?? null,longitude:listing.longitude ?? null,
     province:listing.province,
     monthlyRentCentavos:listing.monthlyRentCentavos,
     bedrooms:listing.bedrooms,

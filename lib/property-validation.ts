@@ -4,13 +4,17 @@ export const propertyTypes = ["house", "apartment", "boarding_house", "bedspace"
 export const rentalModes = ["whole_unit", "per_room", "per_bed"] as const;
 
 const cleanText = (min: number, max: number) => z.string().trim().min(min).max(max);
+const coordinate=(max:number)=>z.preprocess(v=>v==="" || v===undefined || v===null?null:Number(v),z.number().min(-max).max(max).nullable());
 export const propertyInputSchema = z.object({
   title: cleanText(8, 120),
   description: cleanText(30, 4000),
   propertyType: z.enum(propertyTypes),
   rentalMode: z.enum(rentalModes),
   city: cleanText(2, 80),
+  province: cleanText(2,80).default("South Cotabato"),
   barangay: cleanText(2, 80),
+  latitude: coordinate(90),
+  longitude: coordinate(180),
   monthlyRent: z.coerce.number().int().min(100).max(5_000_000),
   bedrooms: z.union([z.literal(""), z.coerce.number().int().min(0).max(99)]),
   bathrooms: z.union([z.literal(""), z.coerce.number().int().min(0).max(99)]),
@@ -18,7 +22,7 @@ export const propertyInputSchema = z.object({
   furnished: z.enum(["yes", "no", "partial", "unspecified"]),
   ownerContactKind: z.enum(["messenger", "phone", "none"]),
   ownerContactValue: z.string().trim().max(200),
-});
+}).refine(v=>(v.latitude===null)===(v.longitude===null),{message:"Provide both latitude and longitude, or leave both blank.",path:["latitude"]});
 
 export type PropertyInput = z.infer<typeof propertyInputSchema>;
 

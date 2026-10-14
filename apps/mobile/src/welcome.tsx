@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View, Alert, BackHandler, StatusBar } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View, BackHandler, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "./design";
+import { AccountForm } from "./account-form";
+import type { Account } from "./session";
 
 const details = [
   {symbol:"⌂", title:"Find your place.\nStart your next chapter.", copy:"HomeTayo brings rental homes, apartments, boarding houses and bedspaces together in one place."},
@@ -9,25 +11,19 @@ const details = [
   {symbol:"▤", title:"Your space.\nSomeone’s new home.", copy:"Property owners can submit a rental for review and manage its availability through HomeTayo."},
 ];
 
-export function NativeWelcome({returning,onGuest}: {returning:boolean; onGuest:()=>void}) {
+export function NativeWelcome({returning,onGuest,onSignedIn}: {returning:boolean; onGuest:()=>void;onSignedIn:(account:Account)=>void}) {
   const [step,setStep] = useState(returning ? 3 : 0);
   const [mode,setMode] = useState<"sign-in"|"sign-up"|null>(null);
   const [audience,setAudience] = useState<"renter"|"owner">("renter");
-  const [opened,setOpened] = useState(false);
+
   useEffect(() => {
     const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (mode) { setMode(null); setOpened(false); return true; }
+      if (mode) { setMode(null);  return true; }
       if (step > 0) { setStep(step-1); return true; }
       return false;
     });
     return () => subscription.remove();
   }, [mode, step]);
-  async function continueOnWebsite() {
-    try {
-      await Linking.openURL("https://hometayoph.vercel.app/"+mode+"?audience="+audience);
-      setOpened(true);
-    } catch { Alert.alert("Unable to open sign-in", "Please try again."); }
-  }
   return <SafeAreaView style={s.screen}>
     <StatusBar barStyle="light-content" backgroundColor={colors.green}/>
     <ScrollView contentContainerStyle={s.content}>
@@ -41,12 +37,10 @@ export function NativeWelcome({returning,onGuest}: {returning:boolean; onGuest:(
         {step>0 && <Pressable accessibilityRole="button" style={s.link} onPress={()=>setStep(step-1)}><Text style={s.linkText}>← Back</Text></Pressable>}
       </> : mode ? <>
         <Text style={s.kicker}>{mode==="sign-up" ? "CREATE YOUR ACCOUNT" : "WELCOME BACK"}</Text>
-        <Text style={s.title}>How will you use HomeTayo?</Text><Text style={s.copy}>Choose your starting experience. You can switch later from your website profile.</Text>
+        <Text style={s.title}>How will you use HomeTayo?</Text><Text style={s.copy}>Choose your starting experience, then sign in here in the app.</Text>
         {(["renter","owner"] as const).map(value=><Pressable key={value} accessibilityRole="radio" accessibilityState={{checked:audience===value}} onPress={()=>setAudience(value)} style={[s.role, audience===value && s.selectedRole]}><Text style={s.roleTitle}>{value==="renter" ? "⌂  I’m a renter" : "▤  I’m a property owner"}</Text><Text style={s.roleCopy}>{value==="renter" ? "Find a home or room that fits your life." : "Share a rental and manage your listings."}</Text></Pressable>)}
-        <Text style={s.note}>Secure {mode==="sign-up" ? "registration" : "sign-in"} opens in your browser. Your website account stays on the website; this app currently supports guest rental browsing.</Text>
-        <Pressable accessibilityRole="button" style={s.primary} onPress={()=>void continueOnWebsite()}><Text style={s.primaryText}>{mode==="sign-up" ? "Continue to create account" : "Continue to sign in"} ↗</Text></Pressable>
-        {opened && <Text accessibilityRole="text" style={s.note}>Complete your account setup in the browser. Return here to explore public rentals.</Text>}
-        <Pressable accessibilityRole="button" style={s.link} onPress={()=>{setMode(null);setOpened(false);}}><Text style={s.linkText}>← Back</Text></Pressable>
+        <AccountForm mode={mode} audience={audience} onComplete={onSignedIn}/>
+        <Pressable accessibilityRole="button" style={s.link} onPress={()=>{setMode(null);}}><Text style={s.linkText}>← Back</Text></Pressable>
       </> : <>
         <View style={s.art}><Text style={s.symbol}>⌂</Text></View><Text style={s.kicker}>YOUR NEXT CHAPTER STARTS HERE</Text><Text style={s.title}>A place for everyone.</Text><Text style={s.copy}>Sign in or create an account to choose your renter or property-owner experience.</Text>
         <Pressable accessibilityRole="button" style={s.primary} onPress={()=>setMode("sign-up")}><Text style={s.primaryText}>Create account →</Text></Pressable>

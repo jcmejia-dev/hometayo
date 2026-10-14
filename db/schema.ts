@@ -1,4 +1,4 @@
-import { index, integer, pgTable, text, timestamp, uuid, uniqueIndex } from "drizzle-orm/pg-core";
+import { doublePrecision, index, integer, pgTable, text, timestamp, uuid, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -32,6 +32,8 @@ export const listings = pgTable("listings", {
   province: text("province").notNull().default("South Cotabato"),
   city: text("city").notNull(),
   barangay: text("barangay").notNull(),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
   monthlyRentCentavos: integer("monthly_rent_centavos").notNull(),
   bedrooms: integer("bedrooms"),
   bathrooms: integer("bathrooms"),

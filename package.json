@@ -13,28 +13,30 @@
     "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.0",
+    "@radix-ui/react-select": "^2.2.6",
+    "drizzle-orm": "^0.44.0",
+    "google-auth-library": "^11.3.0",
+    "lucide-react": "^0.468.0",
     "next": "^16.2.9",
+    "next-auth": "5.0.0-beta.32",
+    "pg": "^8.16.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "lucide-react": "^0.468.0",
-    "@neondatabase/serverless": "^1.0.0",
-    "drizzle-orm": "^0.44.0",
-    "pg": "^8.16.0",
     "server-only": "^0.0.1",
-    "next-auth": "5.0.0-beta.32",
-    "zod": "^4.3.6",
-    "@radix-ui/react-select": "^2.2.6"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.9",
     "@playwright/test": "^1.56.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.2.9",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5.9.0",
-    "@types/pg": "^8.15.0"
+    "typescript": "^5.9.0"
   }
 }

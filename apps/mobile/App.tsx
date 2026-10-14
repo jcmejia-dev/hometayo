@@ -1,13 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, BackHandler, FlatList, Image, Linking,
-  Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View,
+  ActivityIndicator, Alert, BackHandler, Image, Linking,
+  Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "./src/design";
 import { NativeWelcome } from "./src/welcome";
-import { fetchRentalDetail, fetchRentals, propertyLabel, rentLabel, type Rental, type RentalDetail } from "./src/api";
+import {restoreAccount,watchSessionExpired,type Account} from "./src/session";
+import {RentalMap} from "./src/rental-map";
+import {AccountPanel} from "./src/account-panel";
+import { fetchRentalDetail, propertyLabel, rentLabel, type RentalDetail } from "./src/api";
 
 type Tab = "home" | "explore" | "owner" | "profile";
 const tabs: Array<{id:Tab;label:string;symbol:string}> = [
@@ -17,7 +20,7 @@ const tabs: Array<{id:Tab;label:string;symbol:string}> = [
   {id:"profile",label:"Profile",symbol:"◯"},
 ];
 const INTRO_KEY="hometayo.native.intro.v1";
-const WEB_ORIGIN="https://hometayoph.vercel.app";
+
 
 function PrimaryButton({text,onPress,outlined=false}:{
   text:string;onPress:()=>void;outlined?:boolean;
@@ -35,60 +38,31 @@ function Brand({subtitle}:{subtitle?:string}){
     </View>
   </View>;
 }
-function openWebsite(path:string){
-  // Only trusted fixed routes. Never accept server-supplied arbitrary URLs here.
-  void Linking.openURL(WEB_ORIGIN+path).catch(()=>Alert.alert("Unable to open HomeTayo","Please try again."));
-}
-function AccountGate({mode,onAccount}:{mode:"owner"|"profile";onAccount:()=>void}){
-  return <ScrollView contentContainerStyle={styles.tabBody}>
-    <Text style={styles.eyebrow}>{mode==="owner"?"PROPERTY MANAGEMENT":"YOUR ACCOUNT"}</Text>
-    <Text style={styles.title}>{mode==="owner"?"Manage your rentals.":"Make HomeTayo yours."}</Text>
-    <Text style={styles.paragraph}>{mode==="owner"
-      ?"Submit authorized properties, follow the approval queue, and update their availability."
-      :"Create an account or sign in to save rental preferences and access your profile."}</Text>
-    <View style={styles.emptyCard}>
-      <Text style={styles.cardSymbol}>{mode==="owner"?"▤":"◯"}</Text>
-      <Text style={styles.cardTitle}>Secure account access</Text>
-      <Text style={styles.paragraph}>For this native preview, sign-in and owner actions open HomeTayo's secure website.
-        Native app authentication will be integrated in a later milestone; the app does not store website passwords or pretend to be signed in.</Text>
-      <PrimaryButton text="Sign in or create account" onPress={onAccount}/>
-      {mode==="owner"?<Pressable accessibilityRole="button" onPress={()=>openWebsite("/owner")} style={styles.textAction}>
-        <Text style={styles.inlineLink}>Open property dashboard →</Text>
-      </Pressable>:null}
-    </View>
-  </ScrollView>;
-}
 function NativeApp(){
   const [ready,setReady]=useState(false);
+  const [account,setAccount]=useState<Account|null>(null);
   const [welcomeOpen,setWelcomeOpen]=useState(true);
   const [intro,setIntro]=useState<number|null>(null);
   const [tab,setTab]=useState<Tab>("home");
-  const [city,setCity]=useState("Koronadal City");
+  const [city,setCity]=useState("");
   const [type,setType]=useState("");
-  const [rentals,setRentals]=useState<Rental[]>([]);
-  const [error,setError]=useState<string|null>(null);
-  const [loading,setLoading]=useState(false);
+
+
+
   const [selected,setSelected]=useState<RentalDetail|null>(null);
   const [selectedSlug,setSelectedSlug]=useState<string|null>(null);
   const [detailBusy,setDetailBusy]=useState(false);
+  useEffect(()=>watchSessionExpired(()=>{setAccount(null);setWelcomeOpen(true);setIntro(null);}),[]);
 
   useEffect(()=>{
     let alive=true;
-    AsyncStorage.getItem(INTRO_KEY).then(value=>{
+    Promise.all([AsyncStorage.getItem(INTRO_KEY),restoreAccount().catch(()=>null)]).then(([value,saved])=>{
       if(!alive)return;
+      setAccount(saved);if(saved)setWelcomeOpen(false);
       setIntro(value==="done"?null:0);setReady(true);
     }).catch(()=>{if(alive){setIntro(0);setReady(true);}});
     return()=>{alive=false;};
   },[]);
-
-  const load=useCallback(async()=>{
-    setLoading(true);setError(null);
-    try {setRentals(await fetchRentals(city,type));}
-    catch(e){setRentals([]);setError(e instanceof Error?e.message:"Could not load rentals.");}
-    finally{setLoading(false);}
-  },[city,type]);
-
-  useEffect(()=>{if(tab==="explore" && ready && intro===null)void load();},[tab,ready,intro,load]);
 
   useEffect(()=>{
     if(!selectedSlug)return;
@@ -117,21 +91,7 @@ function NativeApp(){
     setIntro(null);setWelcomeOpen(false);setTab(nextTab);
   }
   if(!ready)return <SafeAreaView style={styles.container}><ActivityIndicator style={{marginTop:80}} color={colors.green}/></SafeAreaView>;
-  if(welcomeOpen)return <NativeWelcome returning={intro===null} onGuest={()=>finishTutorial("home")}/>;
-  function renderRental({item}:{item:Rental}){
-    return <Pressable accessibilityRole="button" accessibilityLabel={"View "+item.title}
-      onPress={()=>setSelectedSlug(item.slug)} style={styles.rentalCard}>
-      <View style={styles.rentalIcon}><Text style={styles.rentalHouse}>⌂</Text></View>
-      <View style={styles.rentalCopy}>
-        <Text style={styles.rentalType}>{propertyLabel(item.propertyType).toUpperCase()}</Text>
-        <Text style={styles.rentalTitle} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.rentalArea}>{item.barangay}, {item.city}</Text>
-        <Text style={styles.rentalPrice}>{rentLabel(item.monthlyRentCentavos)}<Text style={styles.perMonth}> /month</Text></Text>
-      </View>
-      <Text style={styles.arrow}>›</Text>
-    </Pressable>;
-  }
-
+  if(welcomeOpen)return <NativeWelcome returning={intro===null} onGuest={()=>finishTutorial("home")} onSignedIn={user=>{setAccount(user);finishTutorial(user.role==="landlord"?"owner":"home");}}/>;
   return <SafeAreaView style={styles.container}>
     <StatusBar barStyle="dark-content" backgroundColor={colors.cream}/>
     <View style={styles.header}><Brand/><Text style={styles.headerTag}>{tab==="explore"?"EXPLORE":tab==="owner"?"OWNER":tab==="profile"?"ACCOUNT":"DISCOVER"}</Text></View>
@@ -175,29 +135,8 @@ function NativeApp(){
       <View style={styles.infoRow}><Text style={styles.infoBullet}>03</Text><Text style={styles.infoText}>Verify the home and owner before making payments.</Text></View>
       <Pressable accessibilityRole="button" onPress={()=>{setIntro(0);setWelcomeOpen(true);}} style={styles.textAction}><Text style={styles.inlineLink}>Replay introduction →</Text></Pressable>
     </ScrollView> :
-    tab==="explore" ? <View style={{flex:1}}>
-      <View style={styles.searchHead}>
-        <Text style={styles.title}>Explore rentals</Text>
-        <Text style={styles.paragraph}>Only administrator-approved listings appear.</Text>
-        <TextInput value={city} onChangeText={setCity} accessibilityLabel="Search city" placeholder="City or municipality"
-          style={styles.cityInput} placeholderTextColor="#91A395" onSubmitEditing={()=>void load()}/>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-          {["","house","apartment","boarding_house","bedspace"].map(v=><Pressable key={v} accessibilityRole="button"
-            onPress={()=>setType(v)} style={[styles.filterChip,v===type&&styles.filterChipActive]}>
-            <Text style={[styles.filterText,v===type&&styles.filterActiveText]}>{v?propertyLabel(v):"All types"}</Text>
-          </Pressable>)}
-        </ScrollView>
-        <PrimaryButton text="Search" onPress={()=>void load()}/>
-      </View>
-      {loading?<ActivityIndicator color={colors.green} size="large" style={{marginTop:45}}/>:
-      error?<View style={styles.emptyCard}><Text style={styles.cardTitle}>Search unavailable</Text><Text style={styles.paragraph}>{error}</Text><PrimaryButton text="Try again" onPress={()=>void load()}/></View>:
-      <FlatList data={rentals} keyExtractor={r=>r.slug} renderItem={renderRental}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={<View style={styles.emptyCard}><Text style={styles.cardSymbol}>⌂</Text>
-          <Text style={styles.cardTitle}>No approved rentals yet</Text>
-          <Text style={styles.paragraph}>Try a different city or property type. We never display fictional listings.</Text></View>}/>}
-    </View> :
-    <AccountGate mode={tab} onAccount={()=>{setIntro(null);setWelcomeOpen(true);}}/>}
+    tab==="explore" ? <RentalMap account={account} onSelect={setSelectedSlug} initialCity={city} initialType={type}/> :
+    <AccountPanel account={account} owner={tab==="owner"} onAccountChange={setAccount} onLogin={()=>{setIntro(null);setWelcomeOpen(true);}}/>}
     <View style={styles.tabBar}>{tabs.map(t=><Pressable key={t.id} onPress={()=>{setSelectedSlug(null);setTab(t.id);}}
       accessibilityRole="tab" accessibilityState={{selected:tab===t.id}} style={[styles.tab,t.id===tab&&styles.tabActive]}>
       <Text style={[styles.tabSymbol,t.id===tab&&styles.tabSelected]}>{t.symbol}</Text>
