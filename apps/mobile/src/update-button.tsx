@@ -1,6 +1,7 @@
 import React,{useState} from "react";
 import {Alert,Pressable,Text,View} from "react-native";
 import {isExpoGo} from "./runtime";
+import {Icon} from "./icons";
 import {colors} from "./design";
 export function UpdateButton() {
   const [busy,setBusy]=useState(false),[message,setMessage]=useState("");
@@ -17,5 +18,5 @@ export function UpdateButton() {
     } catch {setMessage("Couldn’t check for updates. Check your connection and try again.");}
     finally {setBusy(false);}
   }
-  return <View style={{marginTop:22}}><Pressable accessibilityRole="button" disabled={busy} onPress={()=>void check()} style={{padding:16,backgroundColor:colors.green,borderRadius:12}}><Text style={{color:"white",fontWeight:"800",textAlign:"center"}}>{busy?"Checking updates…":"Update app"}</Text></Pressable>{message?<Text accessibilityRole="alert" style={{color:colors.muted,lineHeight:20,marginTop:12}}>{message}</Text>:null}</View>;
+  return <View style={{marginTop:22}}><Pressable accessibilityRole="button" disabled={busy} onPress={()=>void check()} style={{padding:16,backgroundColor:colors.white,borderWidth:1,borderColor:colors.border,borderRadius:16,flexDirection:"row",gap:12,alignItems:"center",justifyContent:"center"}}><Icon name="refresh" size={19}/><Text style={{color:colors.green,fontWeight:"800",textAlign:"center"}}>{busy?"Checking updates…":"Update app"}</Text></Pressable>{message?<Text accessibilityRole="alert" style={{color:colors.muted,lineHeight:20,marginTop:12}}>{message}</Text>:null}</View>;
 }

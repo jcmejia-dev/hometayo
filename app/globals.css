@@ -983,6 +983,10 @@ input, select { min-width: 0; }
 }
 .auth-input-wrap:focus-within { outline: 2px solid #abcbb6; outline-offset: 1px; }
 .auth-input-wrap svg { display: none; }
+.auth-password-toggle { flex-shrink: 0; display: grid; place-items: center; width: 42px; height: 44px; margin-right: -9px; border: 0; border-radius: 9px; background: transparent; color: #375441; cursor: pointer; }
+.auth-password-toggle svg { display: block; }
+.auth-password-toggle:focus-visible { outline: 2px solid #427656; outline-offset: -3px; }
+.auth-password-toggle:disabled { cursor: not-allowed; opacity: .5; }
 .auth-input-wrap input {
   width: 100%;
   min-width: 0;

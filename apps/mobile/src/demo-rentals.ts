@@ -18,7 +18,7 @@ export const demoRentals:DemoRental[]=samples.map(([name,propertyType,rent,bedro
   city:"Koronadal City",barangay:"Demo neighbourhood",province:"South Cotabato",
   monthlyRentCentavos:rent*100,bedrooms,bathrooms,rentalMode:"monthly",lastConfirmedAt:null,
   description:"Fictional rental for testing HomeTayo. This is not an actual property or an offer to rent. Utilities not listed as included are paid separately.",
-  furnished:index===2||index===4?"fully":"un",availableSlots:propertyType==="bedspace"?4:null,contactUrl:null,
+  furnished:index===2||index===4?"yes":"no",availableSlots:propertyType==="bedspace"?4:null,contactUrl:null,
   demo:true,inclusions,latitude:demoLandmarks[0].latitude+offset,longitude:demoLandmarks[0].longitude+(index%2?offset/2:-offset/2),
 }));
 export function distanceKm(a:{latitude:number;longitude:number},b:{latitude:number;longitude:number}){

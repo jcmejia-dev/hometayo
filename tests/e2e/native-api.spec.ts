@@ -1,4 +1,10 @@
 import {test,expect} from "@playwright/test";
+test("native auth availability is public, uncached, and contains no secrets",async({request})=>{
+  const response=await request.get("/api/mobile/auth/status");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["cache-control"]).toBe("no-store");
+  expect(await response.json()).toEqual({emailSignIn:false,emailSignUp:false,google:false});
+});
 test("unconfigured native auth fails closed and never returns a token",async({request})=>{
   const response=await request.post("/api/mobile/auth",{data:{action:"login",email:"example@example.test",password:"not-a-real-password"}});
   expect(response.status()).toBe(503);

@@ -1,60 +1,39 @@
-import React, { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View, BackHandler, StatusBar } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "./design";
-import { AccountForm } from "./account-form";
-import type { Account } from "./session";
-
-const details = [
-  {symbol:"⌂", title:"Find your place.\nStart your next chapter.", copy:"HomeTayo brings rental homes, apartments, boarding houses and bedspaces together in one place."},
-  {symbol:"⌕", title:"Less searching.\nMore finding.", copy:"Choose a location and property type, review clear rental details, and contact property owners. Verify the property before making payments."},
-  {symbol:"▤", title:"Your space.\nSomeone’s new home.", copy:"Property owners can submit a rental for review and manage its availability through HomeTayo."},
+import React,{useEffect,useState} from "react";
+import {Image,Pressable,ScrollView,StyleSheet,Text,View,BackHandler,StatusBar,KeyboardAvoidingView,Platform} from "react-native";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {colors} from "./design";
+import {AccountForm} from "./account-form";
+import {Icon,type IconName} from "./icons";
+import type {Account} from "./session";
+const details:Array<{icon:IconName;title:string;copy:string;tag:string}>= [
+  {icon:"home",title:"Your next chapter\nstarts at home.",copy:"Discover houses, apartments, boarding houses and bedspaces. Find a space that fits your life, all in one place.",tag:"A space for every story"},
+  {icon:"pin",title:"Closer to where\nyou want to be.",copy:"Explore rentals on the map. Compare prices, details and distances to the places that matter to you.",tag:"Explore your neighbourhood"},
+  {icon:"key",title:"Open the door\nto new possibilities.",copy:"Own a rental? Share your property for review and manage your listings. Renters can browse freely and check details before contacting owners.",tag:"For renters & property owners"},
 ];
-
-export function NativeWelcome({returning,onGuest,onSignedIn}: {returning:boolean; onGuest:()=>void;onSignedIn:(account:Account)=>void}) {
-  const [step,setStep] = useState(returning ? 3 : 0);
-  const [mode,setMode] = useState<"sign-in"|"sign-up"|null>(null);
-  const [audience,setAudience] = useState<"renter"|"owner">("renter");
-
-  useEffect(() => {
-    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (mode) { setMode(null);  return true; }
-      if (step > 0) { setStep(step-1); return true; }
-      return false;
-    });
-    return () => subscription.remove();
-  }, [mode, step]);
-  return <SafeAreaView style={s.screen}>
-    <StatusBar barStyle="light-content" backgroundColor={colors.green}/>
-    <ScrollView contentContainerStyle={s.content}>
-      <View style={s.header}><Image source={require("../assets/icon.png")} style={s.logo}/><Text style={s.brand}>Home<Text style={s.gold}>Tayo</Text></Text></View>
-      {step < 3 ? <>
-        <View style={s.art}><Text style={s.symbol}>{details[step].symbol}</Text></View>
-        <Text style={s.kicker}>WELCOME HOME · {step+1} / 3</Text>
-        <Text style={s.title}>{details[step].title}</Text><Text style={s.copy}>{details[step].copy}</Text>
-        <View style={s.dots}>{details.map((_,i)=><View key={i} style={[s.dot, i===step && s.activeDot]}/>)}</View>
-        <Pressable accessibilityRole="button" style={s.primary} onPress={()=>setStep(step+1)}><Text style={s.primaryText}>{step===2 ? "Continue" : "Next"} →</Text></Pressable>
-        {step>0 && <Pressable accessibilityRole="button" style={s.link} onPress={()=>setStep(step-1)}><Text style={s.linkText}>← Back</Text></Pressable>}
-      </> : mode ? <>
-        <Text style={s.kicker}>{mode==="sign-up" ? "CREATE YOUR ACCOUNT" : "WELCOME BACK"}</Text>
-        <Text style={s.title}>How will you use HomeTayo?</Text><Text style={s.copy}>Choose your starting experience, then sign in here in the app.</Text>
-        {(["renter","owner"] as const).map(value=><Pressable key={value} accessibilityRole="radio" accessibilityState={{checked:audience===value}} onPress={()=>setAudience(value)} style={[s.role, audience===value && s.selectedRole]}><Text style={s.roleTitle}>{value==="renter" ? "⌂  I’m a renter" : "▤  I’m a property owner"}</Text><Text style={s.roleCopy}>{value==="renter" ? "Find a home or room that fits your life." : "Share a rental and manage your listings."}</Text></Pressable>)}
-        <AccountForm mode={mode} audience={audience} onComplete={onSignedIn}/>
-        <Pressable accessibilityRole="button" style={s.link} onPress={()=>{setMode(null);}}><Text style={s.linkText}>← Back</Text></Pressable>
-      </> : <>
-        <View style={s.art}><Text style={s.symbol}>⌂</Text></View><Text style={s.kicker}>YOUR NEXT CHAPTER STARTS HERE</Text><Text style={s.title}>A place for everyone.</Text><Text style={s.copy}>Sign in or create an account to choose your renter or property-owner experience.</Text>
-        <Pressable accessibilityRole="button" style={s.primary} onPress={()=>setMode("sign-up")}><Text style={s.primaryText}>Create account →</Text></Pressable>
-        <Pressable accessibilityRole="button" style={s.secondary} onPress={()=>setMode("sign-in")}><Text style={s.secondaryText}>Sign in</Text></Pressable>
-        <Pressable accessibilityRole="button" style={s.link} onPress={()=>setStep(0)}><Text style={s.linkText}>About HomeTayo</Text></Pressable>
+export function NativeWelcome({returning,onGuest,onSignedIn}:{returning:boolean;onGuest:()=>void;onSignedIn:(account:Account)=>void}){
+  const [step,setStep]=useState(returning?3:0),[mode,setMode]=useState<"sign-in"|"sign-up"|null>(null),[audience,setAudience]=useState<"renter"|"owner">("renter");
+  useEffect(()=>{const sub=BackHandler.addEventListener("hardwareBackPress",()=>{if(mode){setMode(null);return true;}if(step>0){setStep(step-1);return true;}return false;});return()=>sub.remove();},[mode,step]);
+  const auth=step===3&&mode!==null;
+  return <SafeAreaView style={[s.screen,auth&&s.authScreen]}>
+    <StatusBar barStyle={auth?"dark-content":"light-content"} backgroundColor={auth?colors.cream:colors.green}/>
+    <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==="ios"?"padding":"height"}>
+    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>
+      <View style={s.header}><View style={s.brandRow}><Image source={require("../assets/icon.png")} style={s.logo}/><Text style={[s.brand,auth&&{color:colors.green}]}>Home<Text style={s.gold}>Tayo</Text></Text></View>{step<3&&<Pressable accessibilityRole="button" onPress={()=>setStep(3)} style={s.skip}><Text style={s.skipText}>Skip</Text></Pressable>}{auth&&<Pressable accessibilityRole="button" accessibilityLabel="Back to welcome" onPress={()=>setMode(null)} style={s.back}><Icon name="back"/></Pressable>}</View>
+      {step<3?<>
+        <View style={s.art}><View style={s.orbit}/><View style={s.artCircle}><Icon name={details[step].icon} size={84} color="#EED6AD"/></View><View style={s.artTag}><Icon name={step===1?"location":"home"} size={16}/><Text style={s.artTagText}>{details[step].tag}</Text></View></View>
+        <Text style={s.kicker}>DISCOVER HOMETAYO · {step+1} OF 3</Text><Text style={s.title}>{details[step].title}</Text><Text style={s.copy}>{details[step].copy}</Text>
+        <View style={s.footer}><View style={s.dots}>{details.map((_,i)=><View key={i} style={[s.dot,i===step&&s.activeDot]}/>)}</View><Pressable accessibilityRole="button" style={s.primary} onPress={()=>setStep(step+1)}><Text style={s.primaryText}>{step===2?"Get started":"Continue"}</Text><Icon name="arrow"/></Pressable>{step>0&&<Pressable accessibilityRole="button" style={s.link} onPress={()=>setStep(step-1)}><Text style={s.linkText}>Back</Text></Pressable>}</View>
+      </>:mode?<>
+        <Text style={[s.kicker,{color:colors.sage}]}>YOUR HOMETAYO EXPERIENCE</Text><Text style={s.authTitle}>A place for you.</Text><Text style={s.authCopy}>Choose how you’ll use HomeTayo.</Text>
+        <View style={s.roles}>{(["renter","owner"] as const).map(value=><Pressable key={value} accessibilityRole="radio" accessibilityState={{checked:audience===value}} onPress={()=>setAudience(value)} style={[s.role,audience===value&&s.selectedRole]}><View style={s.roleTop}><Icon name={value==="renter"?"home":"building"} color={audience===value?colors.green:colors.sage}/>{audience===value&&<Icon name="check" size={16}/>}</View><Text style={s.roleTitle}>{value==="renter"?"Renter":"Property owner"}</Text><Text style={s.roleCopy}>{value==="renter"?"Find your next home":"List your rental"}</Text></Pressable>)}</View>
+        <AccountForm key={mode} mode={mode} audience={audience} onComplete={onSignedIn} onSwitch={()=>setMode(mode==="sign-in"?"sign-up":"sign-in")}/>
+      </>:<>
+        <View style={s.art}><View style={s.orbit}/><View style={s.artCircle}><Icon name="home" size={84} color="#EED6AD"/></View><View style={s.artTag}><Icon name="key" size={16}/><Text style={s.artTagText}>Your next chapter starts here</Text></View></View>
+        <Text style={s.kicker}>WELCOME TO HOMETAYO</Text><Text style={s.title}>{"Find a space.\nFeel at home."}</Text><Text style={s.copy}>Connect with your next home or share a place with someone new.</Text>
+        <Pressable accessibilityRole="button" style={s.primary} onPress={()=>setMode("sign-up")}><Text style={s.primaryText}>Create account</Text><Icon name="arrow"/></Pressable><Pressable accessibilityRole="button" style={s.secondary} onPress={()=>setMode("sign-in")}><Text style={s.secondaryText}>Sign in</Text></Pressable><Pressable accessibilityRole="button" style={s.link} onPress={()=>setStep(0)}><Text style={s.linkText}>How HomeTayo works</Text></Pressable>
       </>}
-      {step===3 && <Pressable accessibilityRole="button" style={s.link} onPress={onGuest}><Text style={s.linkText}>Explore rentals as guest →</Text></Pressable>}
-    </ScrollView>
+      {step===3&&<Pressable accessibilityRole="button" style={s.link} onPress={onGuest}><Text style={[s.linkText,auth&&{color:colors.green2}]}>Explore as a guest</Text><Icon name="arrow" size={16} color={auth?colors.green2:"#DFEBE2"}/></Pressable>}
+    </ScrollView></KeyboardAvoidingView>
   </SafeAreaView>;
 }
-
-const s = StyleSheet.create({
-  screen:{flex:1,backgroundColor:colors.green},content:{flexGrow:1,padding:26,paddingBottom:36},header:{flexDirection:"row",gap:10,alignItems:"center",marginBottom:34},logo:{width:36,height:36,borderRadius:10},brand:{fontSize:23,fontWeight:"900",color:"white"},gold:{color:colors.gold},
-  art:{backgroundColor:"#2b604b",borderRadius:32,height:190,alignItems:"center",justifyContent:"center",marginBottom:28},symbol:{fontSize:100,color:"#e9d6b2"},kicker:{fontSize:10,letterSpacing:1.5,color:colors.gold,fontWeight:"800",marginBottom:14},title:{fontSize:34,lineHeight:41,fontWeight:"900",color:"#fff",letterSpacing:-1},copy:{fontSize:15,lineHeight:25,color:"#d6e6dc",marginTop:18,marginBottom:26},
-  dots:{flexDirection:"row",gap:8,marginBottom:26},dot:{height:7,width:7,borderRadius:7,backgroundColor:"#6c947f"},activeDot:{width:28,backgroundColor:colors.gold},primary:{backgroundColor:"#eed6ad",minHeight:54,borderRadius:14,alignItems:"center",justifyContent:"center",padding:14,marginTop:12},primaryText:{color:colors.green,fontWeight:"800",fontSize:15},secondary:{borderWidth:1,borderColor:"#86a393",minHeight:54,borderRadius:14,alignItems:"center",justifyContent:"center",marginTop:12},secondaryText:{color:"white",fontSize:15,fontWeight:"800"},link:{padding:16,alignItems:"center"},linkText:{color:"#dfebe2",fontSize:13,fontWeight:"700"},
-  role:{padding:22,borderRadius:18,borderWidth:2,borderColor:"#567c67",marginBottom:12,backgroundColor:"#244e3d"},selectedRole:{borderColor:colors.gold,backgroundColor:"#315e48"},roleTitle:{fontSize:18,fontWeight:"800",color:"white"},roleCopy:{fontSize:13,lineHeight:21,color:"#d6e6dc",marginTop:9},note:{fontSize:12,lineHeight:20,color:"#d6e6dc",marginVertical:12},
-});
+const s=StyleSheet.create({screen:{flex:1,backgroundColor:colors.green},authScreen:{backgroundColor:colors.cream},content:{flexGrow:1,padding:24,paddingBottom:28},header:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:28},brandRow:{flexDirection:"row",gap:9,alignItems:"center"},logo:{width:38,height:38,borderRadius:12},brand:{fontSize:24,fontWeight:"800",color:"white",letterSpacing:-.7},gold:{color:colors.gold},skip:{padding:12},skipText:{color:"#D6E6DC",fontWeight:"700",fontSize:12},back:{padding:10,backgroundColor:colors.white,borderRadius:12},art:{height:235,backgroundColor:"#234F3E",borderRadius:30,alignItems:"center",justifyContent:"center",marginBottom:30,overflow:"hidden"},orbit:{position:"absolute",height:280,width:280,borderRadius:140,borderWidth:1,borderColor:"#386550"},artCircle:{height:160,width:160,borderRadius:80,backgroundColor:"#2D624B",alignItems:"center",justifyContent:"center"},artTag:{position:"absolute",bottom:18,flexDirection:"row",gap:8,alignItems:"center",paddingVertical:10,paddingHorizontal:14,backgroundColor:"#F3E6CC",borderRadius:30},artTagText:{fontSize:11,fontWeight:"700",color:colors.green},kicker:{fontSize:10,letterSpacing:1.8,color:colors.gold,fontWeight:"800",marginBottom:12},title:{fontSize:34,lineHeight:40,fontWeight:"800",color:"white",letterSpacing:-1.1},copy:{fontSize:14,lineHeight:24,color:"#D6E6DC",marginTop:16,marginBottom:24},footer:{marginTop:"auto"},dots:{flexDirection:"row",gap:7,marginBottom:24},dot:{height:6,width:6,borderRadius:6,backgroundColor:"#6C947F"},activeDot:{width:26,backgroundColor:colors.gold},primary:{backgroundColor:"#EED6AD",minHeight:54,borderRadius:16,flexDirection:"row",gap:12,alignItems:"center",justifyContent:"center",padding:14,marginTop:8},primaryText:{color:colors.green,fontWeight:"800",fontSize:15},secondary:{borderWidth:1,borderColor:"#658C78",minHeight:54,borderRadius:16,alignItems:"center",justifyContent:"center",marginTop:12},secondaryText:{color:"white",fontSize:15,fontWeight:"800"},link:{minHeight:48,padding:14,flexDirection:"row",gap:10,alignItems:"center",justifyContent:"center"},linkText:{color:"#DFEBE2",fontSize:12,fontWeight:"700"},authTitle:{fontSize:30,fontWeight:"800",color:colors.green,letterSpacing:-1},authCopy:{fontSize:13,lineHeight:21,color:colors.muted,marginTop:8,marginBottom:18},roles:{flexDirection:"row",gap:10},role:{flex:1,padding:15,borderRadius:18,borderWidth:1,borderColor:colors.border,backgroundColor:colors.white},selectedRole:{borderColor:colors.green2,backgroundColor:colors.soft},roleTop:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:12},roleTitle:{fontSize:13,fontWeight:"800",color:colors.green},roleCopy:{fontSize:11,lineHeight:17,color:colors.muted,marginTop:5}});

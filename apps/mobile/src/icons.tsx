@@ -1,0 +1,30 @@
+import React from "react";
+import Home from "lucide-react-native/icons/house";
+import Search from "lucide-react-native/icons/search";
+import Building2 from "lucide-react-native/icons/building-complex";
+import UserRound from "lucide-react-native/icons/user-round";
+import MapPin from "lucide-react-native/icons/map-pin";
+import ShieldCheck from "lucide-react-native/icons/shield-check";
+import ArrowRight from "lucide-react-native/icons/arrow-right";
+import ArrowLeft from "lucide-react-native/icons/arrow-left";
+import Eye from "lucide-react-native/icons/eye";
+import EyeOff from "lucide-react-native/icons/eye-off";
+import Mail from "lucide-react-native/icons/mail";
+import LockKeyhole from "lucide-react-native/icons/lock-keyhole";
+import Check from "lucide-react-native/icons/check";
+import ChevronRight from "lucide-react-native/icons/chevron-right";
+import SlidersHorizontal from "lucide-react-native/icons/sliders-horizontal";
+import Navigation from "lucide-react-native/icons/navigation";
+import RefreshCw from "lucide-react-native/icons/refresh-cw";
+import LogOut from "lucide-react-native/icons/log-out";
+import BedDouble from "lucide-react-native/icons/bed-double";
+import Bath from "lucide-react-native/icons/bath";
+import Wifi from "lucide-react-native/icons/wifi";
+import KeyRound from "lucide-react-native/icons/key-round";
+import {colors} from "./design";
+const icons={home:Home,search:Search,building:Building2,user:UserRound,pin:MapPin,shield:ShieldCheck,arrow:ArrowRight,back:ArrowLeft,eye:Eye,"eye-off":EyeOff,mail:Mail,lock:LockKeyhole,check:Check,chevron:ChevronRight,filters:SlidersHorizontal,location:Navigation,refresh:RefreshCw,logout:LogOut,bed:BedDouble,bath:Bath,wifi:Wifi,key:KeyRound};
+export type IconName=keyof typeof icons;
+export function Icon({name,size=22,color=colors.green}:{name:IconName;size?:number;color?:string}){
+  const Component=icons[name];
+  return <Component size={size} color={color} strokeWidth={1.8} accessible={false}/>;
+}
