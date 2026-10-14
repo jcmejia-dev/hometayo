@@ -16,6 +16,7 @@ export function SiteHeader() {
             <Link href="/how-it-works">How it works</Link>
             <Link href="/safety">Rental safety</Link>
             <Link href="/profile">My profile</Link>
+            <Link href="/download">Install app</Link>
           </nav>
           <Link className="header-owner" href="/owner">
             List your property <ArrowUpRight size={16} aria-hidden="true" />
@@ -28,6 +29,7 @@ export function SiteHeader() {
               <Link href="/safety">Rental safety</Link>
               <Link href="/owner">List your property</Link>
               <Link href="/profile">My profile</Link>
+              <Link href="/download">Install Android app</Link>
               <Link href="/privacy">Privacy</Link>
             </nav>
           </details>
