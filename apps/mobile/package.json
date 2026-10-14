@@ -5,6 +5,7 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
+    "start:go": "expo start --go --lan",
     "start:qr": "expo start --dev-client --lan",
     "android": "expo start --android",
     "check": "tsc --noEmit",
@@ -22,13 +23,13 @@
     "expo-secure-store": "~57.0.4",
     "expo-updates": "~57.0.26",
     "react": "19.2.3",
-    "react-native": "0.86.0",
+    "react-native": "0.86.3",
     "react-native-maps": "1.27.2",
-    "react-native-safe-area-context": "^5.6.2"
+    "react-native-safe-area-context": "~5.7.0"
   },
   "devDependencies": {
-    "@types/react": "^19.2.0",
+    "@types/react": "~19.2.4",
     "expo-doctor": "^1.17.0",
-    "typescript": "~5.9.2"
+    "typescript": "~6.0.3"
   }
 }

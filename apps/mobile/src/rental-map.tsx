@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useRef,useState} from "react";
 import {ActivityIndicator,Alert,Pressable,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
 import MapView,{Circle,Marker,PROVIDER_GOOGLE} from "react-native-maps";
 import * as Location from "expo-location";
-import Constants from "expo-constants";
+import {mapsAvailable} from "./runtime";
 import {api,type Account} from "./session";
 import {rentLabel,type Rental} from "./api";
 
@@ -16,7 +16,7 @@ export function RentalMap({account,onSelect,initialCity="",initialType=""}: {acc
   const [query,setQuery]=useState(""),[city,setCity]=useState(initialCity),[type,setType]=useState(initialType),[places,setPlaces]=useState<Place[]>([]),[rentals,setRentals]=useState<MapRental[]>([]),[error,setError]=useState(""),[busy,setBusy]=useState(false),[nextOffset,setNextOffset]=useState<number|null>(null);
   const map=useRef<MapView>(null);
   const generation=useRef(0);
-  const mapsConfigured=Constants.expoConfig?.extra?.mapsConfigured===true;
+  const mapsConfigured=mapsAvailable;
   function choose(point:Point,name:string) {setCenter(point);setLabel(name);setPlaces([]);map.current?.animateToRegion({...point,latitudeDelta:.07,longitudeDelta:.07});}
   const load=useCallback(async(offset=0)=>{
     const current=++generation.current;

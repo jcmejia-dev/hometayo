@@ -1,8 +1,8 @@
 import React,{useState} from "react";
 import { Pressable, Text, TextInput, View, StyleSheet, ActivityIndicator } from "react-native";
-import { GoogleSignin, isSuccessResponse } from "@react-native-google-signin/google-signin";
 import { accountAction, type Account } from "./session";
 import { colors } from "./design";
+import {isExpoGo} from "./runtime";
 
 export function AccountForm({mode,audience,onComplete}: {mode:"sign-in"|"sign-up";audience:"renter"|"owner";onComplete:(account:Account)=>void}) {
   const [name,setName]=useState(""),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[confirm,setConfirm]=useState("");
@@ -12,6 +12,8 @@ export function AccountForm({mode,audience,onComplete}: {mode:"sign-in"|"sign-up
     try {
       let result;
       if(google) {
+        if(isExpoGo)throw Error("Google sign-in needs the installed HomeTayo app. You can preview the screens and use configured email sign-in in Expo Go.");
+        const {GoogleSignin,isSuccessResponse}=require("@react-native-google-signin/google-signin") as typeof import("@react-native-google-signin/google-signin");
         GoogleSignin.configure({webClientId:process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID});
         await GoogleSignin.hasPlayServices();
         const response=await GoogleSignin.signIn();
@@ -41,7 +43,8 @@ export function AccountForm({mode,audience,onComplete}: {mode:"sign-in"|"sign-up
     </>}
     {message?<Text accessibilityRole="alert" style={s.note}>{message}</Text>:null}
     <Pressable accessibilityRole="button" disabled={busy} onPress={()=>void run()} style={[s.button,busy&&{opacity:.5}]}>{busy?<ActivityIndicator color="white"/>:<Text style={s.buttonText}>{verify?"Verify email":mode==="sign-up"&&!registered?"Create account":"Sign in"}</Text>}</Pressable>
-    {!verify&&process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID && <Pressable accessibilityRole="button" disabled={busy} onPress={()=>void run(true)} style={s.google}><Text style={s.googleText}>Continue with Google</Text></Pressable>}
+    {!verify&&!isExpoGo&&process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID && <Pressable accessibilityRole="button" disabled={busy} onPress={()=>void run(true)} style={s.google}><Text style={s.googleText}>Continue with Google</Text></Pressable>}
+    {isExpoGo&&<Text style={s.note}>Expo Go preview: Google sign-in is available in the installed app. Email sign-in uses the configured HomeTayo backend.</Text>}
     {verify&&<Pressable accessibilityRole="button" onPress={()=>setVerify(false)}><Text style={s.note}>Back / request another code</Text></Pressable>}
   </View>;
 }

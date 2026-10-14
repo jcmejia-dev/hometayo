@@ -1,10 +1,12 @@
 import React,{useState} from "react";
 import {Alert,Pressable,Text,View} from "react-native";
-import * as Updates from "expo-updates";
+import {isExpoGo} from "./runtime";
 import {colors} from "./design";
 export function UpdateButton() {
   const [busy,setBusy]=useState(false),[message,setMessage]=useState("");
   async function check() {
+    if(isExpoGo){setMessage("Expo Go loads your local changes through the QR server. Test the Update app feature later in the installed HomeTayo app.");return;}
+    const Updates=require("expo-updates") as typeof import("expo-updates");
     if(!Updates.isEnabled){setMessage("Updates will be available in the signed app once EAS Update is configured.");return;}
     setBusy(true);setMessage("");
     try {
