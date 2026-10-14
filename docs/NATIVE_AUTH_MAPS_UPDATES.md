@@ -10,6 +10,8 @@
 
 ## 1. Backend / Vercel setup
 
+For Gmail instead of Resend, follow [GMAIL_SETUP.md](GMAIL_SETUP.md). Set `AUTH_EMAIL_PROVIDER=gmail`, `GMAIL_USER`, and `GMAIL_APP_PASSWORD`; `RESEND_API_KEY` and `AUTH_EMAIL_FROM` are not needed in that mode. The database migrations and authentication flags below still apply.
+
 Use the dedicated HomeTayo Neon database. Back up and verify its identity before explicitly running `npm run db:migrate` from the repository root. Migration 004 adds native sessions and property coordinates. Migrations 001–003 must also be applied. No migration runs automatically during build.
 
 Configure private Vercel production variables:

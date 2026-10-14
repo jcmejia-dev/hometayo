@@ -1,5 +1,7 @@
 # Enable HomeTayo accounts
 
+**Current choice: Gmail.** Follow [GMAIL_SETUP.md](GMAIL_SETUP.md) for email delivery without a custom domain. The Resend instructions below remain an alternative.
+
 The app's account forms run inside HomeTayo. Email account creation requires the backend, authentication tables, and verification-email delivery. Styling changes alone cannot enable those services.
 
 ## What was checked on 14 October 2026
