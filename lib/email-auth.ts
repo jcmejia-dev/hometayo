@@ -4,12 +4,15 @@ import { promisify } from "node:util";
 import { neon } from "@neondatabase/serverless";
 import { emailSchema, signInSchema } from "@/lib/auth-validation";
 
+import {emailDeliveryConfig} from "./email-delivery-config";
+import {deliverAccountEmail} from "./email-delivery";
+
 const scrypt = promisify(nodeScrypt);
 const sessionReady = () => Boolean(process.env.DATABASE_URL && process.env.AUTH_SECRET);
 
 export function emailSignUpConfigured() {
   return Boolean(emailPasswordSignInConfigured() && process.env.ENABLE_EMAIL_SIGNUP === "true" &&
-    process.env.RESEND_API_KEY && process.env.AUTH_EMAIL_FROM && process.env.APP_BASE_URL);
+    emailDeliveryConfig(process.env) && process.env.APP_BASE_URL);
 }
 export function emailPasswordSignInConfigured() { return sessionReady() && process.env.ENABLE_EMAIL_PASSWORD_AUTH === "true"; }
 export function googleSignInConfigured() {
@@ -35,13 +38,8 @@ function applicationOrigin() {
 }
 async function sendEmail(to:string,subject:string,url:string,description:string) {
   if (!emailSignUpConfigured()) throw Error("Email delivery disabled");
-  const response=await fetch("https://api.resend.com/emails",{
-    method:"POST",cache:"no-store",
-    headers:{"Authorization":"Bearer "+process.env.RESEND_API_KEY,"Content-Type":"application/json"},
-    body:JSON.stringify({from:process.env.AUTH_EMAIL_FROM,to:[to],subject,
-      html:'<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#173d32"><h1>HomeTayo</h1><p>Use the link below to '+escapeHtml(description)+'. It expires soon.</p><p><a href="'+escapeHtml(url)+'" style="background:#173d32;color:white;padding:12px 20px;display:inline-block;border-radius:8px;text-decoration:none">Continue to HomeTayo</a></p><p>Didn’t request this? Ignore this email.</p></div>'})
-  });
-  if (!response.ok) throw Error("Email could not be delivered");
+  await deliverAccountEmail({to,subject,text:"Use this link to "+description+": "+url+"\nIf you didn't request this, ignore this email.",
+    html:'<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#173d32"><h1>HomeTayo</h1><p>Use the link below to '+escapeHtml(description)+'. It expires soon.</p><p><a href="'+escapeHtml(url)+'" style="background:#173d32;color:white;padding:12px 20px;display:inline-block;border-radius:8px;text-decoration:none">Continue to HomeTayo</a></p><p>Didn’t request this? Ignore this email.</p></div>'});
 }
 /** Atomic rate limit in Neon, by HMAC-obscured account/action, with rolling window. */
 export async function consumeRateLimit(kind:string,subject:string,maximum:number,seconds:number):Promise<boolean>{
@@ -133,8 +131,7 @@ async function issueNativeEmailCode(id:string,email:string) {
   const db=database();
   await db.query("DELETE FROM auth_email_tokens WHERE user_id=$1 AND purpose='verify'",[id]);
   await db.query("INSERT INTO auth_email_tokens(token_hash,user_id,purpose,expires_at) VALUES($1,$2,'verify',now()+interval '10 minutes')",[stableKey("native-verify",email+":"+code),id]);
-  const response=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+process.env.RESEND_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({from:process.env.AUTH_EMAIL_FROM,to:[email],subject:"Your HomeTayo verification code",html:"<h1>HomeTayo</h1><p>Enter this code in the HomeTayo app:</p><h2>"+code+"</h2><p>Expires in 10 minutes. If you didn’t request it, ignore this email.</p>"})});
-  if(!response.ok)throw Error("Verification email unavailable");
+  await deliverAccountEmail({to:email,subject:"Your HomeTayo verification code",text:"Your HomeTayo verification code: "+code+". Expires in 10 minutes. If you didn't request it, ignore this email.",html:"<h1>HomeTayo</h1><p>Enter this code in the HomeTayo app:</p><h2>"+code+"</h2><p>Expires in 10 minutes. If you didn’t request it, ignore this email.</p>"});
 }
 export async function verifyNativeEmailCode(rawEmail:string,code:string) {
   const parsed=emailSchema.safeParse(rawEmail);
