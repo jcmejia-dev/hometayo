@@ -4,20 +4,26 @@ import { SearchForm } from "@/components/search-form";
 import { FeaturedRentalsPanel } from "@/components/featured-rentals";
 import { getLatestPublishedListings } from "@/lib/listings";
 import { FirstVisitIntro } from "@/components/first-visit-intro";
+import { currentUser } from "@/lib/session-user";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }:{searchParams:Promise<{intro?:string}>}) {
-  const [latest, params] = await Promise.all([getLatestPublishedListings(), searchParams]);
+  const [latest, params, user] = await Promise.all([getLatestPublishedListings(), searchParams, currentUser()]);
   return (
     <>
-      <FirstVisitIntro forceOpen={params.intro === "1"}/>
+      {(!user || params.intro === "1") && <FirstVisitIntro forceOpen={params.intro === "1"}/>}
       <section className="hero-section">
         <div className="container hero-grid">
           <div className="hero-copy">
             <div className="eyebrow">HANAP BAHAY. DITO TAYO.</div>
             <h1>Find a place <span>to call home.</span></h1>
             <p className="hero-description">Explore available homes and rooms in one simple search. No account needed.</p>
+            {user ? <p className="launch-note">Welcome back, {user.displayName || "neighbor"}. <Link href="/profile" className="text-link">My profile</Link></p> : <div className="welcome-entry-actions">
+              <Link className="button button-primary" href="/?intro=1">Discover HomeTayo</Link>
+              <Link className="text-link" href="/sign-up">Create account</Link>
+              <Link className="text-link" href="/sign-in">Sign in</Link>
+            </div>}
             <SearchForm />
           </div>
           <FeaturedRentalsPanel result={latest} />

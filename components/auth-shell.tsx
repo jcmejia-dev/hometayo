@@ -24,6 +24,7 @@ export function AuthShell({mode,title,children}:{
             : <>Already have an account? <Link href="/sign-in">Sign in</Link></>}
         </p>}
         <p className="auth-guest-link"><Link href="/rentals">Explore rentals without an account →</Link></p>
+        <p className="auth-guest-link"><Link href="/?intro=1">Discover what HomeTayo does →</Link></p>
       </section>
     </div>
   );

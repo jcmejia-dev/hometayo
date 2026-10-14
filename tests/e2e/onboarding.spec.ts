@@ -43,3 +43,19 @@ test("welcome screen offers both auth flows without forcing them",async ({page})
   await expect(dialog.getByRole("link",{name:"Sign in"})).toHaveAttribute("href","/sign-in");
   await expect(dialog.getByRole("button",{name:"Explore as guest"})).toBeVisible();
 });
+
+test("returning guests can discover HomeTayo again and continue to sign in", async ({page}) => {
+  await page.goto("/");
+  const dialog = page.getByRole("dialog", {name:"Welcome to HomeTayo"});
+  await dialog.getByRole("button", {name:"Skip introduction"}).click();
+  await page.reload();
+  await expect(dialog).toBeHidden();
+  await page.getByRole("link", {name:"Discover HomeTayo", exact:true}).click();
+  await expect(dialog).toBeVisible();
+  for (let i=0; i<3; i++) await dialog.getByRole("button", {name:i===2 ? "Get started" : "Next"}).click();
+  await dialog.getByRole("link", {name:"Sign in", exact:true}).click();
+  await expect(page).toHaveURL(/\/sign-in$/);
+  await expect(page.getByRole("heading", {name:"Sign in", exact:true})).toBeVisible();
+  await page.getByRole("link", {name:"Discover what HomeTayo does"}).click();
+  await expect(dialog).toBeVisible();
+});

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function SignInPage({searchParams}:{
   searchParams:Promise<{verified?:string}>
 }) {
-  if (await currentUser()) redirect("/owner");
+  if (await currentUser()) redirect("/");
   const google = googleSignInConfigured();
   const email = emailPasswordSignInConfigured();
   const {verified} = await searchParams;
@@ -20,7 +20,7 @@ export default async function SignInPage({searchParams}:{
       <EmailLoginForm enabled={email}/>
       {google && <>
         <div className="auth-divider"><span>or continue with</span></div>
-        <form action={async () => { "use server"; await signIn("google",{redirectTo:"/owner"}); }}>
+        <form action={async () => { "use server"; await signIn("google",{redirectTo:"/"}); }}>
           <button type="submit" className="auth-google-button">
             <span className="auth-google-letter" aria-hidden="true">G</span>
             Continue with Google

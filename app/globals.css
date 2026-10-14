@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+.welcome-entry-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 24px; }
+
 :root {
   --green: #173d32;
   --green-deep: #112f27;
