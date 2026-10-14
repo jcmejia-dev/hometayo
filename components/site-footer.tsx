@@ -15,6 +15,7 @@ export function SiteFooter() {
           <Link href="/how-it-works">How it works</Link>
           <Link href="/safety">Safety</Link>
           <Link href="/privacy">Privacy</Link>
+          <Link href="/download">Install Android app</Link>
         </nav>
         <p className="footer-note">© {new Date().getFullYear()} HomeTayo</p>
       </div>
