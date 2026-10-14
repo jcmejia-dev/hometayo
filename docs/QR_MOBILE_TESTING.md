@@ -1,6 +1,19 @@
 # Test HomeTayo using a QR code
 
-HomeTayo's Google sign-in and native modules require a custom development app. Expo Go cannot run this project. Install the development APK once; it provides the QR launcher and live UI updates from your computer.
+## Preview first in Expo Go (no APK build)
+
+```powershell
+cd C:\Users\pc\hometayo\apps\mobile
+npm run start:go
+```
+
+Use Expo Go's Scan QR code on your phone, with the phone and PC on the same Wi-Fi. Update Expo Go to a version supporting SDK 57. This preview supports the intro, native UI, guest browsing, included map/location modules, and configured email authentication. Google native sign-in and production EAS updates are unavailable in Expo Go; the app explains those limits instead of loading unsupported native modules. Email sign-in and destination search still require the backend settings.
+
+If the LAN QR does not connect, run `npx expo start --go --tunnel` instead. Expo may ask to install a tunnel helper.
+
+## Full native testing later
+
+Install the custom development APK when you are ready to test Google native sign-in. It provides its own QR launcher and live UI updates from your computer.
 
 ## First setup
 
