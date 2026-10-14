@@ -12,6 +12,9 @@ import {RentalMap} from "./src/rental-map";
 import {AccountPanel} from "./src/account-panel";
 import { fetchRentalDetail, propertyLabel, rentLabel, type RentalDetail } from "./src/api";
 
+import {isExpoGo} from "./src/runtime";
+import {demoRentals,type DemoRental} from "./src/demo-rentals";
+
 type Tab = "home" | "explore" | "owner" | "profile";
 const tabs: Array<{id:Tab;label:string;symbol:string}> = [
   {id:"home",label:"Home",symbol:"⌂"},
@@ -49,7 +52,7 @@ function NativeApp(){
 
 
 
-  const [selected,setSelected]=useState<RentalDetail|null>(null);
+  const [selected,setSelected]=useState<(RentalDetail & Partial<DemoRental>)|null>(null);
   const [selectedSlug,setSelectedSlug]=useState<string|null>(null);
   const [detailBusy,setDetailBusy]=useState(false);
   useEffect(()=>watchSessionExpired(()=>{setAccount(null);setWelcomeOpen(true);setIntro(null);}),[]);
@@ -66,6 +69,8 @@ function NativeApp(){
 
   useEffect(()=>{
     if(!selectedSlug)return;
+    const demo=isExpoGo?demoRentals.find(r=>r.slug===selectedSlug):undefined;
+    if(demo){setSelected(demo);setDetailBusy(false);return;}
     let active=true;
     const ctrl=new AbortController();
     setDetailBusy(true);setSelected(null);
@@ -98,6 +103,7 @@ function NativeApp(){
     {selectedSlug ? <ScrollView contentContainerStyle={styles.tabBody}>
       <Pressable accessibilityRole="button" onPress={()=>setSelectedSlug(null)}><Text style={styles.inlineLink}>← Back to rentals</Text></Pressable>
       {detailBusy ? <ActivityIndicator color={colors.green} size="large" style={{marginTop:55}}/> : selected ? <>
+        {selected.demo&&<Text style={styles.eyebrow}>DEMO PROPERTY - NOT AVAILABLE FOR RENT</Text>}
         <View style={styles.detailHero}><Text style={styles.detailHouse}>⌂</Text><Text style={styles.detailPlaceholder}>Property photographs are not available yet</Text></View>
         <Text style={styles.eyebrow}>{propertyLabel(selected.propertyType).toUpperCase()}</Text>
         <Text style={styles.title}>{selected.title}</Text>
@@ -106,12 +112,13 @@ function NativeApp(){
         <View style={styles.detailFacts}><Text>{selected.bedrooms ?? "—"} beds</Text><Text>{selected.bathrooms ?? "—"} baths</Text><Text>{selected.furnished} furnished</Text></View>
         <Text style={styles.sectionTitle}>About this rental</Text>
         <Text style={styles.paragraph}>{selected.description}</Text>
-        <Text style={styles.disclaimer}>Admin review does not guarantee property ownership, condition or safety. Verify details independently before paying.</Text>
+        {selected.inclusions&&<><Text style={styles.sectionTitle}>Inclusions & amenities</Text>{selected.inclusions.map(item=><Text key={item} style={styles.paragraph}>Included: {item}</Text>)}<Text style={styles.paragraph}>Electricity is billed separately. Sample terms: one month deposit and one month advance.</Text><Text style={styles.paragraph}>{selected.availableSlots?selected.availableSlots+" sample slots":"Whole unit"}</Text></>}
+        {!selected.demo&&<Text style={styles.disclaimer}>Admin review does not guarantee property ownership, condition or safety. Verify details independently before paying.</Text>}
         {selected.contactUrl?<PrimaryButton text="Contact property owner" onPress={()=>{
           const url=selected.contactUrl;
           if(url && (url.startsWith("https://")||url.startsWith("tel:")))
             void Linking.openURL(url).catch(()=>Alert.alert("Unable to open contact link"));
-        }}/>:<Text style={styles.disclaimer}>The owner has not provided a public contact link.</Text>}
+        }}/>:<Text style={styles.disclaimer}>{selected.demo?"Demo only - contacting or booking is disabled.":"The owner has not provided a public contact link."}</Text>}
       </>:null}
     </ScrollView> :
     tab==="home" ? <ScrollView contentContainerStyle={styles.tabBody}>
