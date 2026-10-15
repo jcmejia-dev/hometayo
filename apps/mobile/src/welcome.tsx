@@ -5,15 +5,15 @@ import {colors} from "./design";
 import {AccountForm} from "./account-form";
 import {Icon,type IconName} from "./icons";
 import {useReducedMotion,useSceneTransition,useIllustrationMotion} from "./motion";
+import {OnboardingArt} from "./onboarding-art";
 import type {Account} from "./session";
 const details:Array<{icon:IconName;title:string;copy:string;tag:string}>= [
   {icon:"home",title:"Your next chapter\nstarts at home.",copy:"Discover houses, apartments, boarding houses and bedspaces. Find a space that fits your life, all in one place.",tag:"A space for every story"},
   {icon:"pin",title:"Closer to where\nyou want to be.",copy:"Explore rentals on the map. Compare prices, details and distances to the places that matter to you.",tag:"Explore your neighbourhood"},
   {icon:"key",title:"Open the door\nto new possibilities.",copy:"Own a rental? Share your property for review and manage your listings. Renters can browse freely and check details before contacting owners.",tag:"For renters & property owners"},
 ];
-function WelcomeArt({icon,tag,secondary,reduced}:{icon:IconName;tag:string;secondary:IconName;reduced:boolean}){
-  const motion=useIllustrationMotion(reduced);
-  return <View style={s.art}><View style={s.orbit}/><Animated.View style={[s.artCircle,motion.hero]}><Icon name={icon} size={84} color="#EED6AD"/></Animated.View><Animated.View style={[s.satellite,motion.satellite]}><Icon name={secondary} size={23} color="#EED6AD"/></Animated.View><Animated.View style={[s.artTag,motion.tag]}><Icon name={secondary} size={16}/><Text style={s.artTagText}>{tag}</Text></Animated.View></View>;
+function WelcomeArt({icon,tag,reduced}:{icon:IconName;tag:string;secondary:IconName;reduced:boolean}){
+  return <OnboardingArt variant={icon==="pin"?"map":icon==="key"?"keys":"home"} tag={tag} reduced={reduced}/>;
 }
 function AuthIntro({reduced}:{reduced:boolean}){
   const motion=useIllustrationMotion(reduced);
