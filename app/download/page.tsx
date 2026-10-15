@@ -2,7 +2,7 @@ import Link from "next/link";
 import {ArrowDown,ArrowRight,Check,Download,Home,MapPin,Search,ShieldCheck,Smartphone,SlidersHorizontal,ExternalLink} from "lucide-react";
 import type {Metadata} from "next";
 export const metadata:Metadata={title:"Take HomeTayo with you | Android app",description:"Find your next place with HomeTayo for Android. Download the app and explore rental locations, prices and property details."};
-const apkUrl="https://expo.dev/artifacts/eas/dmizjeLsDTjxBcMPFt_GF_gWYQ5Hh71MQj-QRoHdlRs.apk";
+const apkUrl="/download/HomeTayo.apk";
 export default function DownloadPage(){
   return <div className="container app-download-page">
     <section className="app-download-hero" aria-label="Android app installation">
