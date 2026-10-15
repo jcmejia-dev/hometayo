@@ -1,5 +1,6 @@
 "use server";
 
+import {canAdminister} from "@/lib/admin-owner";
 import { sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -8,7 +9,7 @@ import { requireAccount } from "@/lib/session-user";
 
 export async function reviewProperty(form: FormData) {
   const actor = await requireAccount();
-  if (actor.role !== "admin" && actor.role !== "moderator") throw new Error("Not authorized.");
+  if (!canAdminister(actor)) throw new Error("Not authorized.");
   const id = form.get("id");
   const verdict = form.get("decision");
   const reason = form.get("reason");
@@ -43,7 +44,7 @@ export async function reviewProperty(form: FormData) {
     SELECT id FROM activity
   `);
   if (result.rows.length === 0) throw new Error("Listing was already reviewed or is unavailable.");
-  revalidatePath("/admin");
+  revalidatePath("/administratorsite");
   revalidatePath("/rentals");
-  redirect("/admin?reviewed=1");
+  redirect("/administratorsite?reviewed=1");
 }

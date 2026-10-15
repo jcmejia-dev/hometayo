@@ -20,8 +20,8 @@ export async function SiteHeader() {
             {user ? <Link href="/profile">My profile</Link> : <Link href="/sign-in">Sign in</Link>}
             <Link href="/download">Install app</Link>
           </nav>
-          <Link className="header-owner" href={user ? "/owner" : "/sign-up"}>
-            {user ? "List your property" : "Create account"} <ArrowUpRight size={16} aria-hidden="true" />
+          <Link className="header-owner" href={user ? user.role === "landlord" ? "/owner" : "/rentals" : "/sign-up"}>
+            {user ? user.role === "landlord" ? "List your property" : "Browse rentals" : "Create account"} <ArrowUpRight size={16} aria-hidden="true" />
           </Link>
           <details className="mobile-menu">
             <summary aria-label="Open navigation menu"><Menu size={23} /></summary>
@@ -29,7 +29,7 @@ export async function SiteHeader() {
               <Link href="/rentals">Explore rentals</Link>
               <Link href="/how-it-works">How it works</Link>
               <Link href="/safety">Rental safety</Link>
-              <Link href="/owner">List your property</Link>
+              {(!user||user.role === "landlord")&&<Link href="/owner">List your property</Link>}
               {user ? <Link href="/profile">My profile</Link> : <><Link href="/sign-in">Sign in</Link><Link href="/sign-up">Create account</Link></>}
               <Link href="/download">Install Android app</Link>
               <Link href="/privacy">Privacy</Link>

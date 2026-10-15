@@ -1,4 +1,5 @@
 import "server-only";
+import {canAdminister} from "@/lib/admin-owner";
 import { desc, eq, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Activity, Building2, ChevronDown, ClipboardList, House, ShieldCheck, UsersRound } from "lucide-react";
@@ -22,7 +23,7 @@ function dateTime(date: Date): string {
 export async function AdminOverview() {
   // Defense in depth. A developer cannot render this elsewhere without the role check.
   const actor = await currentUser();
-  if (!actor || (actor.role !== "admin" && actor.role !== "moderator")) notFound();
+  if (!canAdminister(actor)) notFound();
   const db = getDatabase();
   if (!db) throw new Error("Database not configured.");
 

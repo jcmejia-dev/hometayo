@@ -15,8 +15,8 @@ function PasswordInput({label,...props}:InputHTMLAttributes<HTMLInputElement>&{l
 
 const initial: AuthFormState = {message:""};
 
-export function EmailLoginForm({enabled}:{enabled:boolean}) {
-  const [state,action,pending]=useActionState(loginWithEmail,initial);
+export function EmailLoginForm({enabled,loginAction=loginWithEmail}:{enabled:boolean;loginAction?:typeof loginWithEmail}) {
+  const [state,action,pending]=useActionState(loginAction,initial);
   return <form action={action} className="auth-input-form">
     <label htmlFor="login-email">Email address</label>
     <span className="auth-input-wrap"><Mail size={17}/><input id="login-email" name="email" type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com" disabled={!enabled}/></span>

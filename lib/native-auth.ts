@@ -1,4 +1,5 @@
 import "server-only";
+import {publicAccountRole} from "./admin-policy";
 import { createHash, randomBytes } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 import { OAuth2Client } from "google-auth-library";
@@ -22,7 +23,8 @@ export async function nativeAccount(request:Request):Promise<NativeAccount|null>
   const token=request.headers.get("authorization")?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1];
   if(!token)return null;
   const rows=await nativeDb().query(SESSION_LOOKUP,[digest(token)]);
-  return rows[0] as NativeAccount ?? null;
+  const account=rows[0] as NativeAccount|undefined;
+  return account?{...account,role:publicAccountRole(account.role)}:null;
 }
 export async function revokeNativeSession(request:Request) {
   const token=request.headers.get("authorization")?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1];
