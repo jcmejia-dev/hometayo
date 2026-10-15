@@ -1,9 +1,7 @@
 # Android download
 
-The website's `/download` page provides a standalone APK download, not a PWA install prompt.
+The website's `/download` page links directly to the published Expo standalone APK. Visitors do not need to open an Expo build page or install a PWA.
 
-Publish a signed Expo standalone APK, verify it on an Android device, then set `ANDROID_APK_URL` to its public HTTPS download URL in the website environment. Redeploy the website after configuration. An AAB, Expo Go link or EAS development-client build is not a standalone APK release.
+The current release URL is tracked in `app/download/page.tsx`. Update that URL and deploy the website when publishing a replacement APK. `ANDROID_APK_URL` is no longer used, so a stale Vercel setting cannot keep serving an older build.
 
-Without a valid HTTPS URL, the page shows an honest coming-soon message and offers web rental browsing. The website cannot silently install an APK: Android requires the visitor to open the downloaded file and confirm installation.
-
-Native source is currently proposed in PR #18. This website change does not build, sign or publish that app. Verify current native feature limitations before releasing it.
+Android requires visitors to open the downloaded file and confirm installation. Verify a replacement APK on a phone before release. This website change does not build or sign an app.
