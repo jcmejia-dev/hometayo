@@ -28,7 +28,7 @@ export async function revokeNativeSession(request:Request) {
   const token=request.headers.get("authorization")?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1];
   if(token) await nativeDb().query("DELETE FROM native_sessions WHERE token_hash=$1",[digest(token)]);
 }
-export async function nativeGoogleAccount(idToken:string):Promise<NativeAccount|null> {
+export async function nativeGoogleAccount(idToken:string,selectedAudience:"renter"|"owner"="renter"):Promise<NativeAccount|null> {
   const audience=process.env.AUTH_GOOGLE_ID;
   if(!audience || !nativeReady()) return null;
   const ticket=await new OAuth2Client(audience).verifyIdToken({idToken,audience}).catch(()=>null);
@@ -37,7 +37,7 @@ export async function nativeGoogleAccount(idToken:string):Promise<NativeAccount|
   if(!p?.sub || !p.email || !p.email_verified)return null;
   const id="google:"+p.sub;
   if(!await consumeRateLimit("native-google",id,10,900))return null;
-  const rows=await nativeDb().query("INSERT INTO users(id,email,display_name) VALUES($1,$2,$3) ON CONFLICT(id) DO UPDATE SET display_name=excluded.display_name,updated_at=now() RETURNING id,email,display_name AS \"displayName\",role",[id,p.email.toLowerCase(),p.name?.slice(0,150) ?? null]);
+  const rows=await nativeDb().query("INSERT INTO users(id,email,display_name,role) VALUES($1,$2,$3,$4) ON CONFLICT(id) DO UPDATE SET display_name=excluded.display_name,updated_at=now() RETURNING id,email,display_name AS \"displayName\",role",[id,p.email.toLowerCase(),p.name?.slice(0,150) ?? null,selectedAudience==="owner"?"landlord":"renter"]);
   const saved=rows[0] as NativeAccount|undefined;
   return saved?.email===p.email.toLowerCase()?saved:null;
 }

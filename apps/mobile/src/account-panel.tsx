@@ -2,7 +2,7 @@ import React,{useEffect,useState} from "react";
 import {Pressable,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
 import MapView,{Marker,PROVIDER_GOOGLE} from "react-native-maps";
 import {mapsAvailable} from "./runtime";
-import {api,accountAction,logOut,type Account} from "./session";
+import {api,logOut,type Account} from "./session";
 import {Icon} from "./icons";
 import {colors} from "./design";
 import {UpdateButton} from "./update-button";
@@ -14,7 +14,6 @@ export function AccountPanel({account,owner,onAccountChange,onLogin}: {account:A
   const [editingId,setEditingId]=useState<string|null>(null);
   async function load() {try {setOwned((await api("/api/mobile/listings")).listings);}catch(e){setMessage(e instanceof Error?e.message:"Could not load listings.");}}
   useEffect(()=>{if(account&&owner)void load();},[account,owner]);
-  async function change(audience:"owner"|"renter") {try {const data=await accountAction({action:"audience",audience});if(data.account)onAccountChange(data.account);}catch(e){setMessage(e instanceof Error?e.message:"Could not save account choice.");}}
   async function submit() {
     if(editingId&&(!fields.latitude.trim()||!fields.longitude.trim())){setMessage("Choose a property map pin before saving.");return;}
     setBusy(true);setMessage("");
@@ -26,7 +25,7 @@ export function AccountPanel({account,owner,onAccountChange,onLogin}: {account:A
     <Text style={s.title}>{owner?"Your rental listings":"Your account"}</Text>
     {!account?<><Text style={s.note}>Sign in inside HomeTayo to manage your account and rental listings.</Text><Pressable accessibilityRole="button" onPress={onLogin} style={s.button}><Text style={s.buttonText}>Sign in or create account</Text><Icon name="arrow" color="white" size={18}/></Pressable></>:<>
       <Text style={s.note}>{account.displayName||account.email} · {account.role==="landlord"?"Property owner":account.role}</Text>
-      {!owner?<><Pressable accessibilityRole="button" onPress={()=>void change("renter")} style={s.button}><Icon name="home" color="white" size={20}/><Text style={s.buttonText}>Use renter experience</Text></Pressable><Pressable accessibilityRole="button" onPress={()=>void change("owner")} style={s.button}><Icon name="building" color="white" size={20}/><Text style={s.buttonText}>Use property-owner experience</Text></Pressable>
+      {!owner?<>
       <Pressable accessibilityRole="button" onPress={()=>{void logOut().then(()=>onAccountChange(null)).catch(()=>setMessage("Could not revoke your session. Check your connection and retry."));}} style={s.button}><Icon name="logout" color="white" size={20}/><Text style={s.buttonText}>Sign out</Text></Pressable></>:<>
         {owned.map(item=><View key={item.id} style={s.card}><Text style={s.bold}>{item.title}</Text><Text style={s.note}>{item.status.replaceAll("_"," ")}</Text><Pressable accessibilityRole="button" onPress={()=>{setEditingId(item.id);setFields(old=>({...old,latitude:item.latitude===null?"":String(item.latitude),longitude:item.longitude===null?"":String(item.longitude)}));setMessage("Choose this property’s pin below. Changing a live pin sends the rental back for review.");}}><Text style={s.bold}>Set / update map pin</Text></Pressable></View>)}
         <Text style={s.bold}>{editingId?"Update property map pin":"Submit a rental"}</Text><Text style={s.note}>Only submit a property you own or have permission to advertise. It stays private until approved.</Text>

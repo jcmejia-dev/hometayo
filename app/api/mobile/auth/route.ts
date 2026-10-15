@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { nativeAuthInput,ROLE_SELECTION } from "@/lib/native-auth-input";
+import { nativeAuthInput } from "@/lib/native-auth-input";
 import { authenticateEmailPassword, emailPasswordSignInConfigured, emailSignUpConfigured, registerEmailUser, verifyNativeEmailCode } from "@/lib/email-auth";
 import { issueNativeSession, nativeAccount, nativeDb, nativeGoogleAccount, nativeReady, revokeNativeSession } from "@/lib/native-auth";
 
@@ -19,7 +19,7 @@ export async function POST(request:Request) {
     const data=parsed.data;
     if(data.action==="signup") {
       if(!emailSignUpConfigured())return reply({message:"Email registration is awaiting setup."},503);
-      await registerEmailUser(data.email,data.name,data.password,"native");
+      await registerEmailUser(data.email,data.name,data.password,"native",data.audience);
       return reply({message:"If this address is eligible, a six-digit verification code will arrive shortly."});
     }
     if(data.action==="verify") {
@@ -27,7 +27,7 @@ export async function POST(request:Request) {
     }
     if(data.action==="login" || data.action==="google") {
       if(data.action==="login" && !emailPasswordSignInConfigured())return reply({message:"Email sign-in is awaiting setup."},503);
-      const result=data.action==="google" ? await nativeGoogleAccount(data.idToken) : await authenticateEmailPassword(data.email,data.password);
+      const result=data.action==="google" ? await nativeGoogleAccount(data.idToken,data.audience) : await authenticateEmailPassword(data.email,data.password);
       if(!result)return reply({message:"Sign-in failed. Check your details and email verification."},401);
       const rows=await nativeDb().query("SELECT id,email,display_name AS \"displayName\",role FROM users WHERE id=$1",[result.id]);
       return reply({...await issueNativeSession(result.id),account:rows[0]});
@@ -36,7 +36,7 @@ export async function POST(request:Request) {
     if(!account)return reply({message:"Please sign in again."},401);
     if(data.action==="logout") {await revokeNativeSession(request);return reply({ok:true});}
     const role=data.audience==="owner"?"landlord":"renter";
-    await nativeDb().query(ROLE_SELECTION,[role,account.id]);
-    return reply({account:{...account,role:["renter","landlord"].includes(account.role)?role:account.role}});
+    if(role!==account.role)return reply({message:"Your account type was saved when you registered. Sign in with your existing account type."},409);
+    return reply({account});
   } catch {return reply({message:"Account service unavailable. Try again later."},503);}
 }

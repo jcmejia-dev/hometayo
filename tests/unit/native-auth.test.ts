@@ -31,3 +31,27 @@ test("migrations apply locally; expired/revoked sessions fail and owner choice p
     await assert.rejects(db.query("UPDATE listings SET latitude=100 WHERE id=$1",[id]));
   }finally {await db.close();}
 });
+
+
+test("signup accepts only ordinary account types; sign-in cannot override the saved role",()=>{
+  const signup={action:"signup",name:"Test User",email:"test@example.com",password:"long-password-123",confirmPassword:"long-password-123"};
+  assert.equal(nativeAuthInput.parse({...signup,audience:"owner"}).action,"signup");
+  assert.equal(nativeAuthInput.safeParse({...signup,audience:"admin"}).success,false);
+  assert.deepEqual(nativeAuthInput.parse({action:"login",email:"test@example.com",password:"long-password-123",audience:"owner"}),{action:"login",email:"test@example.com",password:"long-password-123"});
+});
+
+test("Google registration saves the chosen role and later Google sign-ins preserve it",async()=>{
+  const db=new PGlite();
+  try {
+    await db.exec(readFileSync(new URL("../../db/migrations/001_core.sql",import.meta.url),"utf8"));
+    const source=readFileSync(new URL("../../lib/native-auth.ts",import.meta.url),"utf8");
+    const match=source.match(/query\("(INSERT INTO users\(id,email,display_name,role\).*?)",\[id,/);
+    assert.ok(match);
+    const sql=JSON.parse('"'+match[1]+'"');
+    for(const [id,role] of [["google:renter","renter"],["google:owner","landlord"]]) {
+      await db.query(sql,[id,id+"@example.test","Test",role]);
+      await db.query(sql,[id,id+"@example.test","Updated",role==="renter"?"landlord":"renter"]);
+      assert.equal((await db.query<{role:string}>("SELECT role FROM users WHERE id=$1",[id])).rows[0].role,role);
+    }
+  } finally {await db.close();}
+});

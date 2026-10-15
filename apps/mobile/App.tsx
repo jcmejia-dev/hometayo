@@ -146,7 +146,7 @@ you’ll love.</Text><Text style={styles.homeArtText}>Explore homes on the map</
     </ScrollView> :
     tab==="explore" ? <RentalMap account={account} onSelect={setSelectedSlug} initialCity={city} initialType={type}/> :
     <AccountPanel account={account} owner={tab==="owner"} onAccountChange={setAccount} onLogin={()=>{setIntro(null);setWelcomeOpen(true);}}/>}
-    <View style={styles.tabBar}>{tabs.map(t=><Pressable key={t.id} onPress={()=>{setSelectedSlug(null);setTab(t.id);}}
+    <View style={styles.tabBar}>{tabs.filter(t=>t.id!=="owner"||account?.role==="landlord").map(t=><Pressable key={t.id} onPress={()=>{setSelectedSlug(null);setTab(t.id);}}
       accessibilityRole="tab" accessibilityState={{selected:tab===t.id}} style={[styles.tab,t.id===tab&&styles.tabActive]}>
       <Icon name={t.symbol} size={23} color={t.id===tab?colors.green:colors.muted}/>
       <Text style={[styles.tabLabel,t.id===tab&&styles.tabSelected]}>{t.label}</Text>
