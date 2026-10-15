@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 3 : undefined,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000",
     trace: "on-first-retry",
     // Legacy screen tests should not interact with the first-time dialog.
     // The dedicated onboarding suite explicitly overrides this state.
@@ -51,7 +51,7 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
+  webServer: process.env.PLAYWRIGHT_BASE_URL ? undefined : {
     command: "npm run dev -- --hostname 127.0.0.1",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,

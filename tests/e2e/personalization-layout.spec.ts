@@ -1,5 +1,4 @@
 import {test,expect} from "@playwright/test";
-test.use({baseURL:process.env.UI_BASE_URL||"http://127.0.0.1:3000"});
 test("home keeps search separate and footer links grouped without horizontal overflow",async({page,isMobile})=>{
  await page.goto("/");await expect(page.getByRole("heading",{level:1})).toBeVisible();
  await expect(page.locator(".hero-copy").getByRole("search")).toHaveCount(0);

@@ -100,7 +100,7 @@ test("homepage is compact and keeps search/category paths available", async ({ p
 });
 
 
-test("footer links form balanced rows with Privacy beside Safety, and no pilot label", async ({ page }) => {
+test("footer groups discovery and account links clearly without a pilot label", async ({ page }) => {
   await page.goto("/");
   const footer = page.locator(".site-footer");
   const navigation = footer.getByRole("navigation", { name: "Footer navigation" });
@@ -110,11 +110,11 @@ test("footer links form balanced rows with Privacy beside Safety, and no pilot l
   } else {
     await expect(footer).toBeVisible();
     const links = navigation.getByRole("link");
-    await expect(links).toHaveCount(7);
-    const safetyBox = await navigation.getByRole("link", { name: "Safety" }).boundingBox();
+    await expect(links).toHaveCount(6);
+    const safetyBox = await navigation.getByRole("link", { name: "Rental safety" }).boundingBox();
     const privacyBox = await navigation.getByRole("link", { name: "Privacy" }).boundingBox();
     expect(safetyBox && privacyBox).toBeTruthy();
-    expect(Math.abs(safetyBox!.y - privacyBox!.y)).toBeLessThan(3);
+    expect(Math.abs(safetyBox!.x - privacyBox!.x)).toBeLessThan(3);
     await expect(footer).toContainText("HomeTayo");
     await expect(footer).not.toContainText("Koronadal pilot");
   }

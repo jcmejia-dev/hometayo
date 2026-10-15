@@ -2,7 +2,7 @@
 import {useEffect,useState,useSyncExternalStore} from "react";
 const themes=[{id:"forest",name:"Forest",color:"#173d32"},{id:"ocean",name:"Ocean",color:"#174e70"},{id:"plum",name:"Plum",color:"#633c68"}];
 const key="hometayo.theme.v1";
-function read(){try{return localStorage.getItem(key)||"forest";}catch{return "forest";}}
+function read(){try{const value=localStorage.getItem(key);return themes.some(t=>t.id===value)?value!:"forest";}catch{return "forest";}}
 function apply(value:string){document.documentElement.dataset.theme=themes.some(t=>t.id===value)?value:"forest";}
 export function ThemeRestore(){useEffect(()=>{apply(read());const changed=(e:StorageEvent)=>{if(e.key===key)apply(e.newValue||"forest");};window.addEventListener("storage",changed);return()=>window.removeEventListener("storage",changed);},[]);return null;}
 function subscribe(callback:()=>void){window.addEventListener("storage",callback);return()=>window.removeEventListener("storage",callback);}
