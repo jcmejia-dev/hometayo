@@ -9,5 +9,6 @@ export const colors={
   muted:"#698074",
   border:"#DCE8DE",
   gold:"#C59A56",
+  field:"#F7FAF6",
   danger:"#B05C47",
 };

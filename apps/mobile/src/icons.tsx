@@ -21,10 +21,11 @@ import BedDouble from "lucide-react-native/icons/bed-double";
 import Bath from "lucide-react-native/icons/bath";
 import Wifi from "lucide-react-native/icons/wifi";
 import KeyRound from "lucide-react-native/icons/key-round";
-import {colors} from "./design";
+import {usePalette} from "./theme";
 const icons={home:Home,search:Search,building:Building2,user:UserRound,pin:MapPin,shield:ShieldCheck,arrow:ArrowRight,back:ArrowLeft,eye:Eye,"eye-off":EyeOff,mail:Mail,lock:LockKeyhole,check:Check,chevron:ChevronRight,filters:SlidersHorizontal,location:Navigation,refresh:RefreshCw,logout:LogOut,bed:BedDouble,bath:Bath,wifi:Wifi,key:KeyRound};
 export type IconName=keyof typeof icons;
-export function Icon({name,size=22,color=colors.green}:{name:IconName;size?:number;color?:string}){
+export function Icon({name,size=22,color}:{name:IconName;size?:number;color?:string}){
+  const colors=usePalette();
   const Component=icons[name];
-  return <Component size={size} color={color} strokeWidth={1.8} accessible={false}/>;
+  return <Component size={size} color={color??colors.green} strokeWidth={1.8} accessible={false}/>;
 }

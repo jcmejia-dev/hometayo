@@ -1,9 +1,12 @@
+import {usePalette} from "./theme";
 import React,{useState} from "react";
 import {Alert,Pressable,Text,View} from "react-native";
 import {isExpoGo} from "./runtime";
 import {Icon} from "./icons";
 import {colors} from "./design";
 export function UpdateButton() {
+  const colors=usePalette();
+
   const [busy,setBusy]=useState(false),[message,setMessage]=useState("");
   async function check() {
     if(isExpoGo){setMessage("Expo Go loads your local changes through the QR server. Test the Update app feature later in the installed HomeTayo app.");return;}
