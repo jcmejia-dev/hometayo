@@ -1,3 +1,5 @@
+import {BrandMark} from "./src/brand-mark";
+import {usePalette,useThemedStyles} from "./src/theme";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator, Alert, Animated, BackHandler, Image, Linking,
@@ -32,6 +34,8 @@ const INTRO_KEY="hometayo.native.intro.v1";
 function PrimaryButton({text,onPress,outlined=false}:{
   text:string;onPress:()=>void;outlined?:boolean;
 }){
+  const colors=usePalette(); const styles=useThemedStyles(baseStyles);
+
   const {theme}=useTheme();
   return <Pressable accessibilityRole="button" onPress={onPress}
     style={({pressed})=>[styles.primaryButton,{backgroundColor:theme.accent},outlined&&styles.outlineButton,pressed&&styles.pressed]}>
@@ -39,14 +43,18 @@ function PrimaryButton({text,onPress,outlined=false}:{
   </Pressable>;
 }
 function Brand({subtitle}:{subtitle?:string}){
+  const styles=useThemedStyles(baseStyles);
+
   return <View style={styles.brandWrap}>
-    <Image source={require("./assets/icon.png")} style={{width:34,height:34,borderRadius:10}} accessibilityLabel="HomeTayo icon"/>
+    <BrandMark/>
     <View><Text style={styles.brandWord}>Home<Text style={styles.brandGold}>Tayo</Text></Text>
       {subtitle?<Text style={styles.brandSubtitle}>{subtitle}</Text>:null}
     </View>
   </View>;
 }
 function NativeApp(){
+  const colors=usePalette(); const styles=useThemedStyles(baseStyles);
+
   const {theme}=useTheme();
   const [ready,setReady]=useState(false);
   const [account,setAccount]=useState<Account|null>(null);
@@ -140,7 +148,7 @@ you’ll love.</Text><Text style={styles.homeArtText}>Explore homes on the map</
       <View style={styles.searchCard}>
         <Text style={styles.fieldLabel}>YOUR LOCATION</Text>
         <TextInput accessibilityLabel="City" value={city} onChangeText={setCity} placeholder="City or municipality"
-          placeholderTextColor="#91A395" style={styles.cityInput} returnKeyType="search" onSubmitEditing={()=>setTab("explore")}/>
+          placeholderTextColor={colors.muted} style={styles.cityInput} returnKeyType="search" onSubmitEditing={()=>setTab("explore")}/>
         <Text style={styles.fieldLabel}>PROPERTY TYPE</Text>
         <View style={styles.filterRow}>
           {["","house","apartment","boarding_house","bedspace"].map(v=><Pressable key={v} onPress={()=>setType(v)} accessibilityRole="button"
@@ -166,8 +174,8 @@ you’ll love.</Text><Text style={styles.homeArtText}>Explore homes on the map</
 }
 export default function App(){return <SafeAreaProvider><ThemeProvider><NativeApp/></ThemeProvider></SafeAreaProvider>;}
 
-const styles=StyleSheet.create({
-  homeArt:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",backgroundColor:colors.green,borderRadius:24,padding:22,marginVertical:8},homeArtCopy:{flex:1},homeArtTitle:{fontSize:20,lineHeight:26,fontWeight:"800",color:colors.white},homeArtText:{fontSize:11,color:"#C8DDCF",marginTop:9},homeArtIcon:{width:85,height:85,borderRadius:28,backgroundColor:colors.green2,alignItems:"center",justifyContent:"center"},infoIcon:{height:40,width:40,borderRadius:13,backgroundColor:colors.soft,alignItems:"center",justifyContent:"center"},detailIllustration:{padding:20,borderRadius:32,backgroundColor:"#DCE8DE",marginBottom:12},fact:{flex:1,alignItems:"center",gap:9},factLabel:{fontSize:11,color:colors.green,textAlign:"center"},amenity:{flexDirection:"row",gap:12,alignItems:"center",backgroundColor:colors.white,padding:14,borderRadius:13,marginBottom:8},
+const baseStyles=StyleSheet.create({
+  homeArt:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",backgroundColor:colors.green,borderRadius:24,padding:22,marginVertical:8},homeArtCopy:{flex:1},homeArtTitle:{fontSize:20,lineHeight:26,fontWeight:"800",color:colors.white},homeArtText:{fontSize:11,color:colors.border,marginTop:9},homeArtIcon:{width:85,height:85,borderRadius:28,backgroundColor:colors.green2,alignItems:"center",justifyContent:"center"},infoIcon:{height:40,width:40,borderRadius:13,backgroundColor:colors.soft,alignItems:"center",justifyContent:"center"},detailIllustration:{padding:20,borderRadius:32,backgroundColor:colors.border,marginBottom:12},fact:{flex:1,alignItems:"center",gap:9},factLabel:{fontSize:11,color:colors.green,textAlign:"center"},amenity:{flexDirection:"row",gap:12,alignItems:"center",backgroundColor:colors.white,padding:14,borderRadius:13,marginBottom:8},
   container:{flex:1,backgroundColor:colors.cream},tabBody:{padding:22,paddingBottom:48},
   header:{height:63,paddingHorizontal:20,borderBottomWidth:1,borderColor:colors.border,backgroundColor:colors.white,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},
   brandWrap:{flexDirection:"row",alignItems:"center",gap:9},
@@ -183,7 +191,7 @@ const styles=StyleSheet.create({
   paragraph:{fontSize:13,lineHeight:21,color:colors.muted,marginBottom:14},
   searchCard:{backgroundColor:colors.white,padding:18,borderWidth:1,borderColor:colors.border,borderRadius:22,marginTop:10,gap:12},
   fieldLabel:{fontSize:10,fontWeight:"800",color:colors.muted,letterSpacing:.7},
-  cityInput:{borderWidth:1,borderColor:colors.border,borderRadius:10,height:47,paddingHorizontal:13,backgroundColor:"#FCFDFB",fontSize:14,color:colors.ink,marginBottom:5},
+  cityInput:{borderWidth:1,borderColor:colors.border,borderRadius:10,height:47,paddingHorizontal:13,backgroundColor:colors.field,fontSize:14,color:colors.ink,marginBottom:5},
   filterRow:{flexDirection:"row",flexWrap:"wrap",gap:7},
   filtersScroll:{gap:7,paddingVertical:8},
   filterChip:{minHeight:38,borderRadius:9,borderWidth:1,borderColor:colors.border,backgroundColor:colors.white,paddingHorizontal:11,alignItems:"center",justifyContent:"center"},
@@ -225,18 +233,18 @@ const styles=StyleSheet.create({
   disclaimer:{color:colors.muted,fontSize:11,lineHeight:17,marginTop:14},
   introPage:{flex:1,backgroundColor:colors.green,paddingHorizontal:24},
   introTop:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",paddingTop:18},
-  introSkip:{paddingVertical:12,paddingHorizontal:10},introSkipText:{color:"#E1ECDF",fontSize:13,fontWeight:"800"},
+  introSkip:{paddingVertical:12,paddingHorizontal:10},introSkipText:{color:colors.soft,fontSize:13,fontWeight:"800"},
   introCenter:{flex:1,alignItems:"center",justifyContent:"center"},
-  introCircle:{height:160,width:160,borderRadius:80,backgroundColor:"#2C634B",alignItems:"center",justifyContent:"center",marginBottom:28,borderWidth:1,borderColor:"#599071"},
+  introCircle:{height:160,width:160,borderRadius:80,backgroundColor:colors.green,alignItems:"center",justifyContent:"center",marginBottom:28,borderWidth:1,borderColor:colors.sage},
   introIllustration:{fontSize:95,color:"#F7F0DF"},
   introStep:{fontSize:10,fontWeight:"800",color:"#D7BC87",letterSpacing:1.8,marginBottom:13},
   introTitle:{fontSize:32,fontWeight:"800",color:colors.white,textAlign:"center",lineHeight:39,letterSpacing:-1},
-  introDescription:{fontSize:14,lineHeight:22,color:"#DBE9DD",textAlign:"center",marginTop:17,maxWidth:330},
+  introDescription:{fontSize:14,lineHeight:22,color:colors.border,textAlign:"center",marginTop:17,maxWidth:330},
   dots:{flexDirection:"row",gap:6,marginTop:28},
-  dot:{height:7,width:7,borderRadius:7,backgroundColor:"#749A84"},dotActive:{width:24,backgroundColor:colors.gold},
+  dot:{height:7,width:7,borderRadius:7,backgroundColor:colors.muted},dotActive:{width:24,backgroundColor:colors.gold},
   introBottom:{paddingBottom:22,gap:10},
   introNext:{flexDirection:"row",alignItems:"center",gap:12},
   backButton:{paddingHorizontal:9},backText:{color:colors.white,fontWeight:"700"},
   guestButton:{minHeight:45,alignItems:"center",justifyContent:"center"},
-  guestText:{color:"#E6F0E3",fontWeight:"800",fontSize:13},
+  guestText:{color:colors.soft,fontWeight:"800",fontSize:13},
 });

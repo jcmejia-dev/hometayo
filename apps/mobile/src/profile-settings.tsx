@@ -1,3 +1,4 @@
+import {usePalette,useThemedStyles} from "./theme";
 import React,{useEffect,useState} from "react";
 import {ActivityIndicator,Pressable,StyleSheet,Text,TextInput,View} from "react-native";
 import {api,type Account} from "./session";
@@ -5,6 +6,8 @@ import {themes,useTheme} from "./theme";
 import {colors} from "./design";
 const empty={preferredName:"",homeCity:"",preferredPropertyType:"",preferredBudgetPesos:""};
 export function ProfileSettings({account,onAccountChange}:{account:Account;onAccountChange:(account:Account)=>void}){
+  const colors=usePalette(); const s=useThemedStyles(baseStyles);
+
  const {theme,setTheme}=useTheme(),[fields,setFields]=useState(empty),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
  const [revision,reload]=useState(0);
  useEffect(()=>{let active=true;setLoading(true);setMessage("");api("/api/mobile/profile").then(data=>{if(active){const p=data.profile;setFields({preferredName:p.preferredName||"",homeCity:p.homeCity||"",preferredPropertyType:p.preferredPropertyType||"",preferredBudgetPesos:p.preferredBudgetPesos==null?"":String(p.preferredBudgetPesos)});setLoading(false);}}).catch(e=>{if(active)setMessage(e.message);});return()=>{active=false;};},[account.id,revision]);
@@ -15,4 +18,4 @@ export function ProfileSettings({account,onAccountChange}:{account:Account;onAcc
  <Text style={s.label}>Preferred property type</Text><View style={s.row}>{[['','Any'],['house','House'],['apartment','Apartment'],['boarding_house','Boarding house'],['bedspace','Bedspace']].map(([value,label])=><Pressable key={value} accessibilityRole="radio" accessibilityState={{checked:fields.preferredPropertyType===value}} onPress={()=>setFields(old=>({...old,preferredPropertyType:value}))} style={[s.chip,fields.preferredPropertyType===value&&{backgroundColor:theme.soft,borderColor:theme.accent}]}><Text style={s.label}>{label}</Text></Pressable>)}</View>
  <Pressable accessibilityRole="button" disabled={busy} onPress={()=>void save()} style={[s.save,{backgroundColor:theme.accent,opacity:busy?.6:1}]}>{busy?<ActivityIndicator color="white"/>:<Text style={s.saveText}>Save preferences</Text>}</Pressable></>}</View>{message?<Text accessibilityRole="alert" style={s.note}>{message}</Text>:null}</View>;
 }
-const s=StyleSheet.create({stack:{gap:16},card:{backgroundColor:"white",padding:20,borderRadius:22,gap:14,borderWidth:1,borderColor:colors.border},title:{fontSize:20,fontWeight:"800"},note:{fontSize:12,lineHeight:20,color:colors.muted},label:{fontSize:12,fontWeight:"700",color:colors.ink},row:{flexDirection:"row",flexWrap:"wrap",gap:10},chip:{minHeight:46,paddingHorizontal:12,paddingVertical:10,borderRadius:14,borderWidth:1,borderColor:colors.border,flexDirection:"row",alignItems:"center",gap:8},field:{gap:8},input:{padding:14,borderRadius:12,borderWidth:1,borderColor:colors.border,color:colors.ink,fontSize:14},save:{minHeight:50,borderRadius:14,alignItems:"center",justifyContent:"center"},saveText:{color:"white",fontWeight:"800"}});
+const baseStyles=StyleSheet.create({stack:{gap:16},card:{backgroundColor:"white",padding:20,borderRadius:22,gap:14,borderWidth:1,borderColor:colors.border},title:{fontSize:20,fontWeight:"800"},note:{fontSize:12,lineHeight:20,color:colors.muted},label:{fontSize:12,fontWeight:"700",color:colors.ink},row:{flexDirection:"row",flexWrap:"wrap",gap:10},chip:{minHeight:46,paddingHorizontal:12,paddingVertical:10,borderRadius:14,borderWidth:1,borderColor:colors.border,flexDirection:"row",alignItems:"center",gap:8},field:{gap:8},input:{padding:14,borderRadius:12,borderWidth:1,borderColor:colors.border,color:colors.ink,fontSize:14},save:{minHeight:50,borderRadius:14,alignItems:"center",justifyContent:"center"},saveText:{color:"white",fontWeight:"800"}});
