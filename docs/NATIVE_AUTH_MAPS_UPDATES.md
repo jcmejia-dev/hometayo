@@ -82,7 +82,7 @@ Build using the existing signing key:
 npx eas-cli build --platform android --profile preview
 ```
 
-Version 0.2.0 / Android versionCode 3 adds the native map, location, Google sign-in, SecureStore and update modules. Install this APK once and verify it on a real Android phone. Retain the existing EAS project, package name and keystore. Then update Vercel's `ANDROID_APK_URL` to this new signed APK's direct download link.
+Version 0.2.0 / Android versionCode 3 adds the native map, location, Google sign-in, SecureStore and update modules. Install this APK once and verify it on a real Android phone. Retain the existing EAS project, package name and keystore. Then update the published APK URL in `app/download/page.tsx` to the new signed APK's direct download link and deploy the website.
 
 ## 5. Publish compatible updates later
 

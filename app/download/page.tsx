@@ -6,7 +6,9 @@ export const metadata: Metadata = { title: "Android app | HomeTayo" };
 export const dynamic = "force-dynamic";
 
 export default function DownloadPage() {
-  const configuredUrl = process.env.ANDROID_APK_URL;
+  // Published standalone release; keep this public URL in source so an old
+  // deployment environment setting cannot silently serve an obsolete APK.
+  const configuredUrl = "https://expo.dev/artifacts/eas/dmizjeLsDTjxBcMPFt_GF_gWYQ5Hh71MQj-QRoHdlRs.apk";
   let apkUrl: string | null = null;
   try {
     const url = new URL(configuredUrl ?? "");
