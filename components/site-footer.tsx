@@ -1,24 +1,2 @@
 import Link from "next/link";
-
-export function SiteFooter() {
-  return (
-    <footer className="site-footer">
-      <div className="container footer-inner">
-        <div className="footer-identity">
-          <Link href="/" className="footer-brand" aria-label="HomeTayo home"><span className="footer-mark" aria-hidden="true" /><span>Home<span className="brand-accent">Tayo</span></span></Link>
-          <p>Finding a place to belong, together.</p>
-        </div>
-        <nav aria-label="Footer navigation">
-          <Link href="/rentals">Explore</Link>
-          <Link href="/owner">For owners</Link>
-          <Link href="/profile">My profile</Link>
-          <Link href="/how-it-works">How it works</Link>
-          <Link href="/safety">Safety</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/download">Install Android app</Link>
-        </nav>
-        <p className="footer-note">© {new Date().getFullYear()} HomeTayo</p>
-      </div>
-    </footer>
-  );
-}
+export function SiteFooter(){return <footer className="site-footer"><div className="container footer-layout"><div className="footer-identity"><Link href="/" className="footer-brand" aria-label="HomeTayo home"><span className="footer-mark" aria-hidden="true"/><span>Home<span className="brand-accent">Tayo</span></span></Link><p>A place to belong, together.</p></div><nav aria-label="Footer navigation"><div><span>Discover</span><Link href="/rentals">Explore rentals</Link><Link href="/how-it-works">How it works</Link><Link href="/download">Get the Android app</Link></div><div><span>HomeTayo</span><Link href="/profile">My profile</Link><Link href="/safety">Rental safety</Link><Link href="/privacy">Privacy</Link></div></nav></div><div className="container footer-bottom"><span>Made for your next chapter.</span><span>© {new Date().getFullYear()} HomeTayo</span></div></footer>;}

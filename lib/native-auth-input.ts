@@ -8,5 +8,5 @@ export const nativeAuthInput=z.discriminatedUnion("action",[
   z.object({action:z.literal("audience"),audience:z.enum(["renter","owner"])}),
   z.object({action:z.literal("logout")}),
 ]);
-export const SESSION_LOOKUP="SELECT u.id,u.email,u.display_name AS \"displayName\",u.role FROM native_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() LIMIT 1";
+export const SESSION_LOOKUP="SELECT u.id,u.email,COALESCE(u.preferred_name,u.display_name) AS \"displayName\",u.role FROM native_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() LIMIT 1";
 export const ROLE_SELECTION="UPDATE users SET role=$1,updated_at=now() WHERE id=$2 AND role IN ('renter','landlord')";

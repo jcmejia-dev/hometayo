@@ -1,3 +1,4 @@
+import {useTheme} from "./theme";
 import React,{useCallback,useEffect,useRef,useState} from "react";
 import {ActivityIndicator,Alert,Pressable,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
 import MapView,{Circle,Marker,PROVIDER_GOOGLE} from "react-native-maps";
@@ -15,7 +16,9 @@ type Place=Point&{id:string;name:string;address:string};
 type MapRental=Rental&{latitude:number|null;longitude:number|null;distanceKm:number|null};
 const base=process.env.EXPO_PUBLIC_API_URL || "https://hometayoph.vercel.app";
 function distance(a:Point,b:Point) {const rad=(v:number)=>v*Math.PI/180;const h=Math.sin(rad(b.latitude-a.latitude)/2)**2+Math.cos(rad(a.latitude))*Math.cos(rad(b.latitude))*Math.sin(rad(b.longitude-a.longitude)/2)**2;return 12742*Math.asin(Math.sqrt(Math.max(0,Math.min(1,h))));}
-export function RentalMap({account,onSelect,initialCity="",initialType=""}: {account:Account|null;onSelect:(slug:string)=>void;initialCity?:string;initialType?:string}) {
+export function RentalMap({account,onSelect,initialCity="",initialType="",initialBudget=""}: {account:Account|null;onSelect:(slug:string)=>void;initialCity?:string;initialType?:string;initialBudget?:string}) {
+  const {theme}=useTheme();
+  const [budget,setBudget]=useState(initialBudget);
   const [center,setCenter]=useState<Point|null>(null),[userLocation,setUserLocation]=useState<Point|null>(null),[label,setLabel]=useState("All locations"),[radius,setRadius]=useState(5);
   const [query,setQuery]=useState(""),[city,setCity]=useState(initialCity),[type,setType]=useState(initialType),[places,setPlaces]=useState<Place[]>([]),[rentals,setRentals]=useState<MapRental[]>([]),[error,setError]=useState(""),[busy,setBusy]=useState(false),[nextOffset,setNextOffset]=useState<number|null>(null);
   const [demo,setDemo]=useState(isExpoGo);
@@ -26,10 +29,11 @@ export function RentalMap({account,onSelect,initialCity="",initialType=""}: {acc
   const load=useCallback(async(offset=0)=>{
     const current=++generation.current;
     setBusy(true);setError("");
-    if(demo){setRentals(selectDemoRentals(center,radius,city,type));setNextOffset(null);setBusy(false);return;}
+    if(demo){setRentals(selectDemoRentals(center,radius,city,type).filter(r=>!budget||r.monthlyRentCentavos<=Number(budget)*100));setNextOffset(null);setBusy(false);return;}
     const params=new URLSearchParams({map:"1",offset:String(offset)});
     if(city.trim())params.set("city",city.trim());
     if(type)params.set("type",type);
+    if(budget)params.set("maxRent",budget);
     if(center){params.set("lat",String(center.latitude));params.set("lng",String(center.longitude));params.set("radiusKm",String(radius));}
     try {
       const response=await fetch(base+"/api/public/listings?"+params);
@@ -40,7 +44,7 @@ export function RentalMap({account,onSelect,initialCity="",initialType=""}: {acc
       setRentals(old=>offset?old.concat(data.listings):data.listings);setNextOffset(data.nextOffset);
     }catch(e){if(current===generation.current){setRentals([]);setError(e instanceof Error?e.message:"Map unavailable.");}}
     finally{if(current===generation.current)setBusy(false);}
-  },[center,radius,city,type,demo]);
+  },[center,radius,city,type,demo,budget]);
   useEffect(()=>{void load();return()=>{generation.current++;};},[load]);
   async function locate() {
     try {
@@ -62,12 +66,13 @@ export function RentalMap({account,onSelect,initialCity="",initialType=""}: {acc
     <Text style={s.eyebrow}>YOUR NEXT NEIGHBOURHOOD</Text><Text style={s.heading}>Find your place.</Text>
     <Text style={s.help}>Search a destination, use your location, or long-press the map. Matching rentals are sorted nearest your chosen point.</Text>
     <TextInput accessibilityLabel="Destination or landmark" value={query} onChangeText={setQuery} placeholder={demo?"Try shopping centre or school":"e.g. KCC Mall, Koronadal"} style={s.input} onSubmitEditing={()=>void searchPlace()}/>
-    <Pressable accessibilityRole="button" onPress={()=>void searchPlace()} style={s.button}><Icon name="search" color="white" size={18}/><Text style={s.buttonText}>Search destination</Text></Pressable>
+    <Pressable accessibilityRole="button" onPress={()=>void searchPlace()} style={[s.button,{backgroundColor:theme.accent}]}><Icon name="search" color="white" size={18}/><Text style={s.buttonText}>Search destination</Text></Pressable>
     {places.map(place=><Pressable key={place.id} accessibilityRole="button" onPress={()=>{setCity("");choose(place,place.name);}} style={s.result}><Text style={s.bold}>{place.name}</Text><Text style={s.help}>{place.address}</Text></Pressable>)}
     <View style={s.row}><Pressable accessibilityRole="button" onPress={()=>void locate()} style={s.chip}><Icon name="location" size={16}/><Text style={s.chipText}>Use my location</Text></Pressable><Pressable accessibilityRole="button" onPress={()=>{setCenter(null);setCity("");setLabel("All locations");}} style={s.chip}><Icon name="pin" size={16}/><Text style={s.chipText}>All locations</Text></Pressable></View>
     <TextInput accessibilityLabel="Filter city" value={city} onChangeText={setCity} placeholder="Filter by city (optional)" style={s.input}/>
     <View style={s.row}>{["","house","apartment","boarding_house","bedspace"].map(value=><Pressable accessibilityRole="radio" accessibilityState={{checked:value===type}} key={value} onPress={()=>setType(value)} style={[s.chip,value===type&&{backgroundColor:"#dcebdc"}]}><Text style={s.chipText}>{value?propertyLabel(value):"All types"}</Text></Pressable>)}</View>
     {center&&<View style={s.row}>{[1,3,5,10,25].map(km=><Pressable accessibilityRole="button" key={km} onPress={()=>setRadius(km)} style={[s.chip,radius===km&&{backgroundColor:"#dcebdc"}]}><Text style={s.chipText}>{km} km</Text></Pressable>)}</View>}
+    <TextInput accessibilityLabel="Maximum monthly rent" value={budget} onChangeText={setBudget} keyboardType="number-pad" placeholder="Maximum monthly rent (PHP) · optional" style={s.input} maxLength={7}/>
     <Text style={s.bold}>{center?"Near "+label:label}</Text>
     {mapsConfigured?<MapView ref={map} provider={PROVIDER_GOOGLE} style={s.map} initialRegion={demo?{...demoLandmarks[0],latitudeDelta:.16,longitudeDelta:.16}:{latitude:12.88,longitude:121.77,latitudeDelta:15,longitudeDelta:15}} onLongPress={e=>{setCity("");choose(e.nativeEvent.coordinate,"Selected map point");}}>
       {demo&&demoLandmarks.map(p=><Marker key={p.id} coordinate={p} title={p.name} description={p.address} pinColor="#8765aa" onCalloutPress={()=>{setCity("");choose(p,p.name);}}/>)}
@@ -87,7 +92,7 @@ export function RentalMap({account,onSelect,initialCity="",initialType=""}: {acc
       <View style={s.rentalBottom}><Text style={s.price}>{rentLabel(r.monthlyRentCentavos)}<Text style={s.help}> /month</Text></Text>{r.distanceKm!==null&&<View style={s.distanceTag}><Icon name="pin" size={13}/><Text style={s.chipText}>{r.distanceKm.toFixed(1)} km</Text></View>}</View>
       {r.distanceKm!==null&&<Text style={s.help}>From {label}</Text>}{userLocation&&typeof r.latitude==="number"&&typeof r.longitude==="number"&&<Text style={s.help}>{distance(userLocation,{latitude:r.latitude,longitude:r.longitude}).toFixed(1)} km from your location</Text>}
     </Pressable>)}
-    {nextOffset!==null&&<Pressable accessibilityRole="button" disabled={busy} onPress={()=>void load(nextOffset)} style={s.button}><Text style={s.buttonText}>Load more rentals</Text></Pressable>}
+    {nextOffset!==null&&<Pressable accessibilityRole="button" disabled={busy} onPress={()=>void load(nextOffset)} style={[s.button,{backgroundColor:theme.accent}]}><Text style={s.buttonText}>Load more rentals</Text></Pressable>}
   </ScrollView>;
 }
 const s=StyleSheet.create({body:{padding:20,paddingBottom:40,gap:12},eyebrow:{fontSize:9,letterSpacing:1.2,fontWeight:"800",color:colors.sage},heading:{fontSize:30,fontWeight:"800",letterSpacing:-1,color:colors.green},help:{fontSize:12,lineHeight:20,color:colors.muted},input:{borderWidth:1,borderColor:colors.border,borderRadius:14,padding:15,backgroundColor:colors.white,color:colors.ink,fontSize:13},button:{backgroundColor:colors.green,padding:16,borderRadius:14,alignItems:"center",justifyContent:"center",flexDirection:"row",gap:10},buttonText:{color:"white",fontWeight:"800"},row:{flexDirection:"row",flexWrap:"wrap",gap:8},chip:{padding:12,minHeight:44,borderRadius:12,backgroundColor:colors.white,borderWidth:1,borderColor:colors.border,flexDirection:"row",alignItems:"center",gap:7},chipText:{fontSize:11,fontWeight:"700",color:colors.green},result:{backgroundColor:colors.white,padding:17,borderRadius:18,gap:8,borderWidth:1,borderColor:colors.border},bold:{fontWeight:"800",color:colors.green},map:{height:330,borderRadius:22},placeholder:{padding:24,backgroundColor:colors.soft,borderRadius:22,gap:14},resultsHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:8},resultsTitle:{fontSize:19,fontWeight:"800",color:colors.green},rentalCard:{backgroundColor:colors.white,padding:18,borderRadius:22,borderWidth:1,borderColor:colors.border,gap:12},rentalTop:{flexDirection:"row",alignItems:"center",gap:12},rentalIcon:{width:64,height:72,borderRadius:18,backgroundColor:colors.soft,alignItems:"center",justifyContent:"center"},rentalTitle:{fontSize:15,fontWeight:"800",color:colors.green},rentalFacts:{flexDirection:"row",gap:8,alignItems:"center"},rentalBottom:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",paddingTop:12,borderTopWidth:1,borderColor:colors.border},price:{fontSize:21,fontWeight:"800",color:colors.green},distanceTag:{flexDirection:"row",gap:4,alignItems:"center",backgroundColor:colors.soft,borderRadius:9,padding:8}});

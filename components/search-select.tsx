@@ -26,7 +26,7 @@ export function SearchSelect({
       <span className="search-field-label">{label}</span>
       <Select.Root value={selected} onValueChange={(next) => onValueChange(next === emptyValue ? "" : next)}>
         <Select.Trigger className="search-select-trigger" aria-label={accessibleName}>
-          <Select.Value/>
+          <Select.Value>{options.find(option=>option.value===selected)?.label}</Select.Value>
           <Select.Icon className="search-select-chevron" aria-hidden="true"><ChevronDown size={16}/></Select.Icon>
         </Select.Trigger>
         <Select.Portal>

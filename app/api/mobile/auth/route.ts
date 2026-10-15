@@ -29,7 +29,7 @@ export async function POST(request:Request) {
       if(data.action==="login" && !emailPasswordSignInConfigured())return reply({message:"Email sign-in is awaiting setup."},503);
       const result=data.action==="google" ? await nativeGoogleAccount(data.idToken,data.audience) : await authenticateEmailPassword(data.email,data.password);
       if(!result)return reply({message:"Sign-in failed. Check your details and email verification."},401);
-      const rows=await nativeDb().query("SELECT id,email,display_name AS \"displayName\",role FROM users WHERE id=$1",[result.id]);
+      const rows=await nativeDb().query("SELECT id,email,COALESCE(preferred_name,display_name) AS \"displayName\",role FROM users WHERE id=$1",[result.id]);
       return reply({...await issueNativeSession(result.id),account:rows[0]});
     }
     const account=await nativeAccount(request);

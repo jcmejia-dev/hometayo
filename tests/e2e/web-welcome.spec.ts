@@ -8,7 +8,9 @@ test("website introduces the product and offers authentication and Android insta
   await expect(page.getByRole("heading", {name:"A home for renters. A place for your rental."})).toBeVisible();
   await expect(page.getByRole("link", {name:"Join as a renter"})).toHaveAttribute("href", "/sign-up?audience=renter");
   await expect(page.getByRole("link", {name:"Join as a property owner"})).toHaveAttribute("href", "/sign-up?audience=owner");
-  await expect(page.locator(".welcome-entry-actions").getByRole("link", {name:"Install Android app"})).toHaveAttribute("href", "/download");
+  const menu=page.locator(".mobile-menu");
+  if(await menu.isVisible()){await menu.locator("summary").click();await expect(menu.getByRole("link",{name:"Install Android app"})).toHaveAttribute("href","/download");await menu.locator("summary").click();}
+  else await expect(page.locator(".site-header").getByRole("link",{name:"Install app",exact:true})).toHaveAttribute("href","/download");
   await page.locator(".welcome-entry-actions").getByRole("link", {name:"Get started"}).click();
   await expect(page).toHaveURL(/\/sign-up$/);
   await expect(page.getByRole("heading", {name:"Create account", exact:true})).toBeVisible();

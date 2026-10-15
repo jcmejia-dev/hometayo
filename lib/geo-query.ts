@@ -12,6 +12,9 @@ export function buildMapQuery(url:URL) {
   const type=url.searchParams.get("type")||null,city=url.searchParams.get("city")?.trim()||null;
   if(type && !["house","apartment","boarding_house","bedspace"].includes(type))throw Error("Invalid property type");
   if(city && city.length>80)throw Error("Invalid city");
+  const budgetRaw=url.searchParams.get("maxRent");
+  const budget=budgetRaw===null?null:Number(budgetRaw);
+  if(budget!==null&&(!Number.isInteger(budget)||budget<100||budget>5000000))throw Error("Invalid maximum rent");
   const offset=Number(url.searchParams.get("offset") || 0);
   if(!Number.isInteger(offset)||offset<0||offset>100000)throw Error("Invalid page");
   const query=`
@@ -25,9 +28,10 @@ export function buildMapQuery(url:URL) {
           )))) ELSE NULL END AS "distanceKm"
       FROM listings WHERE status='published' AND ($3::text IS NULL OR property_type=$3)
         AND ($4::text IS NULL OR lower(city)=lower($4))
+        AND ($7::integer IS NULL OR monthly_rent_centavos <= $7)
     )
     SELECT * FROM located WHERE ($5::double precision IS NULL OR "distanceKm" <= $5)
     ORDER BY "distanceKm" ASC NULLS LAST,published_at DESC NULLS LAST,slug ASC LIMIT 101 OFFSET $6
   `;
-  return {query,params:[hasPoint?point.latitude:null,hasPoint?point.longitude:null,type,city,radius,offset],offset};
+  return {query,params:[hasPoint?point.latitude:null,hasPoint?point.longitude:null,type,city,radius,offset,budget===null?null:budget*100],offset};
 }

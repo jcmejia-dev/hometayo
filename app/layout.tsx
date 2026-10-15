@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import "./globals.css";
+import {ThemeRestore} from "@/components/theme-settings";
 
 export const metadata: Metadata = {
   title: {
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <ThemeRestore/>
         <div className="site-shell">
           <SiteHeader />
           <main id="main-content">{children}</main>
