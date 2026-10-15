@@ -1,4 +1,5 @@
 import "server-only";
+import {publicAccountRole} from "./admin-policy";
 import { eq, sql } from "drizzle-orm";
 import { auth, authIsConfigured } from "@/auth";
 import { getDatabase } from "@/lib/db";
@@ -14,7 +15,7 @@ export async function currentUser() {
   const [account] = await db.select({
     id: users.id, email: users.email, displayName: sql<string | null>`COALESCE(${users.preferredName},${users.displayName})`, role: users.role,
   }).from(users).where(eq(users.id, id)).limit(1);
-  return account ?? null;
+  return account?{...account,role:publicAccountRole(account.role)}:null;
 }
 
 export async function requireAccount() {

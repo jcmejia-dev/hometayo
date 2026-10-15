@@ -2,6 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {PGlite} from "@electric-sql/pglite";
+import {publicAccountRole} from "../../lib/admin-policy.ts";
 import ts from "typescript";
 import {profileSettingsSchema} from "../../lib/profile-settings.ts";
 test("native profile requires a session, updates only that user, and preserves role/email",async()=>{
@@ -11,7 +12,7 @@ test("native profile requires a session, updates only that user, and preserves r
   let account:{id:string}|null=null;
   const compiled=ts.transpileModule(readFileSync(new URL("../../app/api/mobile/profile/route.ts",import.meta.url),"utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
   const exports:Record<string,(r:Request)=>Promise<Response>>={};
-  const mockRequire=(name:string)=>{if(name==="next/server")return {NextResponse:{json:(body:unknown,init:ResponseInit)=>Response.json(body,init)}};if(name==="@/lib/profile-settings")return {profileSettingsSchema};if(name==="@/lib/native-auth")return {nativeAccount:async()=>account,nativeDb:()=>({query:async(sql:string,params:unknown[])=>(await db.query(sql,params)).rows})};throw Error(name);};
+  const mockRequire=(name:string)=>{if(name==="next/server")return {NextResponse:{json:(body:unknown,init:ResponseInit)=>Response.json(body,init)}};if(name==="@/lib/admin-policy")return {publicAccountRole};if(name==="@/lib/profile-settings")return {profileSettingsSchema};if(name==="@/lib/native-auth")return {nativeAccount:async()=>account,nativeDb:()=>({query:async(sql:string,params:unknown[])=>(await db.query(sql,params)).rows})};throw Error(name);};
   new Function("require","exports",compiled)(mockRequire,exports);
   const request=(body:unknown)=>new Request("https://test.local/api/mobile/profile",{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
   const values={preferredName:"Jamie",homeCity:"Koronadal City",preferredPropertyType:"house",preferredBudgetPesos:"12000",id:"second",role:"admin",email:"changed@example.test"};

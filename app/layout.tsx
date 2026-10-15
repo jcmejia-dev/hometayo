@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import "./globals.css";
+import {NavigationMotion} from "@/components/navigation-motion";
 import {ThemeRestore} from "@/components/theme-settings";
 
 export const metadata: Metadata = {
@@ -32,9 +33,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
-        <ThemeRestore/>
+        <ThemeRestore/><NavigationMotion/>
         <div className="site-shell">
           <SiteHeader />
           <main id="main-content">{children}</main>

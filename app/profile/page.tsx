@@ -67,10 +67,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <summary className="profile-account-summary"><LockKeyhole size={21}/><strong>Account and security</strong><span>View</span></summary>
             <dl className="profile-details">
               <div><dt>Account email</dt><dd>{account.email}</dd></div>
-              <div><dt>Access role</dt><dd>{account.role === "admin" ? "Administrator" : account.role === "moderator" ? "Moderator" : "Member"}</dd></div>
+              <div><dt>Access role</dt><dd>{account.role === "landlord" ? "Property owner" : "Renter"}</dd></div>
               <div><dt>Member since</dt><dd>{new Intl.DateTimeFormat("en-PH",{dateStyle:"medium",timeZone:"Asia/Manila"}).format(profile.createdAt)}</dd></div>
             </dl>
-            <p className="profile-help">You cannot change your email or grant yourself an administrator role here. HomeTayo does not store readable passwords; Google passwords always remain with Google.</p>
+            <p className="profile-help">Your sign-in email cannot be changed here. Use password recovery if you need to reset your email-account password.</p>
             <form action={async () => { "use server"; await signOut({redirectTo:"/sign-in"}); }}>
               <button className="button button-outline" type="submit">Sign out</button>
             </form>
@@ -80,9 +80,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           <div className="profile-side-card"><PlayCircle size={22}/><h2>Introduction</h2><p>Review how to get started.</p><Link href="/?intro=1" className="button button-outline">Replay tutorial <ArrowRight size={16}/></Link></div>
           <div className="profile-side-card"><MapPin size={22}/><h2>Find a place</h2><p>Search using your saved preferences.</p><Link href={browse} className="button button-outline">Browse with preferences <ArrowRight size={16}/></Link></div>
           {account.role === "landlord" && <div className="profile-side-card"><House size={22}/><h2>Have a rental?</h2><p>Manage your properties.</p><Link href="/owner" className="button button-outline">Owner dashboard <ArrowRight size={16}/></Link></div>}
-          {account.role === "admin" || account.role === "moderator" ? (
-            <div className="profile-side-card profile-admin-link"><ShieldCheck size={22}/><h2>Platform operations</h2><p>Moderate the marketplace.</p><Link href="/admin" className="button button-primary">Admin dashboard <ArrowRight size={16}/></Link></div>
-          ) : null}
+
         </aside>
       </div>
     </section>

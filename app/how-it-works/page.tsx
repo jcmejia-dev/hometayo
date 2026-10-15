@@ -105,7 +105,6 @@ export default function HowItWorks() {
           <div><h3>Do renters need an account?</h3><p>No. Anyone can browse approved rental listings and use the filters. Saved searches and rental requests are planned, not active yet.</p></div>
           <div><h3>Are HomeTayo properties verified?</h3><p>Listings require admin approval before publication. That is not a guarantee of ownership, condition or safety. Please verify details independently.</p></div>
           <div><h3>Can owners upload photos or edit listings?</h3><p>Not yet. Those features are in development. The current form supports property details, and published listings can be marked unavailable.</p></div>
-          <div><h3>Can anyone become an admin?</h3><p>No. Google sign-in alone does not grant administrator access. Administrative roles are controlled by HomeTayo on the server.</p></div>
         </div>
         <div className="guide-safety-note"><Sparkles size={21}/><p><strong>HomeTayo publishes approved listings as owners submit them.</strong> Availability depends on genuine, approved listings. For a safer search, review our <Link href="/safety">rental safety guide</Link>.</p></div>
       </section>

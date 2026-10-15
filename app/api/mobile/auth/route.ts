@@ -1,3 +1,4 @@
+import {publicAccountRole} from "@/lib/admin-policy";
 import { NextResponse } from "next/server";
 import { nativeAuthInput } from "@/lib/native-auth-input";
 import { authenticateEmailPassword, emailPasswordSignInConfigured, emailSignUpConfigured, registerEmailUser, verifyNativeEmailCode } from "@/lib/email-auth";
@@ -30,7 +31,7 @@ export async function POST(request:Request) {
       const result=data.action==="google" ? await nativeGoogleAccount(data.idToken,data.audience) : await authenticateEmailPassword(data.email,data.password);
       if(!result)return reply({message:"Sign-in failed. Check your details and email verification."},401);
       const rows=await nativeDb().query("SELECT id,email,COALESCE(preferred_name,display_name) AS \"displayName\",role FROM users WHERE id=$1",[result.id]);
-      return reply({...await issueNativeSession(result.id),account:rows[0]});
+      return reply({...await issueNativeSession(result.id),account:{...rows[0],role:publicAccountRole(rows[0].role)}});
     }
     const account=await nativeAccount(request);
     if(!account)return reply({message:"Please sign in again."},401);

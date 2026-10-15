@@ -25,3 +25,12 @@ test("authenticated profile settings require a configured sign-in service", asyn
   await page.goto("/profile");
   await expect(page.locator("form.profile-form")).toHaveCount(0);
 });
+
+test("private administrator URL offers existing-account sign-in without exposing operations",async({page})=>{
+ await page.goto("/administratorsite");
+ await expect(page.getByRole("heading",{name:"Administrator sign in",exact:true})).toBeVisible();
+ await expect(page.getByText("Platform at a glance")).toHaveCount(0);
+ await expect(page.getByRole("heading",{name:"Rental review queue"})).toHaveCount(0);
+ await expect(page.getByRole("link",{name:"Create a HomeTayo account"})).toHaveAttribute("href","/sign-up");
+ await page.goto("/");await expect(page.locator("a[href='/administratorsite'],a[href='/admin']")).toHaveCount(0);
+});

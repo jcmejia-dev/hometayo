@@ -28,3 +28,11 @@ test("theme changes reach profile headings, labels, icons, fields and cards toge
  }
  expect(await page.locator("#palette-check input").evaluate(el=>getComputedStyle(el).transitionDuration)).toContain("0.26s");
 });
+
+test("page links use an outgoing and incoming view transition",async({page})=>{
+ await page.goto("/");await page.emulateMedia({reducedMotion:"no-preference"});
+ await page.evaluate(()=>{const original=document.startViewTransition.bind(document);(window as unknown as {transitionCount:number}).transitionCount=0;document.startViewTransition=((update:()=>Promise<void>)=>{(window as unknown as {transitionCount:number}).transitionCount++;return original(update);}) as typeof document.startViewTransition;});
+ await page.getByRole("link",{name:/Houses.*Room to grow/i}).click();await expect(page).toHaveURL(/rentals/);
+ expect(await page.evaluate(()=>(window as unknown as {transitionCount:number}).transitionCount)).toBeGreaterThan(0);
+ await expect.poll(()=>page.locator("html").getAttribute("data-motion")).toBe(null);
+});

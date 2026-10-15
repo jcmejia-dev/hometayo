@@ -1167,3 +1167,17 @@ html[data-theme] .category-card { background:var(--soft); border-color:var(--lin
 @media(prefers-reduced-motion:reduce) {html[data-theme] body * {transition-duration:0s!important;}}
 
 html[data-theme] .category-card .category-icon {background:color-mix(in srgb,var(--green) 12%,var(--white));color:var(--green);}
+
+/* The old scene gives way to a new one, with the header held in place. */
+html[data-view-transitions="true"] .page-transition {animation:none;}
+html[data-motion="page"] #main-content {view-transition-name:page-content;}
+::view-transition-old(root),::view-transition-new(root) {animation:none;mix-blend-mode:normal;}
+html[data-motion="page"]::view-transition-old(page-content) {animation:scene-leave 180ms ease-in both;}
+html[data-motion="page"]::view-transition-new(page-content) {animation:scene-enter 420ms cubic-bezier(.22,1,.36,1) both;}
+html[data-motion="theme"] *,html[data-motion="theme"] *::before,html[data-motion="theme"] *::after {transition:none!important;}
+@keyframes scene-leave {to{opacity:0;transform:translateY(-8px) scale(.995);}}
+@keyframes scene-enter {from{opacity:0;transform:translateY(18px) scale(.99);}to{opacity:1;transform:none;}}
+.desktop-nav a {position:relative;}
+.desktop-nav a::after {content:"";position:absolute;left:0;right:0;bottom:-10px;height:2px;background:var(--green);border-radius:2px;transform:scaleX(0);transform-origin:center;transition:transform 260ms ease;}
+.desktop-nav a[aria-current="page"]::after {transform:scaleX(1);}
+@media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;}}
