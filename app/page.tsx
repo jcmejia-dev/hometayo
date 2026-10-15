@@ -18,17 +18,16 @@ export default async function Home({ searchParams }:{searchParams:Promise<{intro
           <div className="hero-copy">
             <div className="eyebrow">HANAP BAHAY. DITO TAYO.</div>
             <h1>Find a place <span>to call home.</span></h1>
-            <p className="hero-description">A simpler way to find rental homes, rooms and bedspaces in Koronadal. Explore local listings, compare rental details, or share a property you’re authorized to rent.</p>
+            <p className="hero-description">Homes, rooms and bedspaces, all in one place. Find a rental that fits your life in Koronadal.</p>
             {user ? <p className="launch-note">Welcome back, {user.displayName || "neighbor"}. <Link href="/profile" className="text-link">My profile</Link></p> : <div className="welcome-entry-actions">
               <Link className="button button-primary" href="/sign-up">Get started</Link>
               <Link className="text-link" href="/sign-in">Sign in</Link>
-              <Link className="button button-outline" href="/download">Install Android app</Link>
             </div>}
-            <SearchForm />
           </div>
           <FeaturedRentalsPanel result={latest} />
         </div>
       </section>
+      <section className="container home-search" aria-label="Find a rental"><SearchForm/></section>
 
       {!user && <section className="container web-purpose-section" aria-label="What HomeTayo does">
         <div><p className="section-kicker">ONE COMMUNITY. TWO WAYS TO BELONG.</p><h2>A home for renters.<br/>A place for your rental.</h2><p>Discover what fits your next chapter, with clear details and listings reviewed before publication.</p></div>

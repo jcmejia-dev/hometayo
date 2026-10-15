@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, BackHandler, Image, Linking,
+  ActivityIndicator, Alert, Animated, BackHandler, Image, Linking,
   Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -13,6 +13,9 @@ import {RentalMap} from "./src/rental-map";
 import {AccountPanel} from "./src/account-panel";
 import { fetchRentalDetail, propertyLabel, rentLabel, type RentalDetail } from "./src/api";
 
+import {ThemeProvider,useTheme} from "./src/theme";
+import {useReducedMotion,useSceneTransition} from "./src/motion";
+import {api} from "./src/session";
 import {isExpoGo} from "./src/runtime";
 import {demoRentals,type DemoRental} from "./src/demo-rentals";
 
@@ -29,8 +32,9 @@ const INTRO_KEY="hometayo.native.intro.v1";
 function PrimaryButton({text,onPress,outlined=false}:{
   text:string;onPress:()=>void;outlined?:boolean;
 }){
+  const {theme}=useTheme();
   return <Pressable accessibilityRole="button" onPress={onPress}
-    style={({pressed})=>[styles.primaryButton,outlined&&styles.outlineButton,pressed&&styles.pressed]}>
+    style={({pressed})=>[styles.primaryButton,{backgroundColor:theme.accent},outlined&&styles.outlineButton,pressed&&styles.pressed]}>
     <Text style={[styles.primaryButtonText,outlined&&styles.outlineButtonText]}>{text}</Text><Icon name="arrow" size={18} color={outlined?colors.green:"white"}/>
   </Pressable>;
 }
@@ -43,12 +47,14 @@ function Brand({subtitle}:{subtitle?:string}){
   </View>;
 }
 function NativeApp(){
+  const {theme}=useTheme();
   const [ready,setReady]=useState(false);
   const [account,setAccount]=useState<Account|null>(null);
   const [welcomeOpen,setWelcomeOpen]=useState(true);
   const [intro,setIntro]=useState<number|null>(null);
   const [tab,setTab]=useState<Tab>("home");
   const [city,setCity]=useState("");
+  const [budget,setBudget]=useState("");
   const [type,setType]=useState("");
 
 
@@ -56,6 +62,9 @@ function NativeApp(){
   const [selected,setSelected]=useState<(RentalDetail & Partial<DemoRental>)|null>(null);
   const [selectedSlug,setSelectedSlug]=useState<string|null>(null);
   const [detailBusy,setDetailBusy]=useState(false);
+  const reduced=useReducedMotion();
+  const transition=useSceneTransition(tab+":"+(selectedSlug||""),reduced);
+  useEffect(()=>{if(!account)return;let active=true;api("/api/mobile/profile").then(data=>{if(active){setCity(data.profile.homeCity||"");setType(data.profile.preferredPropertyType||"");setBudget(data.profile.preferredBudgetPesos==null?"":String(data.profile.preferredBudgetPesos));}}).catch(()=>{});return()=>{active=false;};},[account]);
   useEffect(()=>watchSessionExpired(()=>{setAccount(null);setWelcomeOpen(true);setIntro(null);}),[]);
 
   useEffect(()=>{
@@ -96,11 +105,12 @@ function NativeApp(){
     void AsyncStorage.setItem(INTRO_KEY,"done").catch(()=>{});
     setIntro(null);setWelcomeOpen(false);setTab(nextTab);
   }
-  if(!ready)return <SafeAreaView style={styles.container}><ActivityIndicator style={{marginTop:80}} color={colors.green}/></SafeAreaView>;
+  if(!ready)return <SafeAreaView style={[styles.container,{backgroundColor:theme.background}]}><ActivityIndicator style={{marginTop:80}} color={colors.green}/></SafeAreaView>;
   if(welcomeOpen)return <NativeWelcome returning={intro===null} onGuest={()=>finishTutorial("home")} onSignedIn={user=>{setAccount(user);finishTutorial(user.role==="landlord"?"owner":"home");}}/>;
-  return <SafeAreaView style={styles.container}>
-    <StatusBar barStyle="dark-content" backgroundColor={colors.cream}/>
-    <View style={styles.header}><Brand/><Text style={styles.headerTag}>{tab==="explore"?"EXPLORE":tab==="owner"?"OWNER":tab==="profile"?"ACCOUNT":"DISCOVER"}</Text></View>
+  return <SafeAreaView style={[styles.container,{backgroundColor:theme.background}]}>
+    <StatusBar barStyle="dark-content" backgroundColor={theme.background}/>
+    <View style={styles.header}><Brand/><Text style={[styles.headerTag,{color:theme.accent}]}>{tab==="explore"?"EXPLORE":tab==="owner"?"OWNER":tab==="profile"?"ACCOUNT":"DISCOVER"}</Text></View>
+    <Animated.View style={[{flex:1},transition.style]}>
     {selectedSlug ? <ScrollView contentContainerStyle={styles.tabBody}>
       <Pressable accessibilityRole="button" onPress={()=>setSelectedSlug(null)}><Text style={styles.inlineLink}>← Back to rentals</Text></Pressable>
       {detailBusy ? <ActivityIndicator color={colors.green} size="large" style={{marginTop:55}}/> : selected ? <>
@@ -125,7 +135,7 @@ function NativeApp(){
     tab==="home" ? <ScrollView contentContainerStyle={styles.tabBody}>
       <Text style={styles.eyebrow}>HANAP BAHAY. DITO TAYO.</Text>
       <Text style={styles.heroTitle}>Find a place <Text style={{color:colors.sage}}>to call home.</Text></Text>
-      <Text style={styles.paragraph}>Homes, rooms and new beginnings. Explore rentals near the places that matter to you.</Text><View style={styles.homeArt}><View style={styles.homeArtCopy}><Text style={styles.homeArtTitle}>A neighbourhood
+      <Text style={styles.paragraph}>Homes, rooms and new beginnings. Explore rentals near the places that matter to you.</Text><View style={[styles.homeArt,{backgroundColor:theme.accent}]}><View style={styles.homeArtCopy}><Text style={styles.homeArtTitle}>A neighbourhood
 you’ll love.</Text><Text style={styles.homeArtText}>Explore homes on the map</Text></View><View style={styles.homeArtIcon}><Icon name="home" size={52} color="#EED6AD"/></View></View>
       <View style={styles.searchCard}>
         <Text style={styles.fieldLabel}>YOUR LOCATION</Text>
@@ -144,16 +154,17 @@ you’ll love.</Text><Text style={styles.homeArtText}>Explore homes on the map</
       <View style={styles.infoRow}><View style={styles.infoIcon}><Icon name="shield" size={20}/></View><Text style={styles.infoText}>Verify the home and owner before making payments.</Text></View>
       <Pressable accessibilityRole="button" onPress={()=>{setIntro(0);setWelcomeOpen(true);}} style={styles.textAction}><Text style={styles.inlineLink}>Replay introduction →</Text></Pressable>
     </ScrollView> :
-    tab==="explore" ? <RentalMap account={account} onSelect={setSelectedSlug} initialCity={city} initialType={type}/> :
+    tab==="explore" ? <RentalMap account={account} onSelect={setSelectedSlug} initialCity={city} initialType={type} initialBudget={budget}/> :
     <AccountPanel account={account} owner={tab==="owner"} onAccountChange={setAccount} onLogin={()=>{setIntro(null);setWelcomeOpen(true);}}/>}
-    <View style={styles.tabBar}>{tabs.filter(t=>t.id!=="owner"||account?.role==="landlord").map(t=><Pressable key={t.id} onPress={()=>{setSelectedSlug(null);setTab(t.id);}}
-      accessibilityRole="tab" accessibilityState={{selected:tab===t.id}} style={[styles.tab,t.id===tab&&styles.tabActive]}>
-      <Icon name={t.symbol} size={23} color={t.id===tab?colors.green:colors.muted}/>
-      <Text style={[styles.tabLabel,t.id===tab&&styles.tabSelected]}>{t.label}</Text>
+    </Animated.View>
+    <View style={styles.tabBar}>{tabs.filter(t=>t.id!=="owner"||account?.role==="landlord").map(t=><Pressable key={t.id} onPress={()=>{if(t.id===tab&&!selectedSlug)return;transition.change(()=>{setSelectedSlug(null);setTab(t.id);},tabs.findIndex(v=>v.id===t.id)>tabs.findIndex(v=>v.id===tab));}}
+      accessibilityRole="tab" accessibilityState={{selected:tab===t.id}} style={[styles.tab,t.id===tab&&{backgroundColor:theme.soft}]}>
+      <Icon name={t.symbol} size={23} color={t.id===tab?theme.accent:colors.muted}/>
+      <Text style={[styles.tabLabel,t.id===tab&&{color:theme.accent}]}>{t.label}</Text>
     </Pressable>)}</View>
   </SafeAreaView>;
 }
-export default function App(){return <SafeAreaProvider><NativeApp/></SafeAreaProvider>;}
+export default function App(){return <SafeAreaProvider><ThemeProvider><NativeApp/></ThemeProvider></SafeAreaProvider>;}
 
 const styles=StyleSheet.create({
   homeArt:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",backgroundColor:colors.green,borderRadius:24,padding:22,marginVertical:8},homeArtCopy:{flex:1},homeArtTitle:{fontSize:20,lineHeight:26,fontWeight:"800",color:colors.white},homeArtText:{fontSize:11,color:"#C8DDCF",marginTop:9},homeArtIcon:{width:85,height:85,borderRadius:28,backgroundColor:colors.green2,alignItems:"center",justifyContent:"center"},infoIcon:{height:40,width:40,borderRadius:13,backgroundColor:colors.soft,alignItems:"center",justifyContent:"center"},detailIllustration:{padding:20,borderRadius:32,backgroundColor:"#DCE8DE",marginBottom:12},fact:{flex:1,alignItems:"center",gap:9},factLabel:{fontSize:11,color:colors.green,textAlign:"center"},amenity:{flexDirection:"row",gap:12,alignItems:"center",backgroundColor:colors.white,padding:14,borderRadius:13,marginBottom:8},

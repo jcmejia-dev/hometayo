@@ -10,7 +10,7 @@ test("distance remains finite at the same point, antipodes, and the date line",(
   assert.equal(isPoint({latitude:91,longitude:0}),false);
 });
 test("map query rejects incomplete coordinates and unbounded radii",()=>{
-  for(const query of ["lat=0","lat=&lng=0","lat=NaN&lng=0","lat=91&lng=0","lat=0&lng=0&radiusKm=9999","radiusKm=3","offset=-1"])
+  for(const query of ["lat=0","lat=&lng=0","lat=NaN&lng=0","lat=91&lng=0","lat=0&lng=0&radiusKm=9999","radiusKm=3","offset=-1","maxRent=-1","maxRent=100.5","maxRent=5000001"])
     assert.throws(()=>buildMapQuery(new URL("https://test.local/?"+query)),/Invalid/);
 });
 test("PostgreSQL ranks the nearest published rental before newer distant listings, across cities",async()=>{
@@ -26,6 +26,9 @@ test("PostgreSQL ranks the nearest published rental before newer distant listing
     const rows=await db.query<{slug:string;distanceKm:number|null}>(all.query,all.params);
     assert.deepEqual(rows.rows.map(r=>r.slug),["near-old","far-new","no-pin"]);
     assert.ok(Math.abs(rows.rows[0].distanceKm!-.11119)<.001);
+    await db.exec("UPDATE listings SET monthly_rent_centavos=CASE WHEN slug='near-old' THEN 100000 ELSE 900000 END");
+    const affordable=buildMapQuery(new URL("https://test.local/?maxRent=3000"));
+    assert.deepEqual((await db.query<{slug:string}>(affordable.query,affordable.params)).rows.map(r=>r.slug),["near-old"]);
     const near=buildMapQuery(new URL("https://test.local/?lat=0&lng=0&radiusKm=5"));
     assert.deepEqual((await db.query<{slug:string}>(near.query,near.params)).rows.map(r=>r.slug),["near-old"]);
   } finally {await db.close();}

@@ -1,3 +1,4 @@
+import {ThemeSettings} from "@/components/theme-settings";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
@@ -37,7 +38,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           <p className="section-kicker">YOUR HOME, YOUR SETTINGS</p>
           <h1>My profile</h1>
           <p>Manage your preferences and choose how you explore HomeTayo.</p>
-          <Link href="/account/start" className="text-link">Switch renter / property owner experience <ArrowRight size={16}/></Link>
+          <p className="profile-help">{account.role === "landlord" ? "Property owner account" : account.role === "renter" ? "Renter account" : "Platform account"}</p>
         </div>
         <span className="profile-avatar"><UserRound size={34}/></span>
       </div>
@@ -61,6 +62,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             </div>
             <button className="button button-primary profile-save" type="submit">Save preferences</button>
           </form>
+          <ThemeSettings/>
           <details className="info-card profile-account" aria-label="Account and security">
             <summary className="profile-account-summary"><LockKeyhole size={21}/><strong>Account and security</strong><span>View</span></summary>
             <dl className="profile-details">
@@ -77,7 +79,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <aside className="profile-side" aria-label="Quick links">
           <div className="profile-side-card"><PlayCircle size={22}/><h2>Introduction</h2><p>Review how to get started.</p><Link href="/?intro=1" className="button button-outline">Replay tutorial <ArrowRight size={16}/></Link></div>
           <div className="profile-side-card"><MapPin size={22}/><h2>Find a place</h2><p>Search using your saved preferences.</p><Link href={browse} className="button button-outline">Browse with preferences <ArrowRight size={16}/></Link></div>
-          <div className="profile-side-card"><House size={22}/><h2>Have a rental?</h2><p>Manage your properties.</p><Link href="/owner" className="button button-outline">Owner dashboard <ArrowRight size={16}/></Link></div>
+          {account.role === "landlord" && <div className="profile-side-card"><House size={22}/><h2>Have a rental?</h2><p>Manage your properties.</p><Link href="/owner" className="button button-outline">Owner dashboard <ArrowRight size={16}/></Link></div>}
           {account.role === "admin" || account.role === "moderator" ? (
             <div className="profile-side-card profile-admin-link"><ShieldCheck size={22}/><h2>Platform operations</h2><p>Moderate the marketplace.</p><Link href="/admin" className="button button-primary">Admin dashboard <ArrowRight size={16}/></Link></div>
           ) : null}

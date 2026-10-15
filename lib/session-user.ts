@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { auth, authIsConfigured } from "@/auth";
 import { getDatabase } from "@/lib/db";
 import { users } from "@/db/schema";
@@ -12,7 +12,7 @@ export async function currentUser() {
   const db = getDatabase();
   if (!db) return null;
   const [account] = await db.select({
-    id: users.id, email: users.email, displayName: users.displayName, role: users.role,
+    id: users.id, email: users.email, displayName: sql<string | null>`COALESCE(${users.preferredName},${users.displayName})`, role: users.role,
   }).from(users).where(eq(users.id, id)).limit(1);
   return account ?? null;
 }
