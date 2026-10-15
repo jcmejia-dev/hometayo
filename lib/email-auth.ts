@@ -99,7 +99,7 @@ async function issueEmailToken(id:string,email:string,purpose:"verify"|"reset"):
     applicationOrigin()+path+encodeURIComponent(value),
     purpose==="verify"?"verify your email address":"reset your password");
 }
-export async function registerEmailUser(email:string,name:string,password:string,delivery:"web"|"native"="web"):Promise<void>{
+export async function registerEmailUser(email:string,name:string,password:string,delivery:"web"|"native"="web",audience:"renter"|"owner"="renter"):Promise<void>{
   if (!emailSignUpConfigured()) throw Error("Email registration disabled");
   if (!await consumeRateLimit("signup",email,3,24*3600)) return;
   const db=database();
@@ -117,10 +117,10 @@ export async function registerEmailUser(email:string,name:string,password:string
   }
   const id="email:"+randomUUID(),passwordHash=await hashPassword(password);
   const inserted=await db.query(
-    "WITH created AS (INSERT INTO users (id,email,display_name,role) VALUES ($1,$2,$3,'renter') "+
+    "WITH created AS (INSERT INTO users (id,email,display_name,role) VALUES ($1,$2,$3,$5) "+
     "ON CONFLICT (email) DO NOTHING RETURNING id) "+
     "INSERT INTO email_password_credentials (user_id,password_hash) "+
-    "SELECT id,$4 FROM created RETURNING user_id",[id,email,name,passwordHash]);
+    "SELECT id,$4 FROM created RETURNING user_id",[id,email,name,passwordHash,audience==="owner"?"landlord":"renter"]);
   if (inserted.length) {
     if(delivery==="native") await issueNativeEmailCode(id,email);
     else await issueEmailToken(id,email,"verify");

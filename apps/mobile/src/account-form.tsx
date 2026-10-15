@@ -10,10 +10,11 @@ function Field({label,icon,password=false,...props}:TextInputProps&{label:string
   const [visible,setVisible]=useState(false),[focused,setFocused]=useState(false);
   return <View style={s.field}><Text style={s.label}>{label}</Text><View style={[s.inputWrap,focused&&s.focused]}><Icon name={icon} size={19} color={colors.sage}/><TextInput {...props} accessibilityLabel={label} secureTextEntry={password&&!visible} autoCapitalize={password?"none":props.autoCapitalize} autoCorrect={password?false:props.autoCorrect} onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} placeholderTextColor={colors.muted} style={s.input}/>{password&&<Pressable accessibilityRole="button" accessibilityLabel={(visible?"Hide ":"Show ")+label.toLowerCase()} accessibilityState={{checked:visible}} onPress={()=>setVisible(!visible)} hitSlop={8} style={s.eye}><Icon name={visible?"eye-off":"eye"} size={20}/></Pressable>}</View></View>;
 }
-export function AccountForm({mode,audience,onComplete,onSwitch}: {mode:"sign-in"|"sign-up";audience:"renter"|"owner";onComplete:(account:Account)=>void;onSwitch:()=>void}){
+export function AccountForm({mode,audience,onComplete,onSwitch,onStageChange}: {mode:"sign-in"|"sign-up";audience:"renter"|"owner";onComplete:(account:Account)=>void;onSwitch:()=>void;onStageChange:(choosing:boolean)=>void}){
   const [name,setName]=useState(""),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[confirm,setConfirm]=useState("");
   const [verify,setVerify]=useState(false),[code,setCode]=useState(""),[message,setMessage]=useState(""),[busy,setBusy]=useState(false),[registered,setRegistered]=useState(false);
   const [availability,setAvailability]=useState<{emailSignIn:boolean;emailSignUp:boolean;google:boolean}|null>(null);
+  useEffect(()=>{onStageChange(mode==="sign-up"&&!verify&&!registered&&!busy);},[mode,verify,registered,busy,onStageChange]);
   const signup=mode==="sign-up"&&!registered;
   useEffect(()=>{let active=true;api("/api/mobile/auth/status").then(data=>{if(active&&typeof data.emailSignIn==="boolean"&&typeof data.emailSignUp==="boolean"&&typeof data.google==="boolean")setAvailability(data);}).catch(()=>{});return()=>{active=false;};},[]);
   async function run(google=false){
@@ -30,22 +31,23 @@ export function AccountForm({mode,audience,onComplete,onSwitch}: {mode:"sign-in"
         GoogleSignin.configure({webClientId:process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID});
         await GoogleSignin.hasPlayServices();const response=await GoogleSignin.signIn();
         if(!isSuccessResponse(response)||!response.data.idToken)throw Error("Google sign-in was cancelled.");
-        result=await accountAction({action:"google",idToken:response.data.idToken});
+        result=await accountAction({action:"google",idToken:response.data.idToken,...(signup?{audience}:{})});
       }else if(verify){
         result=await accountAction({action:"verify",email:email.trim().toLowerCase(),code});
         setVerify(false);setRegistered(true);setCode("");setMessage(result.message||"Email verified. Sign in to continue.");return;
       }else if(signup){
-        result=await accountAction({action:"signup",name:name.trim(),email:email.trim().toLowerCase(),password,confirmPassword:confirm});
+        result=await accountAction({action:"signup",name:name.trim(),email:email.trim().toLowerCase(),password,confirmPassword:confirm,audience});
         setVerify(true);setMessage(result.message||"Check your email for a code.");return;
       }else result=await accountAction({action:"login",email:email.trim().toLowerCase(),password});
       if(!result.account)throw Error("Sign-in did not return an account. Please try again.");
-      const selected=await accountAction({action:"audience",audience});onComplete(selected.account||result.account);
+      onComplete(result.account);
     }catch(error){setMessage(error instanceof Error?error.message:"Sign-in failed. Please try again.");}finally{setBusy(false);}
   }
   return <View style={s.card}>
     <View style={s.badge}><Icon name={verify?"mail":"lock"} size={22}/></View>
     <Text style={s.title}>{verify?"Check your inbox":signup?"Make yourself at home":"Welcome back"}</Text>
     <Text style={s.note}>{verify?"Enter the six-digit code sent to "+email+". It expires in 10 minutes.":signup?"Create your HomeTayo account to get started.":"Sign in to your HomeTayo account."}</Text>
+    {verify&&<Text style={s.label}>{audience==="owner"?"Property owner account":"Renter account"}</Text>}
     {verify?<Field label="Verification code" icon="key" value={code} onChangeText={setCode} keyboardType="number-pad" maxLength={6} placeholder="000000" autoComplete="one-time-code"/>:<>
       {signup&&<Field label="Full name" icon="user" value={name} onChangeText={setName} autoComplete="name" placeholder="Your full name" maxLength={80}/>}
       <Field label="Email address" icon="mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" placeholder="you@example.com" maxLength={254}/>

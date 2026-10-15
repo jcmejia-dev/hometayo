@@ -11,6 +11,7 @@ export async function GET(request:Request) {
   try {
     const account=await nativeAccount(request);
     if(!account)return reply({message:"Please sign in."},401);
+    if(account.role!=="landlord")return reply({message:"A property-owner account is required."},403);
     const rows=await nativeDb().query("SELECT l.id,l.title,l.slug,l.status,l.city,l.barangay,l.latitude,l.longitude,l.monthly_rent_centavos AS \"monthlyRentCentavos\" FROM listings l JOIN owner_profiles o ON o.id=l.owner_id WHERE o.user_id=$1 ORDER BY l.created_at DESC LIMIT 100",[account.id]);
     return reply({listings:rows});
   }catch {return reply({message:"Your listings are temporarily unavailable."},503);}
@@ -19,6 +20,7 @@ export async function POST(request:Request) {
   try {
     const account=await nativeAccount(request);
     if(!account)return reply({message:"Please sign in."},401);
+    if(account.role!=="landlord")return reply({message:"A property-owner account is required."},403);
     if(Number(request.headers.get("content-length")||0)>15000)return reply({message:"Request too large."},413);
     const parsed=propertyInputSchema.safeParse(await request.json());
     if(!parsed.success)return reply({message:parsed.error.issues[0]?.message||"Check the rental details."},400);
@@ -40,6 +42,7 @@ export async function PATCH(request:Request) {
   try {
     const account=await nativeAccount(request);
     if(!account)return reply({message:"Please sign in."},401);
+    if(account.role!=="landlord")return reply({message:"A property-owner account is required."},403);
     const parsed=z.object({id:z.uuid(),latitude:z.number().min(-90).max(90),longitude:z.number().min(-180).max(180)}).safeParse(await request.json());
     if(!parsed.success)return reply({message:"Select a valid property map pin."},400);
     if(!await consumeRateLimit("native-pin",account.id,20,3600))return reply({message:"Pin update limit reached."},429);
