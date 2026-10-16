@@ -1,9 +1,9 @@
+import {FeedbackPressable as Pressable} from "./src/feedback-pressable";
 import {BrandMark} from "./src/brand-mark";
 import {usePalette,useThemedStyles} from "./src/theme";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, Animated, BackHandler, Image, Linking,
-  Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View,
+  ActivityIndicator, Alert, Animated, BackHandler, Image, Linking, ScrollView, StatusBar, StyleSheet, Text, TextInput, View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";

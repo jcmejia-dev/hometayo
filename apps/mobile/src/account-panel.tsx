@@ -1,8 +1,9 @@
+import {FeedbackPressable as Pressable} from "./feedback-pressable";
 import {usePalette,useThemedStyles} from "./theme";
 import {ProfileSettings} from "./profile-settings";
 import {useTheme} from "./theme";
 import React,{useEffect,useState} from "react";
-import {Pressable,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
+import {ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
 import MapView,{Marker,PROVIDER_GOOGLE} from "react-native-maps";
 import {mapsAvailable} from "./runtime";
 import {api,logOut,type Account} from "./session";

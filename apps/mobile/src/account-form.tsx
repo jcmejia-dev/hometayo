@@ -1,6 +1,7 @@
+import {FeedbackPressable as Pressable} from "./feedback-pressable";
 import {usePalette,useThemedStyles} from "./theme";
 import React,{useEffect,useState} from "react";
-import {Pressable,Text,TextInput,Image,View,StyleSheet,ActivityIndicator,type TextInputProps} from "react-native";
+import {Text,TextInput,Image,View,StyleSheet,ActivityIndicator,type TextInputProps} from "react-native";
 import {accountAction,api,type Account} from "./session";
 import {colors} from "./design";
 import {isExpoGo} from "./runtime";

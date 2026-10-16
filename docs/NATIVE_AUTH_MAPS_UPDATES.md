@@ -34,6 +34,8 @@ Verify the Resend sender and email delivery before enabling public sign-up. The 
 
 ## 2. Google Maps and destination search
 
+For the current installed APK, follow [ANDROID_MAP_SETUP.md](ANDROID_MAP_SETUP.md), including the existing signing fingerprint and guarded `preview-maps` build profile.
+
 In Google Cloud, enable Maps SDK for Android and Places API (New), and configure the required billing account. Set usage quotas and budget alerts suitable for your launch.
 
 Create **two separate keys**:

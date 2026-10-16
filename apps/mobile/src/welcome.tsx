@@ -1,7 +1,8 @@
+import {FeedbackPressable as Pressable} from "./feedback-pressable";
 import {BrandMark} from "./brand-mark";
 import {usePalette,useThemedStyles} from "./theme";
 import React,{useEffect,useRef,useState} from "react";
-import {Animated,Image,Pressable,ScrollView,StyleSheet,Text,View,BackHandler,StatusBar,KeyboardAvoidingView,Platform} from "react-native";
+import {Animated,Image,ScrollView,StyleSheet,Text,View,BackHandler,StatusBar,KeyboardAvoidingView,Platform} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {colors} from "./design";
 import {AccountForm} from "./account-form";
