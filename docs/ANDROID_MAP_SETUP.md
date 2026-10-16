@@ -32,7 +32,7 @@ cd apps\mobile
 npx eas-cli build --platform android --profile preview-maps
 ```
 
-The preview-maps profile fails clearly if the Android key is missing. Use the existing signing keystore. Download and install the resulting APK over the existing app, then update the website download URL to the new artifact. Existing APKs still lack the native map key, even after a JavaScript update.
+The preview-maps profile checks for the Android key on the build server, after EAS loads its environment. Local config evaluation is allowed before those variables are downloaded. Use the existing signing keystore. Download and install the resulting APK over the existing app, then update the website download URL to the new artifact. Existing APKs still lack the native map key, even after a JavaScript update.
 
 Test: open Explore, allow foreground location when requested, confirm the map tiles load, search `KCC Mall, Koronadal`, select a result, and inspect nearby rentals. Empty results can be legitimate when no approved, pinned rentals match the chosen radius and budget. Distances are straight-line estimates.
 

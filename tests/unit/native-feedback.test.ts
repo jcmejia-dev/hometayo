@@ -22,11 +22,13 @@ test("press feedback preserves layout, busy state, handlers and reduced-motion b
   assert.deepEqual(animations.map(a=>a.toValue),reduced?[]:[.965,1]);
  }
 });
-test("map build profile refuses a missing key and uses the configured Android key",()=>{
+test("map config bootstraps locally, rejects a missing cloud key and uses a configured key",()=>{
  const compiled=ts.transpileModule(readFileSync(new URL("../../apps/mobile/app.config.ts",import.meta.url),"utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
  const output:{default?:(context:unknown)=>{extra:{mapsConfigured:boolean};plugins:Array<string|[string,{androidGoogleMapsApiKey:string}]>}}={};const environment:Record<string,string>={REQUIRE_ANDROID_MAPS:"true"};
  new Function("exports","process",compiled)(output,{env:environment});
  const config={config:{extra:{eas:{projectId:"fixture"}},android:{package:"app.hometayo.mobile"}}};
+ assert.equal(output.default!(config).extra.mapsConfigured,false,"local config must load before EAS downloads environment variables");
+ environment.EAS_BUILD="true";
  assert.throws(()=>output.default!(config),/GOOGLE_MAPS_ANDROID_API_KEY/);
  environment.GOOGLE_MAPS_ANDROID_API_KEY=" test-key-only ";const result=output.default!(config);
  assert.equal(result.extra.mapsConfigured,true);const maps=result.plugins.find(p=>Array.isArray(p)&&p[0]==="react-native-maps");assert.ok(Array.isArray(maps));assert.equal(maps[1].androidGoogleMapsApiKey,"test-key-only");
