@@ -1,4 +1,6 @@
 import React from "react";
-import Svg,{Rect,Path,Circle} from "react-native-svg";
-import {usePalette} from "./theme";
-export function BrandMark({size=34}:{size?:number}){const colors=usePalette();return <Svg width={size} height={size} viewBox="0 0 512 512" accessibilityLabel="HomeTayo icon" accessibilityRole="image"><Rect width={512} height={512} rx={108} fill={colors.green}/><Rect x={341} y={140} width={36} height={88} rx={12} fill="#FFFDF5"/><Path d="M119 229 256 109 391 229" fill="none" stroke="#FFFDF5" strokeWidth={36} strokeLinejoin="round" strokeLinecap="round"/><Path d="M163 227v97c0 19 9 31 24 44l69 64 69-64c15-13 24-25 24-44v-97" fill="none" stroke="#FFFDF5" strokeWidth={33} strokeLinecap="round" strokeLinejoin="round"/><Path d="M193 335c0-36 28-65 63-65s63 29 63 65c0 42-63 96-63 96s-63-54-63-96Z" fill="none" stroke="#FFFDF5" strokeWidth={29} strokeLinejoin="round"/><Circle cx={256} cy={335} r={28} fill={colors.gold}/></Svg>;}
+import {Image} from "react-native";
+
+export function BrandMark({size=34}:{size?:number}){
+  return <Image source={require("../assets/icon.png")} accessibilityLabel="HomeTayo connected homes" accessibilityRole="image" style={{width:size,height:size,borderRadius:size*.22}} resizeMode="contain"/>;
+}

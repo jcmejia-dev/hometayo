@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("HomeTayo uses its house-and-location-pin brand in the UI", async ({ page }) => {
+test("HomeTayo uses its approved connected-homes logo in the UI", async ({ page }, testInfo) => {
   await page.goto("/");
   const brand = page.getByRole("link", { name: "HomeTayo home" }).first();
   await expect(brand).toBeVisible();
@@ -11,9 +11,10 @@ test("HomeTayo uses its house-and-location-pin brand in the UI", async ({ page }
   expect(svg.ok()).toBeTruthy();
   expect(svg.headers()["content-type"]).toContain("image/svg+xml");
   const body = await svg.text();
-  expect(body).toContain("house and location pin");
-  expect(body).toContain("#196247");
+  expect(body).toContain("HomeTayo connected homes");
+  expect(body).toContain("data:image/png;base64,");
   expect(body).not.toContain("HomePini");
+  await brand.screenshot({path:testInfo.outputPath("hometayo-logo.png")});
 });
 
 test("HomeTayo PWA PNG icons render in the correct sizes", async ({ request }) => {
