@@ -20,9 +20,9 @@ export async function SiteHeader() {
             {user ? <Link href="/profile">My profile</Link> : <Link href="/sign-in">Sign in</Link>}
             <Link href="/download">Install app</Link>
           </nav>
-          <Link className="header-owner" href={user ? user.role === "landlord" ? "/owner" : "/rentals" : "/sign-up"}>
-            {user ? user.role === "landlord" ? "List your property" : "Browse rentals" : "Create account"} <ArrowUpRight size={16} aria-hidden="true" />
-          </Link>
+          {(!user || user.role === "landlord") && <Link className="header-owner" href={user ? "/owner" : "/sign-up"}>
+            {user ? "List your property" : "Create account"} <ArrowUpRight size={16} aria-hidden="true" />
+          </Link>}
           <details className="mobile-menu">
             <summary aria-label="Open navigation menu"><Menu size={23} /></summary>
             <nav aria-label="Mobile navigation">
