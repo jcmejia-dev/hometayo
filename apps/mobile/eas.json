@@ -9,19 +9,29 @@
       "distribution": "internal",
       "environment": "preview",
       "channel": "development",
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk"
+      }
     },
     "preview": {
       "channel": "preview",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "environment": "preview"
     },
     "production": {
       "channel": "production",
       "android": {
         "buildType": "app-bundle"
+      }
+    },
+    "preview-maps": {
+      "extends": "preview",
+      "environment": "preview",
+      "env": {
+        "REQUIRE_ANDROID_MAPS": "true"
       }
     }
   }
