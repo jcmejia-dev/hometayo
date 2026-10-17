@@ -1,4 +1,4 @@
-import { doublePrecision, index, integer, pgTable, text, timestamp, uuid, uniqueIndex } from "drizzle-orm/pg-core";
+import { date, doublePrecision, index, integer, pgTable, text, timestamp, uuid, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -104,4 +104,35 @@ export const rentalUnits = pgTable("rental_units", {
   monthlyRentCentavos: integer("monthly_rent_centavos").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const rentalConversations=pgTable("rental_conversations",{
+ id:uuid("id").primaryKey().defaultRandom(),listingId:uuid("listing_id").notNull().references(()=>listings.id),
+ ownerId:text("owner_id").notNull().references(()=>users.id),renterId:text("renter_id").notNull().references(()=>users.id),
+ createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+});
+export const rentalMessages=pgTable("rental_messages",{
+ id:uuid("id").primaryKey(),conversationId:uuid("conversation_id").notNull().references(()=>rentalConversations.id),
+ senderId:text("sender_id").notNull().references(()=>users.id),body:text("body").notNull(),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+});
+export const rentalNotifications=pgTable("rental_notifications",{
+ id:uuid("id").primaryKey().defaultRandom(),userId:text("user_id").notNull().references(()=>users.id),conversationId:uuid("conversation_id").notNull().references(()=>rentalConversations.id),
+ kind:text("kind",{enum:["inquiry","message","tenancy","payment","reminder"]}).notNull(),body:text("body").notNull(),eventKey:text("event_key").notNull().unique(),
+ readAt:timestamp("read_at",{withTimezone:true}),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+});
+export const rentalTenancies=pgTable("rental_tenancies",{
+ id:uuid("id").primaryKey().defaultRandom(),conversationId:uuid("conversation_id").notNull().references(()=>rentalConversations.id),unitId:uuid("unit_id").notNull().references(()=>rentalUnits.id),
+ status:text("status",{enum:["invited","active","ended","declined"]}).notNull().default("invited"),monthlyRentCentavos:integer("monthly_rent_centavos").notNull(),
+ startsOn:date("starts_on").notNull(),endedOn:date("ended_on"),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+});
+export const rentCharges=pgTable("rent_charges",{
+ id:uuid("id").primaryKey().defaultRandom(),tenancyId:uuid("tenancy_id").notNull().references(()=>rentalTenancies.id),dueOn:date("due_on").notNull(),description:text("description").notNull(),
+ amountCentavos:integer("amount_centavos").notNull(),voidedAt:timestamp("voided_at",{withTimezone:true}),voidReason:text("void_reason"),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+});
+export const rentPayments=pgTable("rent_payments",{
+ id:uuid("id").primaryKey(),chargeId:uuid("charge_id").notNull().references(()=>rentCharges.id),amountCentavos:integer("amount_centavos").notNull(),paidOn:date("paid_on").notNull(),note:text("note").notNull().default(""),
+ recordedBy:text("recorded_by").notNull().references(()=>users.id),voidedAt:timestamp("voided_at",{withTimezone:true}),voidReason:text("void_reason"),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+});
+export const listingReactions=pgTable("listing_reactions",{
+ listingId:uuid("listing_id").notNull().references(()=>listings.id,{onDelete:"cascade"}),userId:text("user_id").notNull().references(()=>users.id,{onDelete:"cascade"}),kind:text("kind",{enum:["like","love","interested"]}).notNull(),
 });

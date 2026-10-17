@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "syntheticData": true,
+  "checks": [
+    "desktop rendering",
+    "phone layout without overflow",
+    "message submission",
+    "partial payment form",
+    "reminder action",
+    "notification mark read"
+  ],
+  "actions": [
+    "message",
+    "payment",
+    "remind",
+    "read"
+  ],
+  "errors": []
+}

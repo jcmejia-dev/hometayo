@@ -16,7 +16,9 @@ test("map query rejects incomplete coordinates and unbounded radii",()=>{
 test("PostgreSQL ranks the nearest published rental before newer distant listings, across cities",async()=>{
   const db=new PGlite();
   try {
-    await db.exec(`CREATE TABLE listings(slug TEXT,title TEXT,property_type TEXT,city TEXT,barangay TEXT,monthly_rent_centavos INT,bedrooms INT,bathrooms INT,rental_mode TEXT,last_confirmed_at TIMESTAMPTZ,latitude FLOAT8,longitude FLOAT8,published_at TIMESTAMPTZ,status TEXT);
+    await db.exec(`CREATE TABLE listings(id UUID DEFAULT gen_random_uuid(),description TEXT DEFAULT '',slug TEXT,title TEXT,property_type TEXT,city TEXT,barangay TEXT,monthly_rent_centavos INT,bedrooms INT,bathrooms INT,rental_mode TEXT,last_confirmed_at TIMESTAMPTZ,latitude FLOAT8,longitude FLOAT8,published_at TIMESTAMPTZ,status TEXT);
+      CREATE TABLE listing_images(listing_id UUID,storage_key TEXT,display_order INT);
+      CREATE TABLE rental_units(listing_id UUID,status TEXT);
       INSERT INTO listings(slug,title,property_type,city,latitude,longitude,published_at,status) VALUES
       ('near-old','Nearest','house','Other City',0,0.001,'2020-01-01','published'),
       ('far-new','Far','house','Origin City',0,1,'2026-01-01','published'),
@@ -31,5 +33,8 @@ test("PostgreSQL ranks the nearest published rental before newer distant listing
     assert.deepEqual((await db.query<{slug:string}>(affordable.query,affordable.params)).rows.map(r=>r.slug),["near-old"]);
     const near=buildMapQuery(new URL("https://test.local/?lat=0&lng=0&radiusKm=5"));
     assert.deepEqual((await db.query<{slug:string}>(near.query,near.params)).rows.map(r=>r.slug),["near-old"]);
+    await db.exec("INSERT INTO rental_units(listing_id,status) SELECT id,'occupied' FROM listings WHERE slug='near-old'; INSERT INTO rental_units(listing_id,status) SELECT id,'available' FROM listings WHERE slug='near-old'");
+    const withUnits=buildMapQuery(new URL("https://test.local/?lat=0&lng=0&radiusKm=5"),true);
+    assert.deepEqual((await db.query<{unitCounts:{total:number;available:number}}>(withUnits.query,withUnits.params)).rows[0].unitCounts,{total:2,available:1});
   } finally {await db.close();}
 });

@@ -33,6 +33,7 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
         <p>{user ? "See listing status and manage availability." : "List a space for review before it appears publicly."}</p>
       </div>
       <GuideNudge audience="owner" compact />
+      {user?.role === "landlord" && <Link className="button button-primary" href="/inbox">Dashboard, messages & rent ledger <ArrowRight size={18}/></Link>}
       {!user ? (
         <div className="info-card">
           <h2>What owners will get</h2>
@@ -91,7 +92,7 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
               ))}
             </div>
           )}
-          <p className="owner-disclaimer">Photo uploads and edits are planned for the next milestone. Do not submit a property you do not own or have permission to advertise.</p>
+          <p className="owner-disclaimer">Room availability and photo links can be managed from each property when rental management is enabled. Only advertise a property you own or have permission to list.</p>
         </>
       )}
     </section>

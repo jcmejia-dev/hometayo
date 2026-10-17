@@ -1,12 +1,12 @@
 import "server-only";
-import { and, desc, eq, gte, ilike, lte, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, lte, sql, type SQL } from "drizzle-orm";
 import { getDatabase } from "@/lib/db";
 import { listings } from "@/db/schema";
 import type { RentalFilters } from "@/lib/search-filters";
 
 export type PublicListing = Pick<typeof listings.$inferSelect,
   "id" | "slug" | "title" | "propertyType" | "city" | "barangay"
-  | "monthlyRentCentavos" | "bedrooms" | "bathrooms" | "rentalMode" | "lastConfirmedAt">;
+  | "monthlyRentCentavos" | "bedrooms" | "bathrooms" | "rentalMode" | "lastConfirmedAt"> & {description:string;photoUrls:string[];unitCounts:{total:number;available:number}|null};
 export type BrowseResult =
   | { state: "not_configured" | "error"; listings: [] }
   | { state: "ready"; listings: PublicListing[] };
@@ -16,6 +16,9 @@ const publicFields = {
   monthlyRentCentavos: listings.monthlyRentCentavos,
   bedrooms: listings.bedrooms, bathrooms: listings.bathrooms, rentalMode: listings.rentalMode,
   lastConfirmedAt: listings.lastConfirmedAt,
+  description:listings.description,
+  photoUrls:sql<string[]>`COALESCE((SELECT json_agg(storage_key ORDER BY display_order) FROM listing_images WHERE listing_id=${listings.id} AND storage_key LIKE 'https://%'),'[]'::json)`,
+  unitCounts:process.env.ENABLE_RENTAL_MANAGEMENT==="true"?sql<{total:number;available:number}>`(SELECT json_build_object('total',count(*),'available',count(*) FILTER(WHERE status='available')) FROM rental_units WHERE listing_id=${listings.id})`:sql<null>`NULL::json`,
 };
 
 export async function browsePublishedListings(filters: RentalFilters): Promise<BrowseResult> {

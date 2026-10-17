@@ -10,6 +10,7 @@ export function OwnerUnits({ listingId }: { listingId: string }) {
   const c = usePalette();
   const [units, setUnits] = useState<Unit[]>([]), [message, setMessage] = useState("");
   const [label, setLabel] = useState(""), [rent, setRent] = useState(""), [busy, setBusy] = useState(false);
+  const [photos,setPhotos]=useState("");
   async function load() {
     const result = await api("/api/mobile/units?listingId=" + encodeURIComponent(listingId));
     setUnits(result.units);
@@ -44,6 +45,9 @@ export function OwnerUnits({ listingId }: { listingId: string }) {
     <TextInput accessibilityLabel="Room label" maxLength={60} placeholder="Room 1" value={label} onChangeText={setLabel} style={[s.input, { color: c.green, borderColor: c.border }]} />
     <TextInput accessibilityLabel="Room monthly rent in pesos" placeholder="Monthly rent (₱)" keyboardType="decimal-pad" value={rent} onChangeText={setRent} style={[s.input, { color: c.green, borderColor: c.border }]} />
     <Pressable accessibilityRole="button" disabled={busy || !label.trim() || !rent.trim()} onPress={() => void save()} style={[s.chip, { backgroundColor: c.green, opacity: busy ? .5 : 1 }]}><Text style={{ color: "white" }}>{busy ? "Saving…" : "Add available unit"}</Text></Pressable>
+    <Text style={[s.title,{color:c.green}]}>Rental photos</Text><Text style={{color:c.muted}}>Paste up to eight HTTPS image links, one per line, for photos you have permission to publish. Saving replaces your photo set and returns the listing to review.</Text>
+    <TextInput accessibilityLabel="Rental photo links" multiline maxLength={16500} value={photos} onChangeText={setPhotos} style={[s.input,{color:c.green,borderColor:c.border}]}/>
+    <Pressable accessibilityRole="button" disabled={busy} style={[s.chip,{backgroundColor:c.green}]} onPress={()=>{setBusy(true);api("/api/mobile/owner-photos",{listingId,urls:photos.split(/\r?\n/).map(u=>u.trim()).filter(Boolean)}).then(r=>setMessage(r.message)).catch(e=>setMessage(e.message)).finally(()=>setBusy(false));}}><Text style={{color:"white"}}>Replace photos & submit for review</Text></Pressable>
     {!!message && <Text accessibilityRole="alert" style={{ color: c.muted }}>{message}</Text>}
   </View>;
 }

@@ -1,6 +1,6 @@
 import { isPoint } from "./geo.ts";
 
-export function buildMapQuery(url:URL) {
+export function buildMapQuery(url:URL,includeUnits=false) {
 
   const latitude=url.searchParams.get("lat"),longitude=url.searchParams.get("lng");
   const hasPoint=latitude!==null || longitude!==null;
@@ -21,7 +21,9 @@ export function buildMapQuery(url:URL) {
     WITH located AS (
       SELECT slug,title,property_type AS "propertyType",city,barangay,
         monthly_rent_centavos AS "monthlyRentCentavos",bedrooms,bathrooms,rental_mode AS "rentalMode",
-        last_confirmed_at AS "lastConfirmedAt",latitude,longitude,published_at,
+        last_confirmed_at AS "lastConfirmedAt",latitude,longitude,published_at,description,
+        COALESCE((SELECT json_agg(storage_key ORDER BY display_order) FROM listing_images WHERE listing_id=listings.id AND storage_key LIKE 'https://%'),'[]'::json) AS "photoUrls",
+        ${includeUnits?"(SELECT json_build_object('total',count(*),'available',count(*) FILTER(WHERE status='available')) FROM rental_units WHERE listing_id=listings.id)":"NULL::json"} AS "unitCounts",
         CASE WHEN $1::double precision IS NOT NULL AND latitude IS NOT NULL AND longitude IS NOT NULL THEN
           6371*2*asin(sqrt(least(1.0,greatest(0.0,
             power(sin(radians(latitude-$1)/2),2)+cos(radians($1))*cos(radians(latitude))*power(sin(radians(longitude-$2)/2),2)

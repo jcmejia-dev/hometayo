@@ -13,6 +13,7 @@ import { NativeWelcome } from "./src/welcome";
 import {restoreAccount,watchSessionExpired,type Account} from "./src/session";
 import {RentalMap} from "./src/rental-map";
 import {AccountPanel} from "./src/account-panel";
+import {NativeRentalSocial} from "./src/rental-workspace";
 import { fetchRentalDetail, propertyLabel, rentLabel, type RentalDetail } from "./src/api";
 
 import {ThemeProvider,useTheme} from "./src/theme";
@@ -69,6 +70,7 @@ function NativeApp(){
 
   const [selected,setSelected]=useState<(RentalDetail & Partial<DemoRental>)|null>(null);
   const [selectedSlug,setSelectedSlug]=useState<string|null>(null);
+  const [inboxConversation,setInboxConversation]=useState<string|undefined>();
   const [detailBusy,setDetailBusy]=useState(false);
   const reduced=useReducedMotion();
   const transition=useSceneTransition(tab+":"+(selectedSlug||""),reduced);
@@ -131,6 +133,8 @@ function NativeApp(){
         <View style={styles.detailFacts}><View style={styles.fact}><Icon name="bed" size={20}/><Text style={styles.factLabel}>{selected.bedrooms ?? "—"} beds</Text></View><View style={styles.fact}><Icon name="bath" size={20}/><Text style={styles.factLabel}>{selected.bathrooms ?? "—"} baths</Text></View><View style={styles.fact}><Icon name="key" size={20}/><Text style={styles.factLabel}>{({yes:"Furnished",no:"Unfurnished",partial:"Part furnished",unspecified:"Not specified"} as Record<string,string>)[selected.furnished]||"Not specified"}</Text></View></View>
         <Text style={styles.sectionTitle}>About this rental</Text>
         <Text style={styles.paragraph}>{selected.description}</Text>
+        {selected.photoUrls?.map((uri,i)=><Image key={uri+i} source={{uri}} accessibilityLabel={`${selected.title} photo ${i+1}`} style={{width:"100%",height:240,borderRadius:18}} resizeMode="cover"/>)}
+        {!selected.demo&&<NativeRentalSocial slug={selected.slug} onInquiry={id=>{setInboxConversation(id);setSelectedSlug(null);setTab("profile");}}/>}
         {!!selected.units?.length && <View style={{gap:12}}>
           <Text style={styles.sectionTitle}>{selected.units.filter(unit=>unit.status==="available").length} of {selected.units.length} units available</Text>
           {selected.units.map(unit=><View key={unit.id} style={styles.amenity}><Icon name="building" size={20}/><View><Text style={styles.infoText}>{unit.label} · {unit.status}</Text><Text style={styles.paragraph}>{rentLabel(unit.monthlyRentCentavos)} / month</Text></View></View>)}
@@ -166,8 +170,8 @@ you’ll love.</Text><Text style={styles.homeArtText}>Explore homes on the map</
       <View style={styles.infoRow}><View style={styles.infoIcon}><Icon name="shield" size={20}/></View><Text style={styles.infoText}>Verify the home and owner before making payments.</Text></View>
       <Pressable accessibilityRole="button" onPress={()=>{setIntro(0);setWelcomeOpen(true);}} style={styles.textAction}><Text style={styles.inlineLink}>Replay introduction →</Text></Pressable>
     </ScrollView> :
-    tab==="explore" ? <RentalMap account={account} onSelect={setSelectedSlug} initialCity={city} initialType={type} initialBudget={budget}/> :
-    <AccountPanel account={account} owner={tab==="owner"} onAccountChange={setAccount} onLogin={()=>{setIntro(null);setWelcomeOpen(true);}}/>}
+    tab==="explore" ? <RentalMap account={account} onSelect={setSelectedSlug} onInquiry={id=>{setInboxConversation(id);setTab("profile");}} initialCity={city} initialType={type} initialBudget={budget}/> :
+    <AccountPanel key={account?.id||"guest"} account={account} owner={tab==="owner"} initialConversation={inboxConversation} onAccountChange={setAccount} onLogin={()=>{setIntro(null);setWelcomeOpen(true);}}/>}
     </Animated.View>
     <View style={styles.tabBar}>{tabs.filter(t=>t.id!=="owner"||account?.role==="landlord").map(t=><Pressable key={t.id} onPress={()=>{if(t.id===tab&&!selectedSlug)return;transition.change(()=>{setSelectedSlug(null);setTab(t.id);},tabs.findIndex(v=>v.id===t.id)>tabs.findIndex(v=>v.id===tab));}}
       accessibilityRole="tab" accessibilityState={{selected:tab===t.id}} style={[styles.tab,t.id===tab&&{backgroundColor:theme.soft}]}>

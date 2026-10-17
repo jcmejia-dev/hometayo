@@ -1,6 +1,6 @@
 # Owner management expansion
 
-Status: room availability implementation in progress; remaining scope pending. This extends the original
+Status: implementation prepared on feature/owner-management-expansion; not deployed. This extends the original
 MVP to native Android and web. It does not describe features currently available.
 
 ## Experience
@@ -58,7 +58,7 @@ concurrent occupancy and duplicate writes where applicable, and native/web visua
 checks. Keep current authentication, theme settings, and listing review workflow.
 Do not advertise a slice before its complete flow is verified.
 
-## Open decision
+## Payment decision
 
 Decision: owners record full/partial payments and send reminders first.
 No payment provider, checkout, automatic debits, or fund transfers are selected.
@@ -69,11 +69,44 @@ Work on messaging, units, and public availability does not depend on this choice
 Prepare migrations for review and test locally first. Do not apply production
 migrations or deploy changes without the authorization required by AGENTS.md.
 
-Room availability requires migration 005 and server environment variable
+Rental management requires migrations 005 and 006 and server environment variable
 `ENABLE_RENTAL_MANAGEMENT=true` after migration validation. The flag defaults off
 so deploying code cannot break existing listings before database setup. Web owner
 controls live under `/owner/listings/[id]/units`; Android controls are in My listings.
 Public unit data excludes all tenant identity and payment data. The public room
 grid derives its count from individual units; legacy listing slot counts are not
-used for that grid. Messaging, tenant assignment, payment ledger, reminders, feed
-reactions, and consolidated revenue metrics remain outstanding.
+used for that grid.
+
+## Implemented flows
+
+- `/inbox`: owner dashboard with selected-month charges and recorded payments,
+  outstanding balances through today, messages, notifications, tenancies, and ledger.
+- Android: workspace in Account/My listings; message-owner actions open it directly.
+- Renter inquiries create one private thread per listing/renter. Messages paginate
+  backward in batches of 100. Views refresh every 15 seconds while open/foreground.
+- Tenancy invitations reserve an available unit; renter acceptance marks it occupied.
+  Declining/cancelling an invitation releases it. Owner-recorded move-out ends the
+  tenancy and releases only that unit. Partial unique indexes protect capacity.
+- Owners add dated charges and record full/partial payments. Corrections void entries
+  with a reason; records remain in the ledger. A charge cannot be voided until its
+  payments are voided. Charge-level locks/triggers protect payment/correction races.
+- Payment reminders go to the renter's notification inbox, at most once per charge
+  per Manila calendar day. Nothing is debited and no transfer is verified by HomeTayo.
+- Public post cards show descriptions and photos, with like/love/interested reactions
+  and an inquiry action. Photos currently use up to eight owner-supplied HTTPS image
+  links; changing them returns the listing to moderation. Direct camera/file upload
+  and managed image storage are not configured.
+
+## Verification and launch limits
+
+Local PGlite tests exercise migrations, ownership and participant access, tenant
+acceptance, independent room occupancy, duplicate writes, partial payments, voided
+entries/charges, reminders, photo moderation, reaction changes, and message cursors.
+Playwright browser checks cover guest access denial and same-origin protection.
+Local component UI checks use clearly labeled synthetic fixtures; screenshots and
+the recorded actions are in `artifacts/owner-management/`.
+
+These checks do not establish physical-device validation or live Neon migration
+success. Background push/email delivery, automatic recurring charges/reminders,
+online payments, and file-upload storage are not configured or claimed. Native
+screens require an app update/build to reach installed users; no build was published.

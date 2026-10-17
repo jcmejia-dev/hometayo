@@ -7,6 +7,7 @@ import { getDatabase } from "@/lib/db";
 import { ownedUnits } from "@/lib/rental-units";
 import { uuidInput, unitStatuses } from "@/lib/rental-unit-input";
 import { updateAvailability } from "./actions";
+import {OwnerPhotoForm} from "@/components/owner-photo-form";
 
 export const dynamic = "force-dynamic";
 export default async function UnitsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,5 +40,6 @@ export default async function UnitsPage({ params }: { params: Promise<{ id: stri
       <label>Monthly rent (₱)<input name="monthlyRent" type="number" required min="1" max="5000000" step="0.01" defaultValue={(listing.rent / 100).toFixed(2)}/></label>
       <button className="button button-primary">Add available unit</button>
     </form>
+    <OwnerPhotoForm listingId={id}/>
   </section>;
 }
