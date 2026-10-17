@@ -3,7 +3,7 @@ import { ArrowLeft, Home, ShieldCheck } from "lucide-react";
 import { redirect } from "next/navigation";
 import { authIsConfigured } from "@/auth";
 import { currentUser } from "@/lib/session-user";
-import { createProperty } from "@/app/owner/actions";
+import { PropertySubmissionForm } from "@/components/property-submission-form";
 import { GuideNudge } from "@/components/guide-nudge";
 import {PropertyLocationPicker} from "@/components/property-location-picker";
 
@@ -32,7 +32,7 @@ export default async function NewListingPage() {
         <div><span>02</span><p><strong>Choose the property location</strong> Search an address, use your location, or place a pin. Renters message you inside HomeTayo.</p></div>
         <div><span>03</span><p><strong>Submit for review</strong> Your property stays private until an administrator approves it.</p></div>
       </div>
-      <form className="owner-form info-card" action={createProperty}>
+      <PropertySubmissionForm>
         <label>Property title <input required name="title" minLength={8} maxLength={120} placeholder="e.g. Spacious 4-bedroom family house"/></label>
         <label>Description <textarea required name="description" minLength={30} maxLength={4000} rows={5} placeholder="Describe the actual space, rental terms and rules."/></label>
         <div className="form-grid">
@@ -57,8 +57,7 @@ export default async function NewListingPage() {
         </div>
         <PropertyLocationPicker/>
         <p className="owner-disclaimer"><ShieldCheck size={17}/> Your listing stays private until an administrator reviews it. After submission you can manage rooms and photo links from Owner studio.</p>
-        <button className="button button-primary" type="submit">Submit for review</button>
-      </form>
+      </PropertySubmissionForm>
     </section>
   );
 }
