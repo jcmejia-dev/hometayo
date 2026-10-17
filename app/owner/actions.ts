@@ -13,9 +13,10 @@ function stringField(form: FormData, key: string) {
   const value = form.get(key);
   return typeof value === "string" ? value : "";
 }
-export async function createProperty(form: FormData) {
+export async function createProperty(form: FormData): Promise<{error: string}> {
+  try {
   const account = await requireAccount();
-  if(account.role!=="landlord")throw new Error("A property-owner account is required.");
+  if(account.role!=="landlord")return {error:"Please sign in with your property-owner account to submit a rental."};
   const parsed = propertyInputSchema.safeParse({
     title: stringField(form, "title"),
     description: stringField(form, "description"),
@@ -34,15 +35,18 @@ export async function createProperty(form: FormData) {
     ownerContactKind: "none",
     ownerContactValue: "",
   });
-  if (!parsed.success) throw new Error("Please correct your rental information and try again.");
+  if (!parsed.success) {
+    const labels: Record<string,string> = {title:"Property title",description:"Description",propertyType:"Property type",rentalMode:"Rent basis",city:"City",province:"Province",barangay:"Barangay",monthlyRent:"Monthly rent",bedrooms:"Bedrooms",bathrooms:"Bathrooms",availableSlots:"Available slots",furnished:"Furnishing",latitude:"Property location",longitude:"Property location"};
+    return {error: parsed.error.issues.map(issue => `${labels[String(issue.path[0])] || "Rental details"}: ${issue.message}`).join(" ")};
+  }
   const value = parsed.data;
   const locationsReady=process.env.ENABLE_NATIVE_AUTH==="true"||process.env.ENABLE_RENTAL_MANAGEMENT==="true";
-  if(!locationsReady && value.latitude!==null)throw new Error("Property map pins are awaiting backend setup.");
+  if(!locationsReady && value.latitude!==null)return {error:"Property map pins are awaiting server setup. Remove the pin to submit without it, or try again after setup is complete."};
   const coordinateColumns=locationsReady?sql`, latitude, longitude`:sql``;
   const coordinateValues=locationsReady?sql`, ${value.latitude}, ${value.longitude}`:sql``;
-  if(value.latitude!==null&&stringField(form,"locationConfirmed")!=="yes")throw new Error("Confirm that the selected pin marks the property.");
+  if(value.latitude!==null&&stringField(form,"locationConfirmed")!=="yes")return {error:"Tick the confirmation checkbox to confirm the selected property pin."};
   const db = getDatabase();
-  if (!db) throw new Error("HomeTayo's database is not configured.");
+  if (!db) return {error:"Property submission is unavailable because the database is not configured. Your details have been kept; please try again later."};
   let [profile] = await db.select({ id: ownerProfiles.id }).from(ownerProfiles)
     .where(eq(ownerProfiles.userId, account.id)).limit(1);
   if (!profile) {
@@ -77,6 +81,14 @@ export async function createProperty(form: FormData) {
     INSERT INTO platform_events (actor_user_id, kind, listing_id)
     SELECT ${account.id}, 'listing.submitted', id FROM created
   `);
+  } catch (error) {
+    if (error instanceof Error && error.message === "Please sign in to continue.") return {error:"Your session has expired. Sign in again before submitting your rental."};
+    const reference = randomUUID().slice(0,8);
+    // Log a diagnostic reference and code only: never property data, SQL, or credentials.
+    const code = error && typeof error === "object" && "code" in error && typeof error.code === "string" ? error.code : "SUBMISSION_FAILED";
+    console.error("Property submission failed", {reference,code});
+    return {error:`We could not submit your rental. Your details have been kept. Please try again; if it continues, share reference ${reference} with support.`};
+  }
   revalidatePath("/owner");
   redirect("/owner?submitted=1");
 }

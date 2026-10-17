@@ -307,6 +307,11 @@ input, select { min-width: 0; }
   min-height: 47px; background: white; padding: 11px 13px; color: var(--green); font-size: 16px;
 }
 .owner-form textarea { min-height: 126px; resize: vertical; }
+.submission-error { border: 1px solid var(--green); overflow-wrap: anywhere; }
+.submission-error p { margin: 8px 0 0; }
+.submission-spinner { animation: submission-spin 1s linear infinite; }
+@keyframes submission-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .submission-spinner { animation: none; } }
 .owner-form .button { justify-self: start; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 17px; }
 .auth-security, .owner-disclaimer { display: flex; align-items: flex-start; gap: 9px; color: var(--muted); font-size: 12px; line-height: 1.8; margin: 20px 0; }
