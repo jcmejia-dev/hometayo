@@ -56,7 +56,6 @@ export default async function NewListingPage() {
           </select></label>
         </div>
         <PropertyLocationPicker/>
-        <div className="status-notice"><strong>Messages stay in HomeTayo.</strong> Renters use Message owner on your published listing. You reply in Messages on the website or in your app workspace. No phone number or Messenger link is required.</div>
         <p className="owner-disclaimer"><ShieldCheck size={17}/> Your listing stays private until an administrator reviews it. After submission you can manage rooms and photo links from Owner studio.</p>
         <button className="button button-primary" type="submit">Submit for review</button>
       </form>
