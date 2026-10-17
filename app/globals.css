@@ -1181,3 +1181,10 @@ html[data-motion="theme"] *,html[data-motion="theme"] *::before,html[data-motion
 .desktop-nav a::after {content:"";position:absolute;left:0;right:0;bottom:-10px;height:2px;background:var(--green);border-radius:2px;transform:scaleX(0);transform-origin:center;transition:transform 260ms ease;}
 .desktop-nav a[aria-current="page"]::after {transform:scaleX(1);}
 @media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;}}
+/* Room availability uses labels as well as color, and follows the active theme. */
+.unit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-block:20px}
+.unit-card{display:grid;gap:14px;margin-block:16px}
+.unit-card label{display:grid;gap:8px}
+.unit-card input,.unit-card select{width:100%;padding:12px;border:1px solid var(--border,#dce4d8);border-radius:10px;background:var(--surface,#fff);color:inherit}
+.unit-public{display:grid;gap:8px;padding:20px;border:1px solid var(--border,#dce4d8);border-inline-start:5px solid var(--sage,#729c82);border-radius:16px;text-transform:capitalize}
+.unit-occupied{border-inline-start:5px solid #976c44}.unit-reserved{border-inline-start:5px solid #af872b}.unit-unavailable{border-inline-start:5px solid #8a8a8a}

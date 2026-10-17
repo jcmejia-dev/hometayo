@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPublishedListing, safePublicContact } from "@/lib/listings";
+import { publicUnits } from "@/lib/rental-units";
 
 /** Details for one genuinely published rental. No internal owner IDs or admin fields. */
 export const dynamic = "force-dynamic";
@@ -10,6 +11,7 @@ export async function GET(_request:Request, {params}:{params:Promise<{slug:strin
     status:404,headers:{"Cache-Control":"no-store"},
   });
   return NextResponse.json({
+    units:await publicUnits(listing.id),
     slug:listing.slug,
     title:listing.title,
     description:listing.description,

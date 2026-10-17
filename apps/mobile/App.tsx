@@ -131,6 +131,10 @@ function NativeApp(){
         <View style={styles.detailFacts}><View style={styles.fact}><Icon name="bed" size={20}/><Text style={styles.factLabel}>{selected.bedrooms ?? "—"} beds</Text></View><View style={styles.fact}><Icon name="bath" size={20}/><Text style={styles.factLabel}>{selected.bathrooms ?? "—"} baths</Text></View><View style={styles.fact}><Icon name="key" size={20}/><Text style={styles.factLabel}>{({yes:"Furnished",no:"Unfurnished",partial:"Part furnished",unspecified:"Not specified"} as Record<string,string>)[selected.furnished]||"Not specified"}</Text></View></View>
         <Text style={styles.sectionTitle}>About this rental</Text>
         <Text style={styles.paragraph}>{selected.description}</Text>
+        {!!selected.units?.length && <View style={{gap:12}}>
+          <Text style={styles.sectionTitle}>{selected.units.filter(unit=>unit.status==="available").length} of {selected.units.length} units available</Text>
+          {selected.units.map(unit=><View key={unit.id} style={styles.amenity}><Icon name="building" size={20}/><View><Text style={styles.infoText}>{unit.label} · {unit.status}</Text><Text style={styles.paragraph}>{rentLabel(unit.monthlyRentCentavos)} / month</Text></View></View>)}
+        </View>}
         {selected.inclusions&&<><Text style={styles.sectionTitle}>Inclusions & amenities</Text>{selected.inclusions.map(item=><View key={item} style={styles.amenity}><Icon name={item.includes("Wi-Fi")?"wifi":"check"} size={19}/><Text style={styles.infoText}>{item}</Text></View>)}<Text style={styles.paragraph}>Electricity is billed separately. Sample terms: one month deposit and one month advance.</Text><Text style={styles.paragraph}>{selected.availableSlots?selected.availableSlots+" sample slots":"Whole unit"}</Text></>}
         {!selected.demo&&<Text style={styles.disclaimer}>Admin review does not guarantee property ownership, condition or safety. Verify details independently before paying.</Text>}
         {selected.contactUrl?<PrimaryButton text="Contact property owner" onPress={()=>{

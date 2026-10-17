@@ -1,3 +1,4 @@
+import {OwnerUnits} from "./owner-units";
 import {FeedbackPressable as Pressable} from "./feedback-pressable";
 import {usePalette,useThemedStyles} from "./theme";
 import {ProfileSettings} from "./profile-settings";
@@ -18,6 +19,7 @@ export function AccountPanel({account,owner,onAccountChange,onLogin}: {account:A
   const [owned,setOwned]=useState<Array<{id:string;title:string;status:string;latitude:number|null;longitude:number|null}>>([]),[message,setMessage]=useState(""),[busy,setBusy]=useState(false);
   const [fields,setFields]=useState({title:"",description:"",city:"",province:"",barangay:"",monthlyRent:"",latitude:"",longitude:""});
   const [propertyType,setPropertyType]=useState("house");
+  const [unitsId,setUnitsId]=useState<string|null>(null);
   const [editingId,setEditingId]=useState<string|null>(null);
   async function load() {try {setOwned((await api("/api/mobile/listings")).listings);}catch(e){setMessage(e instanceof Error?e.message:"Could not load listings.");}}
   useEffect(()=>{if(account&&owner)void load();},[account,owner]);
@@ -35,7 +37,7 @@ export function AccountPanel({account,owner,onAccountChange,onLogin}: {account:A
       {!owner?<>
       <ProfileSettings account={account} onAccountChange={onAccountChange}/>
       <Pressable accessibilityRole="button" onPress={()=>{void logOut().then(()=>onAccountChange(null)).catch(()=>setMessage("Could not revoke your session. Check your connection and retry."));}} style={[s.button,{backgroundColor:theme.accent}]}><Icon name="logout" color="white" size={20}/><Text style={s.buttonText}>Sign out</Text></Pressable></>:<>
-        {owned.map(item=><View key={item.id} style={s.card}><Text style={s.bold}>{item.title}</Text><Text style={s.note}>{item.status.replaceAll("_"," ")}</Text><Pressable accessibilityRole="button" onPress={()=>{setEditingId(item.id);setFields(old=>({...old,latitude:item.latitude===null?"":String(item.latitude),longitude:item.longitude===null?"":String(item.longitude)}));setMessage("Choose this property’s pin below. Changing a live pin sends the rental back for review.");}}><Text style={s.bold}>Set / update map pin</Text></Pressable></View>)}
+        {owned.map(item=><View key={item.id} style={s.card}><Text style={s.bold}>{item.title}</Text><Text style={s.note}>{item.status.replaceAll("_"," ")}</Text><Pressable accessibilityRole="button" onPress={()=>{setEditingId(item.id);setFields(old=>({...old,latitude:item.latitude===null?"":String(item.latitude),longitude:item.longitude===null?"":String(item.longitude)}));setMessage("Choose this property’s pin below. Changing a live pin sends the rental back for review.");}}><Text style={s.bold}>Set / update map pin</Text></Pressable><Pressable accessibilityRole="button" onPress={()=>setUnitsId(unitsId===item.id?null:item.id)}><Text style={s.bold}>{unitsId===item.id?"Close room manager":"Manage rooms & availability"}</Text></Pressable>{unitsId===item.id&&<OwnerUnits listingId={item.id}/>}</View>)}
         <Text style={s.bold}>{editingId?"Update property map pin":"Submit a rental"}</Text><Text style={s.note}>Only submit a property you own or have permission to advertise. It stays private until approved.</Text>
         {Object.entries(fields).filter(([key])=>!editingId||["latitude","longitude"].includes(key)).map(([key,value])=><View key={key}><Text style={s.label}>{({title:"Rental title",description:"Description (at least 30 characters)",city:"City / municipality",province:"Province",barangay:"Barangay",monthlyRent:"Monthly rent (₱)",latitude:"Property latitude (optional)",longitude:"Property longitude (optional)"} as Record<string,string>)[key]}</Text><TextInput accessibilityLabel={key} value={value} onChangeText={v=>setFields(old=>({...old,[key]:v}))} multiline={key==="description"} keyboardType={["monthlyRent","latitude","longitude"].includes(key)?"numbers-and-punctuation":"default"} style={s.input}/></View>)}
         <View style={s.row}>{["house","apartment","boarding_house","bedspace"].map(type=><Pressable accessibilityRole="radio" accessibilityState={{checked:type===propertyType}} key={type} onPress={()=>setPropertyType(type)} style={[s.chip,type===propertyType&&{backgroundColor:colors.border}]}><Text>{type.replaceAll("_"," ")}</Text></Pressable>)}</View>

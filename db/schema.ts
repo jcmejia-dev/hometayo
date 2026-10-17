@@ -95,3 +95,13 @@ export const authRateLimits = pgTable("auth_rate_limits", {
   windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull().defaultNow(),
 });
 export type Listing = typeof listings.$inferSelect;
+
+export const rentalUnits = pgTable("rental_units", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  listingId: uuid("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  status: text("status", { enum: ["available", "reserved", "occupied", "unavailable"] }).notNull().default("available"),
+  monthlyRentCentavos: integer("monthly_rent_centavos").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

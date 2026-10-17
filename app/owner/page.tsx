@@ -78,6 +78,7 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
                     <span className="owner-status">{listing.status.replaceAll("_", " ")}</span>
                     <h2>{listing.title}</h2>
                     <p>{formatRent(listing.monthlyRentCentavos)} / month</p>
+                    {user.role === "landlord" && <Link href={`/owner/listings/${listing.id}/units`} className="button button-outline">Manage rooms & availability</Link>}
                     {listing.status === "published" && <Link href={"/rentals/" + listing.slug} className="text-link">View public listing <ArrowRight size={16}/></Link>}
                   </div>
                   {listing.status === "published" && (

@@ -12,6 +12,7 @@ export type Rental = {
   lastConfirmedAt: string | null;
 };
 export type RentalDetail = Rental & {
+  units?: Array<{id:string;label:string;status:string;monthlyRentCentavos:number}>;
   description: string;
   province: string;
   furnished: string;
