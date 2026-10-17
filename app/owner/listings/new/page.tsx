@@ -5,16 +5,19 @@ import { authIsConfigured } from "@/auth";
 import { currentUser } from "@/lib/session-user";
 import { createProperty } from "@/app/owner/actions";
 import { GuideNudge } from "@/components/guide-nudge";
+import {PropertyLocationPicker} from "@/components/property-location-picker";
 
 export const dynamic = "force-dynamic";
 export default async function NewListingPage() {
   if (!authIsConfigured()) return (
     <section className="container interior-page narrow-page">
       <Link href="/owner" className="back-link"><ArrowLeft size={17}/> Owner studio</Link>
-      <div className="info-card"><h2>Google sign-in setup is required.</h2><p>Property submission will become available once HomeTayo OAuth settings are configured.</p></div>
+      <div className="info-card"><h2>Sign-in setup is required.</h2><p>Property submission will become available once HomeTayo accounts are configured.</p></div>
     </section>
   );
-  if (!(await currentUser())) redirect("/sign-in");
+  const account=await currentUser();
+  if (!account) redirect("/sign-in");
+  if(account.role!=="landlord")redirect("/profile");
   return (
     <section className="container interior-page narrow-page">
       <Link href="/owner" className="back-link"><ArrowLeft size={17}/> Owner dashboard</Link>
@@ -26,7 +29,7 @@ export default async function NewListingPage() {
       <GuideNudge audience="owner" compact />
       <div className="form-howto" aria-label="Before you submit">
         <div><span>01</span><p><strong>Describe your actual rental</strong> Include its location, rent and basic facilities.</p></div>
-        <div><span>02</span><p><strong>Choose public contact details</strong> Share only a phone number or Messenger link you approve.</p></div>
+        <div><span>02</span><p><strong>Choose the property location</strong> Search an address, use your location, or place a pin. Renters message you inside HomeTayo.</p></div>
         <div><span>03</span><p><strong>Submit for review</strong> Your property stays private until an administrator approves it.</p></div>
       </div>
       <form className="owner-form info-card" action={createProperty}>
@@ -43,8 +46,6 @@ export default async function NewListingPage() {
           <label>City / municipality <input name="city" minLength={2} maxLength={80} defaultValue="Koronadal City" required/></label>
           <label>Province <input name="province" minLength={2} maxLength={80} defaultValue="South Cotabato" required/></label>
           <label>Barangay <input name="barangay" minLength={2} maxLength={80} required placeholder="e.g. Zone III"/></label>
-          <label>Property latitude <input name="latitude" type="number" step="any" min={-90} max={90} placeholder="Optional map pin latitude"/></label>
-          <label>Property longitude <input name="longitude" type="number" step="any" min={-180} max={180} placeholder="Optional map pin longitude"/></label>
           <label>Monthly rent (₱) <input name="monthlyRent" type="number" required min={100} max={5000000} step={1} placeholder="5000"/></label>
           <label>Bedrooms <input name="bedrooms" type="number" min={0} max={99} step={1} placeholder="Optional"/></label>
           <label>Bathrooms <input name="bathrooms" type="number" min={0} max={99} step={1} placeholder="Optional"/></label>
@@ -53,12 +54,10 @@ export default async function NewListingPage() {
             <option value="unspecified">Not specified</option><option value="yes">Furnished</option>
             <option value="partial">Partially furnished</option><option value="no">Unfurnished</option>
           </select></label>
-          <label>Owner contact method <select name="ownerContactKind" defaultValue="none">
-            <option value="none">Not provided yet</option><option value="messenger">Messenger URL</option><option value="phone">Phone</option>
-          </select></label>
-          <label>Approved public contact <input name="ownerContactValue" maxLength={200} placeholder="https://m.me/... or phone (leave blank if none)"/></label>
         </div>
-        <p className="owner-disclaimer"><ShieldCheck size={17}/> Your listing will not go public until an administrator reviews it. Photos and editing are not supported in this first submission milestone.</p>
+        <PropertyLocationPicker/>
+        <div className="status-notice"><strong>Messages stay in HomeTayo.</strong> Renters use Message owner on your published listing. You reply in Messages on the website or in your app workspace. No phone number or Messenger link is required.</div>
+        <p className="owner-disclaimer"><ShieldCheck size={17}/> Your listing stays private until an administrator reviews it. After submission you can manage rooms and photo links from Owner studio.</p>
         <button className="button button-primary" type="submit">Submit for review</button>
       </form>
     </section>

@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "mocked": true,
+  "checks": [
+    "hidden coordinate fields",
+    "address selection",
+    "required pin confirmation",
+    "map click",
+    "map marker drag",
+    "current location",
+    "form coordinate submission",
+    "phone width without overflow",
+    "unauthenticated search denied"
+  ],
+  "errors": []
+}

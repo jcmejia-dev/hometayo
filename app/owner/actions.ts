@@ -4,10 +4,10 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { eq, sql } from "drizzle-orm";
-import { listings, ownerProfiles } from "@/db/schema";
+import { ownerProfiles } from "@/db/schema";
 import { getDatabase } from "@/lib/db";
 import { requireAccount } from "@/lib/session-user";
-import { generateSlug, propertyInputSchema, validateContact } from "@/lib/property-validation";
+import { generateSlug, propertyInputSchema } from "@/lib/property-validation";
 
 function stringField(form: FormData, key: string) {
   const value = form.get(key);
@@ -15,6 +15,7 @@ function stringField(form: FormData, key: string) {
 }
 export async function createProperty(form: FormData) {
   const account = await requireAccount();
+  if(account.role!=="landlord")throw new Error("A property-owner account is required.");
   const parsed = propertyInputSchema.safeParse({
     title: stringField(form, "title"),
     description: stringField(form, "description"),
@@ -30,18 +31,16 @@ export async function createProperty(form: FormData) {
     bathrooms: stringField(form, "bathrooms"),
     availableSlots: stringField(form, "availableSlots"),
     furnished: stringField(form, "furnished"),
-    ownerContactKind: stringField(form, "ownerContactKind"),
-    ownerContactValue: stringField(form, "ownerContactValue"),
+    ownerContactKind: "none",
+    ownerContactValue: "",
   });
   if (!parsed.success) throw new Error("Please correct your rental information and try again.");
   const value = parsed.data;
-  const locationsReady=process.env.ENABLE_NATIVE_AUTH==="true";
+  const locationsReady=process.env.ENABLE_NATIVE_AUTH==="true"||process.env.ENABLE_RENTAL_MANAGEMENT==="true";
   if(!locationsReady && value.latitude!==null)throw new Error("Property map pins are awaiting backend setup.");
   const coordinateColumns=locationsReady?sql`, latitude, longitude`:sql``;
   const coordinateValues=locationsReady?sql`, ${value.latitude}, ${value.longitude}`:sql``;
-  if (!validateContact(value.ownerContactKind, value.ownerContactValue)) {
-    throw new Error("Enter a valid owner-approved phone number or HTTPS Messenger link, or select none.");
-  }
+  if(value.latitude!==null&&stringField(form,"locationConfirmed")!=="yes")throw new Error("Confirm that the selected pin marks the property.");
   const db = getDatabase();
   if (!db) throw new Error("HomeTayo's database is not configured.");
   let [profile] = await db.select({ id: ownerProfiles.id }).from(ownerProfiles)

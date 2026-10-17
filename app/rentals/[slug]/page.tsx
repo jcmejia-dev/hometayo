@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BedDouble, Building2, ExternalLink, MapPin, ShieldCheck } from "lucide-react";
-import { getPublishedListing, safePublicContact } from "@/lib/listings";
+import { ArrowLeft, BedDouble, Building2, MapPin, ShieldCheck } from "lucide-react";
+import { getPublishedListing } from "@/lib/listings";
 import { formatRent } from "@/lib/search-filters";
 import { publicUnits } from "@/lib/rental-units";
 import { RentalSocial } from "@/components/rental-social";
@@ -13,7 +13,6 @@ export default async function ListingDetail({ params }: { params: Promise<{slug:
   const {slug} = await params;
   const listing = await getPublishedListing(slug);
   if (!listing) notFound();
-  const contact = safePublicContact(listing.ownerContactKind, listing.ownerContactValue);
   const category = listing.propertyType.replaceAll("_", " ");
   const units = await publicUnits(listing.id);
   return (
@@ -42,10 +41,7 @@ export default async function ListingDetail({ params }: { params: Promise<{slug:
         </div>
         <div className="status-notice"><ShieldCheck size={16} style={{display:"inline"}}/> Listing approved for publication; property identity, legal ownership, and physical condition are not independently guaranteed. Verify details before paying anything.</div>
         {listing.lastConfirmedAt && <p className="rental-confirmed">Last owner-confirmed: {new Intl.DateTimeFormat("en-PH",{dateStyle:"medium",timeZone:"Asia/Manila"}).format(listing.lastConfirmedAt)}</p>}
-        {contact && <a className="button button-primary detail-contact" href={contact} target={contact.startsWith("https:")?"_blank":undefined} rel="noopener noreferrer">
-          Contact owner <ExternalLink size={17}/>
-        </a>}
-        {!contact && <p className="status-notice">No owner-approved contact method is published for this listing yet.</p>}
+        {process.env.ENABLE_RENTAL_MANAGEMENT!=="true"&&<p className="status-notice">HomeTayo messaging is awaiting server setup.</p>}
       </div>
     </article>
   );
