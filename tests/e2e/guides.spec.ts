@@ -13,7 +13,7 @@ test("renter guide gives current steps and opens working search", async ({ page 
   await expect(guide.getByRole("heading", { name: "Choose a location" })).toBeVisible();
   await expect(guide.getByRole("heading", { name: "Set your budget and space" })).toBeVisible();
   await expect(guide.getByRole("heading", { name: "Review approved listings" })).toBeVisible();
-  await expect(guide.getByRole("heading", { name: "Contact and verify independently" })).toBeVisible();
+  await expect(guide.getByRole("heading", { name: "Message the owner in HomeTayo" })).toBeVisible();
   await guide.getByRole("link", { name: /Browse rentals/i }).click();
   await expect(page).toHaveURL(/\/rentals$/);
   await expect(page.getByRole("search")).toBeVisible();

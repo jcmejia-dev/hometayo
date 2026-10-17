@@ -15,12 +15,12 @@ const renterSteps = [
   { icon: MapPin, title: "Choose a location", body: "Start with Koronadal City, or enter the city or municipality where you want to rent. You do not need an account to search." },
   { icon: SlidersHorizontal, title: "Set your budget and space", body: "Filter by house, apartment, boarding house or bedspace, maximum monthly rent, and minimum bedrooms where applicable." },
   { icon: Search, title: "Review approved listings", body: "Open a listing to check its monthly rent, approximate location, description and last confirmed availability. New listings may take time to appear." },
-  { icon: ShieldCheck, title: "Contact and verify independently", body: "If the owner has shared a public contact method, reach out directly. Verify the property, rental terms and the person offering it before paying." },
+  { icon: ShieldCheck, title: "Message the owner in HomeTayo", body: "Use Message owner on the rental to start a private HomeTayo conversation. Verify the property, rental terms and the person offering it before paying." },
 ];
 
 const ownerSteps = [
   { icon: KeyRound, title: "Sign in with Google", body: "Open the owner dashboard. You can use your regular Google account; you cannot choose admin privileges during sign-up." },
-  { icon: HousePlus, title: "Submit accurate property details", body: "Enter the actual property type, city, barangay, monthly rent, description and public contact preference. Only list places you are authorized to advertise." },
+  { icon: HousePlus, title: "Submit accurate property details", body: "Describe the rental and choose its location by address, current location, or a map pin. No coordinates or public phone number are required. Renters message you inside HomeTayo. Only list places you are authorized to advertise." },
   { icon: ClipboardCheck, title: "Wait for administrator review", body: "Your submission starts as Pending review. It does not appear to renters until an admin approves it. You can see its status in My Listings." },
   { icon: BadgeCheck, title: "Keep availability up to date", body: "After approval, your listing can appear in search. You can currently mark a published listing unavailable from your owner dashboard." },
 ];

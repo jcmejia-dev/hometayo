@@ -3,7 +3,7 @@ import {BrandMark} from "./src/brand-mark";
 import {usePalette,useThemedStyles} from "./src/theme";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, Animated, BackHandler, Image, Linking, ScrollView, StatusBar, StyleSheet, Text, TextInput, View,
+  ActivityIndicator, Alert, Animated, BackHandler, Image, ScrollView, StatusBar, StyleSheet, Text, TextInput, View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -141,11 +141,7 @@ function NativeApp(){
         </View>}
         {selected.inclusions&&<><Text style={styles.sectionTitle}>Inclusions & amenities</Text>{selected.inclusions.map(item=><View key={item} style={styles.amenity}><Icon name={item.includes("Wi-Fi")?"wifi":"check"} size={19}/><Text style={styles.infoText}>{item}</Text></View>)}<Text style={styles.paragraph}>Electricity is billed separately. Sample terms: one month deposit and one month advance.</Text><Text style={styles.paragraph}>{selected.availableSlots?selected.availableSlots+" sample slots":"Whole unit"}</Text></>}
         {!selected.demo&&<Text style={styles.disclaimer}>Admin review does not guarantee property ownership, condition or safety. Verify details independently before paying.</Text>}
-        {selected.contactUrl?<PrimaryButton text="Contact property owner" onPress={()=>{
-          const url=selected.contactUrl;
-          if(url && (url.startsWith("https://")||url.startsWith("tel:")))
-            void Linking.openURL(url).catch(()=>Alert.alert("Unable to open contact link"));
-        }}/>:<Text style={styles.disclaimer}>{selected.demo?"Demo only - contacting or booking is disabled.":"The owner has not provided a public contact link."}</Text>}
+        {selected.demo&&<Text style={styles.disclaimer}>Demo only — contacting or booking is disabled.</Text>}
       </>:null}
     </ScrollView> :
     tab==="home" ? <ScrollView contentContainerStyle={styles.tabBody}>
