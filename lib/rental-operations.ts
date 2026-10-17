@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 import { rentalOperation, type RentalOperation } from "./rental-operation-input";
 import * as q from "./rental-operation-sql";
 import { uuidInput } from "./rental-unit-input";
-import type { OperationsState } from "./rental-operation-types";
+import type { OperationsState,Notice } from "./rental-operation-types";
 
 function client(){
  if(process.env.ENABLE_RENTAL_MANAGEMENT!=="true"||!process.env.DATABASE_URL)throw Error("Rental management is awaiting setup.");
@@ -32,6 +32,9 @@ export async function performOperation(userId:string,body:unknown){
  // A replay is harmless. Other no-op results need a clear retry/access message.
  if(!rows.length && !["message","payment","charge","remind","read","react"].includes(v.action))throw Error("Action unavailable. Check access and current status.");
  return {id:rows[0]?.id as string|undefined,message:rows.length?"Saved.":"Already recorded, unavailable, or no change needed."};
+}
+export async function notificationState(userId:string):Promise<Notice[]>{
+ return await client().query(q.NOTICES,[userId]) as Notice[];
 }
 export async function operationsState(userId:string,conversationId?:string,month?:string,before?:string):Promise<OperationsState>{
  const db=client();

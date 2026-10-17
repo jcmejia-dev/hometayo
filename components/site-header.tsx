@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Menu } from "lucide-react";
 import { currentUser } from "@/lib/session-user";
+import { HeaderInboxActions } from "@/components/header-inbox-actions";
 
 export async function SiteHeader() {
   const user = await currentUser();
@@ -18,12 +19,12 @@ export async function SiteHeader() {
             <Link href="/how-it-works">How it works</Link>
             <Link href="/safety">Rental safety</Link>
             {user ? <Link href="/profile">My profile</Link> : <Link href="/sign-in">Sign in</Link>}
-            {user && <Link href="/inbox">Messages</Link>}
             <Link href="/download">Install app</Link>
           </nav>
           {(!user || user.role === "landlord") && <Link className="header-owner" href={user ? "/owner" : "/sign-up"}>
             {user ? "List your property" : "Create account"} <ArrowUpRight size={16} aria-hidden="true" />
           </Link>}
+          {user && process.env.ENABLE_RENTAL_MANAGEMENT==="true" && <HeaderInboxActions/>}
           <details className="mobile-menu">
             <summary aria-label="Open navigation menu"><Menu size={23} /></summary>
             <nav aria-label="Mobile navigation">
@@ -32,7 +33,7 @@ export async function SiteHeader() {
               <Link href="/safety">Rental safety</Link>
               {(!user||user.role === "landlord")&&<Link href="/owner">List your property</Link>}
               {user ? <Link href="/profile">My profile</Link> : <><Link href="/sign-in">Sign in</Link><Link href="/sign-up">Create account</Link></>}
-              {user && <Link href="/inbox">Messages & notifications</Link>}
+              {user && <Link href="/inbox">Messages</Link>}
               <Link href="/download">Install Android app</Link>
               <Link href="/privacy">Privacy</Link>
             </nav>
