@@ -8,10 +8,12 @@ import { listings, ownerProfiles } from "@/db/schema";
 import { formatRent } from "@/lib/search-filters";
 import { pauseProperty } from "./actions";
 import { GuideNudge } from "@/components/guide-nudge";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 export default async function OwnerPage({ searchParams }: { searchParams: Promise<{ submitted?: string }> }) {
   const user = await currentUser();
+  if(user&&user.role!=="landlord")redirect("/");
   const params = await searchParams;
   const db = getDatabase();
   let owned: Array<{ id: string; title: string; status: string; slug: string; monthlyRentCentavos: number }> = [];

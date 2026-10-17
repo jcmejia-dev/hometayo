@@ -15,6 +15,7 @@ export async function SiteHeader() {
             <span className="brand-wordmark">Home<span className="brand-accent">Tayo</span></span>
           </Link>
           <nav className="desktop-nav" aria-label="Primary navigation">
+            {user&&<Link href={user.role==="landlord"?"/owner":"/"}>My dashboard</Link>}
             <Link href="/rentals">Explore rentals</Link>
             <Link href="/how-it-works">How it works</Link>
             <Link href="/safety">Rental safety</Link>
@@ -28,6 +29,7 @@ export async function SiteHeader() {
           <details className="mobile-menu">
             <summary aria-label="Open navigation menu"><Menu size={23} /></summary>
             <nav aria-label="Mobile navigation">
+              {user&&<Link href={user.role==="landlord"?"/owner":"/"}>My dashboard</Link>}
               <Link href="/rentals">Explore rentals</Link>
               <Link href="/how-it-works">How it works</Link>
               <Link href="/safety">Rental safety</Link>

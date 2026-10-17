@@ -5,11 +5,15 @@ import { FeaturedRentalsPanel } from "@/components/featured-rentals";
 import { getLatestPublishedListings } from "@/lib/listings";
 import { FirstVisitIntro } from "@/components/first-visit-intro";
 import { currentUser } from "@/lib/session-user";
+import { RenterDashboard } from "@/components/renter-dashboard";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }:{searchParams:Promise<{intro?:string}>}) {
   const [latest, params, user] = await Promise.all([getLatestPublishedListings(), searchParams, currentUser()]);
+  if(user?.role==="landlord"&&params.intro!=="1")redirect("/owner");
+  if(user?.role==="renter")return <>{params.intro==="1"&&<FirstVisitIntro forceOpen/>}<RenterDashboard name={user.displayName||"neighbor"} latest={latest}/></>;
   return (
     <>
       {params.intro === "1" && <FirstVisitIntro forceOpen/>}

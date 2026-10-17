@@ -6,6 +6,7 @@ import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import "./globals.css";
 import {NavigationMotion} from "@/components/navigation-motion";
 import {ThemeRestore} from "@/components/theme-settings";
+import {currentUser} from "@/lib/session-user";
 
 export const metadata: Metadata = {
   title: {
@@ -31,7 +32,8 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const user=await currentUser();
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body>
@@ -40,7 +42,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <SiteHeader />
           <main id="main-content">{children}</main>
           <SiteFooter />
-          <MobileBottomNav />
+          <MobileBottomNav role={user?.role??null}/>
         </div>
       </body>
     </html>

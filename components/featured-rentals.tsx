@@ -7,7 +7,7 @@ import { formatRent } from "@/lib/search-filters";
  * Real HomeTayo rental discovery panel. Only approved database records are
  * presented as listings; when empty/unavailable, show useful honest actions.
  */
-export function FeaturedRentalsPanel({ result }: { result: BrowseResult }) {
+export function FeaturedRentalsPanel({ result,audience }: { result: BrowseResult;audience?:"renter" }) {
   const listings = result.listings;
   return (
     <aside className="market-preview-wrap featured-wrap" aria-labelledby="featured-rentals-heading">
@@ -42,8 +42,8 @@ export function FeaturedRentalsPanel({ result }: { result: BrowseResult }) {
           </div>
         )}
         <div className="featured-panel-actions">
-          <Link href="/rentals" className="button button-primary">Browse rentals <ArrowRight size={16} aria-hidden="true"/></Link>
-          <Link href="/owner" className="featured-secondary-link">List a property <ArrowRight size={15} aria-hidden="true"/></Link>
+          <Link href="/rentals" className="button button-primary">Explore rentals <ArrowRight size={16} aria-hidden="true"/></Link>
+          {audience!=="renter"&&<Link href="/owner" className="featured-secondary-link">List a property <ArrowRight size={15} aria-hidden="true"/></Link>}
         </div>
       </div>
       <p className="featured-disclaimer">Listings are reviewed before publication. Always verify property details independently.</p>

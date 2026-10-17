@@ -8,6 +8,7 @@ import { formatRent, parseRentalFilters } from "@/lib/search-filters";
 import { RentalSocial } from "@/components/rental-social";
 import Image from "next/image";
 import {safePhotoUrls} from "@/lib/rental-photos";
+import {currentUser} from "@/lib/session-user";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ function first(value: string | string[] | undefined): string {
 export default async function Rentals({ searchParams }: { searchParams: Promise<Params> }) {
   const raw = await searchParams;
   const filters = parseRentalFilters(raw);
-  const result = await browsePublishedListings(filters);
+  const [result,user] = await Promise.all([browsePublishedListings(filters),currentUser()]);
   const type = first(raw.type);
   const budget = first(raw.maxRent);
   const bedrooms = first(raw.bedrooms);
@@ -37,10 +38,10 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
         <h1>Explore rentals</h1>
         <p>Filter approved rentals by location, price and type.</p>
       </div>
-      <SearchForm compact initialCity={filters.city}
+      <div id="rental-search"><SearchForm compact initialCity={filters.city}
         initialType={allowedTypes.includes(type) ? type : "all"}
         initialBudget={allowedBudgets.includes(budget) ? budget : ""}
-        initialBedrooms={allowedRooms.includes(bedrooms) ? bedrooms : ""}/>
+        initialBedrooms={allowedRooms.includes(bedrooms) ? bedrooms : ""}/></div>
       <GuideNudge audience="renter" compact />
       {result.state === "ready" && result.listings.length > 0 ? (
         <section aria-label="Rental properties" className="published-results">
@@ -83,8 +84,7 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
             ? "We couldn't reach the rental database right now. Please try again later."
             : "Try changing your filters or return later when more owners add verified, approved rental listings."}</p>
           <div className="empty-actions">
-            <Link href="/requests/new" className="button button-primary">About rental requests <ArrowRight size={18}/></Link>
-            <Link href="/owner" className="button button-outline"><House size={18}/> Own a rental?</Link>
+            {user?.role==="renter"?<><a href="#rental-search" className="button button-primary">Adjust your search <ArrowRight size={18}/></a><Link href="/inbox" className="button button-outline">My messages</Link></>:<><Link href="/requests/new" className="button button-primary">About rental requests <ArrowRight size={18}/></Link><Link href="/owner" className="button button-outline"><House size={18}/> Own a rental?</Link></>}
           </div>
         </section>
       )}

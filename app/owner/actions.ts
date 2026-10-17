@@ -95,6 +95,7 @@ export async function createProperty(form: FormData): Promise<{error: string}> {
 
 export async function pauseProperty(form: FormData) {
   const account = await requireAccount();
+  if(account.role!=="landlord")throw new Error("A property-owner account is required.");
   const id = form.get("id");
   if (typeof id !== "string" || !/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid listing ID.");
   const db = getDatabase();
