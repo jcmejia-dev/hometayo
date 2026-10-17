@@ -5,6 +5,9 @@ import { SearchForm } from "@/components/search-form";
 import { GuideNudge } from "@/components/guide-nudge";
 import { browsePublishedListings } from "@/lib/listings";
 import { formatRent, parseRentalFilters } from "@/lib/search-filters";
+import { RentalSocial } from "@/components/rental-social";
+import Image from "next/image";
+import {safePhotoUrls} from "@/lib/rental-photos";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -41,15 +44,18 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
       <GuideNudge audience="renter" compact />
       {result.state === "ready" && result.listings.length > 0 ? (
         <section aria-label="Rental properties" className="published-results">
-          <div className="results-heading"><h2>Available listings</h2><p>{result.listings.length} approved result(s) · {filters.city}</p></div>
+          <div className="results-heading"><h2>Rental posts</h2><p>{result.listings.length} approved result(s) · {filters.city}</p></div>
           <div className="rental-results-grid">
             {result.listings.map((listing) => (
-              <Link href={"/rentals/" + listing.slug} key={listing.id} className="rental-result-card">
-                <div className="rental-card-photo"><House size={38} strokeWidth={1.25}/><span>Photos coming soon</span></div>
+              <article key={listing.id} className="rental-result-card">
+                <Link href={"/rentals/" + listing.slug}>
+                <div className="rental-card-photo">{safePhotoUrls(listing.photoUrls)[0]?<Image src={safePhotoUrls(listing.photoUrls)[0]} alt={listing.title} width={640} height={400} unoptimized style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<><House size={38} strokeWidth={1.25}/><span>No owner photos yet</span></>}</div>
                 <div className="rental-card-content">
                   <p className="rental-type">{listing.propertyType.replaceAll("_"," ")}</p>
                   <h3>{listing.title}</h3>
                   <p className="rental-card-location"><MapPin size={15}/> {listing.barangay}, {listing.city}</p>
+                  <p>{listing.description.slice(0,180)}{listing.description.length>180?"…":""}</p>
+                  {!!listing.unitCounts?.total&&<p className="rental-confirmed">{listing.unitCounts.available} of {listing.unitCounts.total} units available{listing.unitCounts.available===0?" · Currently full":""}</p>}
                   <div className="rental-card-bottom">
                     <strong>{formatRent(listing.monthlyRentCentavos)}<small> /month</small></strong>
                     {listing.bedrooms != null && <span><BedDouble size={15}/> {listing.bedrooms} bed(s)</span>}
@@ -58,7 +64,9 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
                     ? "Owner-confirmed " + new Intl.DateTimeFormat("en-PH",{dateStyle:"medium",timeZone:"Asia/Manila"}).format(listing.lastConfirmedAt)
                     : "Availability not recently confirmed"}</p>
                 </div>
-              </Link>
+                </Link>
+                {process.env.ENABLE_RENTAL_MANAGEMENT === "true" && <div className="rental-card-content"><RentalSocial slug={listing.slug}/></div>}
+              </article>
             ))}
           </div>
         </section>

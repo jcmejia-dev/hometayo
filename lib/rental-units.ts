@@ -1,0 +1,25 @@
+import "server-only";
+import { neon } from "@neondatabase/serverless";
+import { CREATE_UNIT, UPDATE_UNIT, OWNED_UNITS, PUBLIC_UNITS } from "./rental-unit-sql";
+import { unitInput, uuidInput, type RentalUnit } from "./rental-unit-input";
+
+function client() {
+  if (!process.env.DATABASE_URL) throw new Error("Database is not configured.");
+  return neon(process.env.DATABASE_URL);
+}
+export async function ownedUnits(listingId: string, userId: string): Promise<RentalUnit[]> {
+  return await client().query(OWNED_UNITS, [uuidInput.parse(listingId), userId]) as RentalUnit[];
+}
+export async function publicUnits(listingId: string): Promise<RentalUnit[]> {
+  if (process.env.ENABLE_RENTAL_MANAGEMENT !== "true") return [];
+  return await client().query(PUBLIC_UNITS, [uuidInput.parse(listingId)]) as RentalUnit[];
+}
+export async function saveUnit(listingId: string, userId: string, input: unknown, unitId?: string) {
+  if (process.env.ENABLE_RENTAL_MANAGEMENT !== "true") throw new Error("Rental management is awaiting database setup.");
+  const v = unitInput.parse(input);
+  const args = [uuidInput.parse(listingId), userId];
+  const rows = unitId
+    ? await client().query(UPDATE_UNIT, [...args, uuidInput.parse(unitId), v.label, v.status, v.monthlyRent])
+    : await client().query(CREATE_UNIT, [...args, v.label, v.status, v.monthlyRent]);
+  if (!rows.length) throw new Error("Property not found or access denied.");
+}

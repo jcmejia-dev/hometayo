@@ -2,7 +2,8 @@ import {FeedbackPressable as Pressable} from "./feedback-pressable";
 import {usePalette,useThemedStyles} from "./theme";
 import {useTheme} from "./theme";
 import React,{useCallback,useEffect,useRef,useState} from "react";
-import {ActivityIndicator,Alert,Keyboard,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
+import {ActivityIndicator,Alert,Image,Keyboard,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
+import {NativeRentalSocial} from "./rental-workspace";
 import MapView,{Circle,Marker,PROVIDER_GOOGLE} from "react-native-maps";
 import * as Location from "expo-location";
 import {withDeadline} from "./deadline";
@@ -17,10 +18,10 @@ import {demoLandmarks,selectDemoRentals} from "./demo-rentals";
 
 type Point={latitude:number;longitude:number};
 type Place=Point&{id:string;name:string;address:string};
-type MapRental=Rental&{latitude:number|null;longitude:number|null;distanceKm:number|null};
+type MapRental=Rental&{latitude:number|null;longitude:number|null;distanceKm:number|null;description?:string;photoUrls?:string[];unitCounts?:{total:number;available:number}|null};
 const base=process.env.EXPO_PUBLIC_API_URL || "https://hometayoph.vercel.app";
 function distance(a:Point,b:Point) {const rad=(v:number)=>v*Math.PI/180;const h=Math.sin(rad(b.latitude-a.latitude)/2)**2+Math.cos(rad(a.latitude))*Math.cos(rad(b.latitude))*Math.sin(rad(b.longitude-a.longitude)/2)**2;return 12742*Math.asin(Math.sqrt(Math.max(0,Math.min(1,h))));}
-export function RentalMap({account,onSelect,initialCity="",initialType="",initialBudget=""}: {account:Account|null;onSelect:(slug:string)=>void;initialCity?:string;initialType?:string;initialBudget?:string}) {
+export function RentalMap({account,onSelect,onInquiry,initialCity="",initialType="",initialBudget=""}: {account:Account|null;onSelect:(slug:string)=>void;onInquiry?:(id:string)=>void;initialCity?:string;initialType?:string;initialBudget?:string}) {
   const colors=usePalette(); const s=useThemedStyles(baseStyles);
 
   const {theme}=useTheme();
@@ -110,12 +111,15 @@ export function RentalMap({account,onSelect,initialCity="",initialType="",initia
     {!center&&rentals.length>pinned.length&&<Text style={s.help}>{rentals.length-pinned.length} rentals have no owner-provided pin and appear in the list only.</Text>}
     {!busy&&!rentals.length&&!error&&<Text style={s.help}>No published rentals match this area. Try a wider radius or all locations.</Text>}
     <View style={s.resultsHeader}><Text style={s.resultsTitle}>{rentals.length} {demo?"demo ":""}rentals</Text><Text style={s.help}>{center?"Nearest first":"Explore all"}</Text></View>
-    {rentals.map(r=><Pressable key={r.slug} accessibilityRole="button" accessibilityLabel={"View "+r.title} onPress={()=>onSelect(r.slug)} style={s.rentalCard}>
+    {rentals.map(r=><View key={r.slug} style={s.rentalCard}><Pressable accessibilityRole="button" accessibilityLabel={"View "+r.title} onPress={()=>onSelect(r.slug)} style={{gap:12}}>
+      {r.photoUrls?.[0]?.startsWith("https://")&&<Image source={{uri:r.photoUrls[0]}} accessibilityLabel={r.title} style={{width:"100%",height:190,borderRadius:16}}/>}
       <View style={s.rentalTop}><View style={s.rentalIcon}><Icon name={r.propertyType==="house"?"home":r.propertyType==="bedspace"?"bed":"building"} size={30}/></View><View style={{flex:1,gap:5}}><Text style={s.eyebrow}>{propertyLabel(r.propertyType).toUpperCase()}</Text><Text style={s.rentalTitle}>{r.title}</Text><Text style={s.help}>{r.barangay}, {r.city}</Text></View><Icon name="chevron" size={18} color={colors.sage}/></View>
       <View style={s.rentalFacts}><Icon name="bed" size={16} color={colors.sage}/><Text style={s.help}>{r.bedrooms??"—"} beds</Text><Icon name="bath" size={16} color={colors.sage}/><Text style={s.help}>{r.bathrooms??"—"} baths</Text></View>
+      {!!r.description&&<Text style={s.help} numberOfLines={3}>{r.description}</Text>}
+      {!!r.unitCounts?.total&&<Text style={s.bold}>{r.unitCounts.available} of {r.unitCounts.total} units available{r.unitCounts.available===0?" · Currently full":""}</Text>}
       <View style={s.rentalBottom}><Text style={s.price}>{rentLabel(r.monthlyRentCentavos)}<Text style={s.help}> /month</Text></Text>{r.distanceKm!==null&&<View style={s.distanceTag}><Icon name="pin" size={13}/><Text style={s.chipText}>{r.distanceKm.toFixed(1)} km</Text></View>}</View>
       {r.distanceKm!==null&&<Text style={s.help}>From {label}</Text>}{userLocation&&typeof r.latitude==="number"&&typeof r.longitude==="number"&&<Text style={s.help}>{distance(userLocation,{latitude:r.latitude,longitude:r.longitude}).toFixed(1)} km from your location</Text>}
-    </Pressable>)}
+    </Pressable>{!demo&&onInquiry&&<NativeRentalSocial slug={r.slug} onInquiry={onInquiry}/>}</View>)}
     {nextOffset!==null&&<Pressable accessibilityRole="button" disabled={busy} onPress={()=>void load(nextOffset)} style={[s.button,{backgroundColor:theme.accent}]}><Text style={s.buttonText}>Load more rentals</Text></Pressable>}
   </ScrollView>;
 }
