@@ -1,7 +1,7 @@
 import type {Metadata} from "next";
 import Link from "next/link";
 import {redirect} from "next/navigation";
-import {ArrowRight,BedDouble,House,MapPin,SearchX,ShieldCheck,UserRound} from "lucide-react";
+import {ArrowRight,BedDouble,House,SearchX,ShieldCheck,UserRound} from "lucide-react";
 import {SearchForm} from "@/components/search-form";
 import {GuideNudge} from "@/components/guide-nudge";
 import {browsePublishedListings} from "@/lib/listings";
