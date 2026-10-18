@@ -4,12 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Compass, House, LayoutDashboard, UserRound,MessageCircle,BookOpen } from "lucide-react";
 
-function roleTabs(role:string|null){return [
-  { href: "/", label: "Home", icon: House },
-  { href: "/rentals", label: "Explore", icon: Compass },
-  role==="landlord"?{ href: "/owner", label: "My listings", icon: LayoutDashboard }:role?{href:"/inbox",label:"Messages",icon:MessageCircle}:{href:"/how-it-works",label:"Guide",icon:BookOpen},
-  { href: "/profile", label: "Profile", icon: UserRound },
-];}
+function roleTabs(role:string|null){
+  if(role==="landlord")return [
+    {href:"/",label:"Home",icon:House},
+    {href:"/inbox",label:"Messages",icon:MessageCircle},
+    {href:"/owner",label:"My listings",icon:LayoutDashboard},
+    {href:"/profile",label:"Profile",icon:UserRound},
+  ];
+  return [
+    { href: "/", label: "Home", icon: House },
+    { href: "/rentals", label: "Explore", icon: Compass },
+    role?{href:"/inbox",label:"Messages",icon:MessageCircle}:{href:"/how-it-works",label:"Guide",icon:BookOpen},
+    { href: "/profile", label: "Profile", icon: UserRound },
+  ];
+}
 
 /** Four primary routes are always available without a menu on small screens.
  *  The existing top menu still exposes guides, safety and the privacy policy.
