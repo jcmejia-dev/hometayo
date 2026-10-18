@@ -9,6 +9,7 @@ import "./social-upgrades.css";
 import {NavigationMotion} from "@/components/navigation-motion";
 import {ThemeRestore} from "@/components/theme-settings";
 import {currentUser} from "@/lib/session-user";
+import {canAdminister} from "@/lib/admin-owner";
 
 export const metadata: Metadata = {
   title: {
@@ -36,6 +37,7 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const user=await currentUser();
+  const isAdmin=canAdminister(user);
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body>
@@ -45,7 +47,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <PlatformAnnouncement role={user?.role??null}/>
           <main id="main-content">{children}</main>
           <SiteFooter />
-          <MobileBottomNav role={user?.role??null}/>
+          {!isAdmin&&<MobileBottomNav role={user?.role??null}/>} 
         </div>
       </body>
     </html>
