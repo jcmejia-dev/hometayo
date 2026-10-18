@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import {currentUser} from "@/lib/session-user";
+export const dynamic="force-dynamic";
 import {
   ArrowRight, BadgeCheck, BookOpenCheck, CircleHelp,
   ClipboardCheck, Compass, HousePlus, KeyRound, MapPin,
@@ -25,31 +27,33 @@ const ownerSteps = [
   { icon: BadgeCheck, title: "Keep availability up to date", body: "After publishing, your listing can appear in search. You can currently mark a published listing unavailable from your owner dashboard." },
 ];
 
-export default function HowItWorks() {
+export default async function HowItWorks() {
+  const account=await currentUser();
+  const renter=account?.role==="renter",owner=account?.role==="landlord";
   return (
     <div className="guide-page">
       <section className="guide-hero">
         <div className="container guide-hero-inner">
           <span className="guide-eyebrow"><BookOpenCheck size={16} /> YOUR HOMETAYO GUIDE</span>
-          <h1>Find a home or list a place.<br/><span>Know exactly what to do.</span></h1>
-          <p>New here? Choose your path below. We&apos;ll show you what works today, and what we&apos;re still building.</p>
+          <h1>{renter?"Your guide to finding home.":owner?"Your guide to managing rentals.":"Find a home or list a place."}<br/><span>Know exactly what to do.</span></h1>
+          <p>{account?"Steps tailored to your account, from getting started to your next move.":"Choose your path below to get started."}</p>
           <Link href="/?intro=1" className="guide-replay-link"><PlayCircle size={17}/> Replay the introduction</Link>
           <div className="guide-role-grid" aria-label="Choose your HomeTayo guide">
-            <a href="#renters" className="guide-role-card">
+            {!owner&&<a href="#renters" className="guide-role-card">
               <span className="guide-role-icon"><Compass size={25} /></span>
               <span className="guide-role-copy"><strong>I&apos;m looking for a home</strong><small>Step-by-step rental search guide</small></span>
               <ArrowRight size={21} aria-hidden="true"/>
-            </a>
-            <a href="#owners" className="guide-role-card">
+            </a>}
+            {!renter&&<a href="#owners" className="guide-role-card">
               <span className="guide-role-icon"><HousePlus size={25} /></span>
               <span className="guide-role-copy"><strong>I have a property to rent</strong><small>Step-by-step landlord guide</small></span>
               <ArrowRight size={21} aria-hidden="true"/>
-            </a>
+            </a>}
           </div>
         </div>
       </section>
 
-      <section className="container guide-section" id="renters" aria-labelledby="guide-renter-title">
+      {!owner&&<section className="container guide-section" id="renters" aria-labelledby="guide-renter-title">
         <div className="guide-section-head">
           <span className="guide-section-icon"><Compass size={28}/></span>
           <div>
@@ -71,9 +75,9 @@ export default function HowItWorks() {
           <div><strong>Ready to explore?</strong><p>You&apos;ll see published rentals that match your filters. It&apos;s okay if there are no results yet.</p></div>
           <Link className="button button-primary" href="/rentals">Browse rentals <ArrowRight size={17}/></Link>
         </div>
-      </section>
+      </section>}
 
-      <section className="guide-owner-zone" id="owners" aria-labelledby="guide-owner-title">
+      {!renter&&<section className="guide-owner-zone" id="owners" aria-labelledby="guide-owner-title">
         <div className="container guide-section">
           <div className="guide-section-head">
             <span className="guide-section-icon guide-owner-icon"><HousePlus size={28}/></span>
@@ -97,14 +101,14 @@ export default function HowItWorks() {
             <Link className="button button-primary" href="/owner">Open owner dashboard <ArrowRight size={17}/></Link>
           </div>
         </div>
-      </section>
+      </section>}
 
       <section className="container guide-section guide-faq" aria-labelledby="guide-faq-title">
         <div className="guide-faq-title"><CircleHelp size={24}/><div><p className="section-kicker">GOOD TO KNOW</p><h2 id="guide-faq-title">A few common questions</h2></div></div>
         <div className="guide-faq-grid">
           <div><h3>Do renters need an account?</h3><p>No. Anyone can browse published rental listings and use the filters. Saved searches and rental requests are planned, not active yet.</p></div>
           <div><h3>Are HomeTayo properties verified?</h3><p>Owners publish listings directly. HomeTayo does not independently verify ownership, condition or safety. Please verify details independently.</p></div>
-          <div><h3>Can owners upload photos or edit listings?</h3><p>Not yet. Those features are in development. The current form supports property details, and published listings can be marked unavailable.</p></div>
+          {!renter&&<div><h3>Can owners add photos or update listings?</h3><p>Yes. Use My listings to manage photo links, property location, rooms and availability.</p></div>}
         </div>
         <div className="guide-safety-note"><Sparkles size={21}/><p><strong>Owners publish rental listings directly.</strong> Availability depends on current owner listings. For a safer search, review our <Link href="/safety">rental safety guide</Link>.</p></div>
       </section>

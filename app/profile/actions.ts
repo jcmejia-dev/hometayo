@@ -27,9 +27,9 @@ export async function updateProfile(form: FormData) {
   if (!db) throw new Error("Database is not configured.");
   await db.update(users).set({
     preferredName: values.preferredName || null,
-    homeCity: values.homeCity || null,
+    ...(account.role==="landlord"?{}:{homeCity: values.homeCity || null,
     preferredPropertyType: values.preferredPropertyType || null,
-    preferredBudgetPesos: values.preferredBudgetPesos === "" ? null : values.preferredBudgetPesos,
+    preferredBudgetPesos: values.preferredBudgetPesos === "" ? null : values.preferredBudgetPesos}),
     updatedAt: new Date(),
   }).where(and(eq(users.id, account.id),eq(users.email, account.email)));
   revalidatePath("/profile");

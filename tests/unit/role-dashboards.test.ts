@@ -15,7 +15,7 @@ function load(path:string,dependencies:Record<string,unknown>){
 }
 const empty={state:"ready",listings:[]};
 const Link=({href,children,...props}:{href:string;children:unknown})=>createElement("a",{href,...props},children as never);
-const common={"next/link":{default:Link},"next/navigation":{redirect:(url:string)=>{throw Error(`REDIRECT:${url}`);}},"@/components/search-form":{SearchForm:()=>createElement("div",null,"Search filters")},"@/components/guide-nudge":{GuideNudge:()=>null},"next/image":{default:()=>null},"@/lib/rental-photos":{safePhotoUrls:()=>[]},"@/components/rental-social":{RentalSocial:()=>null},"@/lib/search-filters":{parseRentalFilters:()=>({city:"Test City"}),formatRent:()=>"₱100"}};
+const common={"@/components/rental-search-map":{RentalSearchMap:()=>null},"next/link":{default:Link},"next/navigation":{redirect:(url:string)=>{throw Error(`REDIRECT:${url}`);}},"@/components/search-form":{SearchForm:()=>createElement("div",null,"Search filters")},"@/components/guide-nudge":{GuideNudge:()=>null},"next/image":{default:()=>null},"@/lib/rental-photos":{safePhotoUrls:()=>[]},"@/components/rental-social":{RentalSocial:()=>null},"@/lib/search-filters":{parseRentalFilters:()=>({city:"Test City"}),formatRent:()=>"₱100"}};
 test("rental search gives renters search/messages actions and reserves owner prompts for owners or guests",async()=>{
  for(const role of ["renter","landlord",null]){
   const page=load("../../app/rentals/page.tsx",{...common,"@/lib/listings":{browsePublishedListings:async()=>empty},"@/lib/session-user":{currentUser:async()=>role?{role}:null}}).default;
@@ -48,4 +48,19 @@ test("phone navigation shows messages for renters and listings only for owners",
 test("renter cannot open the owner dashboard, even by typing its URL",async()=>{
  const page=load("../../app/owner/page.tsx",{...common,"@/auth":{},"@/lib/session-user":{currentUser:async()=>({role:"renter"})},"@/lib/db":{getDatabase:()=>{throw Error("Database must not be read");}},"@/db/schema":{},"./actions":{}}).default;
  await assert.rejects(page({searchParams:Promise.resolve({})}) as Promise<unknown>,/REDIRECT:\//);
+});
+test("signed-in guides show only the account's role while guests can choose both",async()=>{
+ for(const role of ["renter","landlord",null]){
+  const page=load("../../app/how-it-works/page.tsx",{...common,"@/lib/session-user":{currentUser:async()=>role?{role}:null}}).default;
+  const html=renderToStaticMarkup(await page({}) as never);
+  assert.equal(html.includes('id="owners"'),role!=="renter");assert.equal(html.includes('id="renters"'),role!=="landlord");
+ }
+});
+test("owner profiles omit renter search preferences and Find a place shortcut",async()=>{
+ for(const role of ["renter","landlord"]){
+  const profile={homeCity:"Test city",preferredName:"Test",createdAt:new Date("2026-01-01"),preferredPropertyType:"house",preferredBudgetPesos:5000};
+  const page=load("../../app/profile/page.tsx",{...common,"@/lib/session-user":{currentUser:async()=>({id:"local",role})},"@/auth":{authIsConfigured:()=>true},"@/components/theme-settings":{ThemeSettings:()=>null},"@/components/profile-photo":{ProfilePhoto:()=>null},"./actions":{updateProfile:()=>{}},"@/db/schema":{users:{}},"@/lib/db":{getDatabase:()=>({select:()=>({from:()=>({where:()=>({limit:async()=>[profile]})})})})}}).default;
+  const html=renderToStaticMarkup(await page({searchParams:Promise.resolve({})}) as never);
+  assert.equal(html.includes("Find a place"),role==="renter");assert.equal(html.includes("Preferred location"),role==="renter");
+ }
 });
