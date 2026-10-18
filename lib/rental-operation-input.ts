@@ -2,9 +2,7 @@ import { z } from "zod";
 const id=z.string().uuid();
 const date=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s=>{const d=new Date(s+"T00:00:00Z");return Number.isFinite(+d)&&d.toISOString().slice(0,10)===s;},"Use a valid date");
 const money=z.string().trim().regex(/^\d{1,7}(\.\d{1,2})?$/).transform(v=>Math.round(Number(v)*100)).pipe(z.number().int().min(1).max(500000000));
-const message=z.object({action:z.literal("message"),conversationId:id,eventId:id,body:z.string().trim().min(1).max(2000),replyToId:id.nullable().optional(),mediaType:z.enum(["text","gif"]).default("text")}).superRefine((v,ctx)=>{
- if(v.mediaType==="gif"){try{const url=new URL(v.body);if(url.protocol!=="https:")throw Error();}catch{ctx.addIssue({code:"custom",path:["body"],message:"Use a valid HTTPS GIF URL"});}}
-});
+const message=z.object({action:z.literal("message"),conversationId:id,eventId:id,body:z.string().trim().min(1).max(2000),replyToId:id.nullable().optional(),mediaType:z.enum(["text","gif"]).default("text")});
 export const rentalOperation=z.discriminatedUnion("action",[
  z.object({action:z.literal("inquire"),slug:z.string().regex(/^[a-z0-9][a-z0-9-]{0,119}$/)}),
  message,
