@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import "./globals.css";
+import "./social-upgrades.css";
 import {NavigationMotion} from "@/components/navigation-motion";
 import {ThemeRestore} from "@/components/theme-settings";
 import {currentUser} from "@/lib/session-user";
