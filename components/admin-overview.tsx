@@ -6,6 +6,7 @@ import { Activity, Building2, ChevronDown, ClipboardList, House, ShieldCheck, Us
 import { listingReviews, listings, ownerProfiles, platformEvents, users } from "@/db/schema";
 import { getDatabase } from "@/lib/db";
 import { currentUser } from "@/lib/session-user";
+import {AdminAnnouncements} from "@/components/admin-announcements";
 
 const label: Record<string,string> = {
   "listing.submitted": "Submitted a listing",
@@ -21,7 +22,6 @@ function dateTime(date: Date): string {
 }
 
 export async function AdminOverview() {
-  // Defense in depth. A developer cannot render this elsewhere without the role check.
   const actor = await currentUser();
   if (!canAdminister(actor)) notFound();
   const db = getDatabase();
@@ -74,6 +74,7 @@ export async function AdminOverview() {
         ))}
       </div>
       <div className="admin-summary-line">Total submitted listings: <strong>{totalListings}</strong> · Rejected: <strong>{byStatus.rejected ?? 0}</strong> · Unavailable: <strong>{(byStatus.paused ?? 0) + (byStatus.occupied ?? 0)}</strong></div>
+      <AdminAnnouncements/>
       <details className="admin-extra-details">
         <summary className="admin-expand-toggle">Activity, accounts and review history <ChevronDown size={17} aria-hidden="true"/></summary>
         <div className="admin-data-grid">
