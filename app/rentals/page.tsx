@@ -7,6 +7,7 @@ import { browsePublishedListings } from "@/lib/listings";
 import { formatRent, parseRentalFilters } from "@/lib/search-filters";
 import { RentalSocial } from "@/components/rental-social";
 import Image from "next/image";
+import {RentalSearchMap} from "@/components/rental-search-map";
 import {safePhotoUrls} from "@/lib/rental-photos";
 import {currentUser} from "@/lib/session-user";
 
@@ -42,7 +43,8 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
         initialType={allowedTypes.includes(type) ? type : "all"}
         initialBudget={allowedBudgets.includes(budget) ? budget : ""}
         initialBedrooms={allowedRooms.includes(bedrooms) ? bedrooms : ""}/></div>
-      <GuideNudge audience="renter" compact />
+      <GuideNudge audience={user?.role==="landlord"?"owner":"renter"} compact />
+      <RentalSearchMap listings={result.listings.map(l=>({id:l.id,title:l.title,slug:l.slug,latitude:l.latitude??null,longitude:l.longitude??null,monthlyRentCentavos:l.monthlyRentCentavos}))}/>
       {result.state === "ready" && result.listings.length > 0 ? (
         <section aria-label="Rental properties" className="published-results">
           <div className="results-heading"><h2>Rental posts</h2><p>{result.listings.length} result(s) · {filters.city}</p></div>

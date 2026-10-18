@@ -25,7 +25,7 @@ test("owner guide accurately describes the current moderation workflow", async (
   await expect(guide.getByRole("heading", { name: "Property owner guide" })).toBeVisible();
   await expect(guide.getByRole("heading", { name: "Sign in with Google" })).toBeVisible();
   await expect(guide.getByRole("heading", { name: "Publish your rental" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Can owners upload photos or edit listings?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Can owners add photos or update listings?" })).toBeVisible();
   await guide.getByRole("link", { name: /Open owner dashboard/i }).click();
   await expect(page).toHaveURL(/\/owner$/);
 });

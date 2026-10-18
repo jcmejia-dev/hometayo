@@ -6,7 +6,7 @@ import type { RentalFilters } from "@/lib/search-filters";
 
 export type PublicListing = Pick<typeof listings.$inferSelect,
   "id" | "slug" | "title" | "propertyType" | "city" | "barangay"
-  | "monthlyRentCentavos" | "bedrooms" | "bathrooms" | "rentalMode" | "lastConfirmedAt"> & {description:string;photoUrls:string[];unitCounts:{total:number;available:number}|null};
+  | "monthlyRentCentavos" | "bedrooms" | "bathrooms" | "rentalMode" | "lastConfirmedAt"> & {latitude?:number|null;longitude?:number|null;description:string;photoUrls:string[];unitCounts:{total:number;available:number}|null};
 export type BrowseResult =
   | { state: "not_configured" | "error"; listings: [] }
   | { state: "ready"; listings: PublicListing[] };
@@ -17,6 +17,8 @@ const publicFields = {
   bedrooms: listings.bedrooms, bathrooms: listings.bathrooms, rentalMode: listings.rentalMode,
   lastConfirmedAt: listings.lastConfirmedAt,
   description:listings.description,
+  latitude:process.env.ENABLE_NATIVE_AUTH==="true"||process.env.ENABLE_RENTAL_MANAGEMENT==="true"?listings.latitude:sql<null>`NULL`,
+  longitude:process.env.ENABLE_NATIVE_AUTH==="true"||process.env.ENABLE_RENTAL_MANAGEMENT==="true"?listings.longitude:sql<null>`NULL`,
   photoUrls:sql<string[]>`COALESCE((SELECT json_agg(storage_key ORDER BY display_order) FROM listing_images WHERE listing_id=${listings.id} AND storage_key LIKE 'https://%'),'[]'::json)`,
   unitCounts:process.env.ENABLE_RENTAL_MANAGEMENT==="true"?sql<{total:number;available:number}>`(SELECT json_build_object('total',count(*),'available',count(*) FILTER(WHERE status='available')) FROM rental_units WHERE listing_id=${listings.id})`:sql<null>`NULL::json`,
 };
