@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 import { rentalOperation, type RentalOperation } from "./rental-operation-input";
 import * as q from "./rental-operation-sql";
 import { uuidInput } from "./rental-unit-input";
-import type { OperationsState,Notice } from "./rental-operation-types";
+import type { Conversation,OperationsState,Notice } from "./rental-operation-types";
 
 function client(){
  if(process.env.ENABLE_RENTAL_MANAGEMENT!=="true"||!process.env.DATABASE_URL)throw Error("Rental management is awaiting setup.");
@@ -35,6 +35,11 @@ export async function performOperation(userId:string,body:unknown){
 }
 export async function notificationState(userId:string):Promise<Notice[]>{
  return await client().query(q.NOTICES,[userId]) as Notice[];
+}
+export async function headerNotificationState(userId:string):Promise<{notifications:Notice[];conversations:Conversation[]}>{
+ const db=client();
+ const [notifications,conversations]=await Promise.all([db.query(q.NOTICES,[userId]),db.query(q.CONVERSATIONS,[userId])]);
+ return {notifications:notifications as Notice[],conversations:conversations as Conversation[]};
 }
 export async function operationsState(userId:string,conversationId?:string,month?:string,before?:string):Promise<OperationsState>{
  const db=client();
