@@ -13,9 +13,14 @@ export async function currentUser() {
   const db = getDatabase();
   if (!db) return null;
   const [account] = await db.select({
-    id: users.id, email: users.email, displayName: sql<string | null>`COALESCE(${users.preferredName},${users.displayName})`, role: users.role,
+    id: users.id,
+    email: users.email,
+    displayName: sql<string | null>`COALESCE(${users.preferredName},${users.displayName})`,
+    role: users.role,
+    accountStatus: sql<string>`COALESCE(account_status,'active')`,
   }).from(users).where(eq(users.id, id)).limit(1);
-  return account?{...account,role:publicAccountRole(account.role)}:null;
+  if(!account || account.accountStatus === "banned") return null;
+  return {...account,role:publicAccountRole(account.role)};
 }
 
 export async function requireAccount() {
