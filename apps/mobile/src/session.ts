@@ -6,14 +6,15 @@ const origin=new URL(base);
 if(origin.username || origin.password || (origin.protocol!=="https:" && !(origin.protocol==="http:"&&["localhost","127.0.0.1"].includes(origin.hostname))))throw Error("Account API requires HTTPS");
 let onExpired:(()=>void)|null=null;
 export function watchSessionExpired(callback:()=>void) {onExpired=callback;return()=>{if(onExpired===callback)onExpired=null;};}
+async function token(){return SecureStore.getItemAsync(KEY);}
 export async function api(path:string,body?:unknown,method?:"PATCH") {
-  const token=await SecureStore.getItemAsync(KEY);
+  const saved=await token();
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),20000);
   try{
-    const response=await fetch(origin.origin+path,{signal:controller.signal,method:method || (body?"POST":"GET"),headers:{Accept:"application/json",...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});
+    const response=await fetch(origin.origin+path,{signal:controller.signal,method:method || (body?"POST":"GET"),headers:{Accept:"application/json",...(body?{"Content-Type":"application/json"}:{}),...(saved?{Authorization:"Bearer "+saved}:{})},body:body?JSON.stringify(body):undefined});
     const data=await response.json().catch(()=>null);
-    if(response.status===401&&token){await SecureStore.deleteItemAsync(KEY);onExpired?.();}
+    if(response.status===401&&saved){await SecureStore.deleteItemAsync(KEY);onExpired?.();}
     if(!response.ok){
       if(response.status===503&&typeof data?.message==="string"&&data.message.includes("awaiting setup"))throw Error("Account service setup is pending. You can explore rentals as a guest until sign-in is enabled.");
       throw Error(data?.message || "HomeTayo is temporarily unavailable. Please try again.");
@@ -25,6 +26,16 @@ export async function api(path:string,body?:unknown,method?:"PATCH") {
     if(error instanceof TypeError)throw Error("Could not connect to HomeTayo. Check your internet and try again.");
     throw error;
   }finally{clearTimeout(timeout);}
+}
+export async function uploadPhoto(uri:string,mime:string,name:string){
+  const saved=await token();if(!saved)throw Error("Please sign in.");
+  const form=new FormData();
+  form.append("file",{uri,type:mime,name} as never);
+  const response=await fetch(origin.origin+"/api/mobile/owner-photo-upload",{method:"POST",headers:{Accept:"application/json",Authorization:"Bearer "+saved},body:form});
+  const data=await response.json().catch(()=>null);
+  if(response.status===401){await SecureStore.deleteItemAsync(KEY);onExpired?.();}
+  if(!response.ok)throw Error(data?.message||"Photo upload failed.");
+  return data as {url:string};
 }
 export async function accountAction(body:unknown) {
   const data=await api("/api/mobile/auth",body);
