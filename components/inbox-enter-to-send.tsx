@@ -20,5 +20,21 @@ export function InboxEnterToSend() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  return null;
+  return (
+    <style>{`
+      .workspace-compose .chat-send {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        line-height: 0 !important;
+      }
+
+      .workspace-compose .chat-send svg {
+        display: block;
+        margin: 0;
+        flex: 0 0 auto;
+      }
+    `}</style>
+  );
 }
