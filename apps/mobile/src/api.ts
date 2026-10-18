@@ -2,6 +2,7 @@
 export type Rental = {
   slug: string;
   title: string;
+  description:string;
   propertyType: "house" | "apartment" | "boarding_house" | "bedspace";
   city: string;
   barangay: string;
@@ -10,11 +11,14 @@ export type Rental = {
   bathrooms: number | null;
   rentalMode: string;
   lastConfirmedAt: string | null;
+  ownerName:string;
+  ownerPhoto:string|null;
+  photoUrl:string|null;
+  unitCounts?:{total:number;available:number}|null;
 };
 export type RentalDetail = Rental & {
   photoUrls?:string[];
   units?: Array<{id:string;label:string;status:string;monthlyRentCentavos:number}>;
-  description: string;
   province: string;
   furnished: string;
   availableSlots: number | null;
@@ -31,13 +35,8 @@ function trustedBaseUrl(): string {
 }
 
 async function getJson(path:string,signal?:AbortSignal):Promise<unknown>{
-  const response=await fetch(trustedBaseUrl()+path,{
-    method:"GET",headers:{"Accept":"application/json"},signal,
-  });
-  if(!response.ok) throw Error(response.status===503 ?
-    "HomeTayo rentals are temporarily unavailable." :
-    response.status===404 ? "This rental is no longer available." :
-    "Could not load listings. Try again.");
+  const response=await fetch(trustedBaseUrl()+path,{method:"GET",headers:{"Accept":"application/json"},signal});
+  if(!response.ok) throw Error(response.status===503 ? "HomeTayo rentals are temporarily unavailable." : response.status===404 ? "This rental is no longer available." : "Could not load listings. Try again.");
   return response.json();
 }
 
@@ -46,28 +45,14 @@ export async function fetchRentals(city:string,type:string="",signal?:AbortSigna
   search.set("city",city.trim().slice(0,80)||"Koronadal City");
   if(["house","apartment","boarding_house","bedspace"].includes(type)) search.set("type",type);
   const data=await getJson("/api/public/listings?"+search.toString(),signal);
-  if(!data || typeof data!=="object" || !("listings" in data) || !Array.isArray(data.listings))
-    throw Error("HomeTayo sent an invalid response.");
-  return (data.listings as unknown[]).filter((item):item is Rental=>{
-    if(!item||typeof item!=="object")return false;
-    const value=item as Record<string,unknown>;
-    return typeof value.slug==="string" && typeof value.title==="string" &&
-      typeof value.city==="string" && typeof value.barangay==="string" &&
-      typeof value.monthlyRentCentavos==="number";
-  });
+  if(!data || typeof data!=="object" || !("listings" in data) || !Array.isArray(data.listings))throw Error("HomeTayo sent an invalid response.");
+  return (data.listings as Rental[]).filter(item=>typeof item?.slug==="string"&&typeof item?.title==="string");
 }
 export async function fetchRentalDetail(slug:string,signal?:AbortSignal):Promise<RentalDetail> {
   if(!/^[a-z0-9][a-z0-9-]{0,119}$/.test(slug)) throw Error("Invalid rental");
   const data=await getJson("/api/public/listings/"+encodeURIComponent(slug),signal);
-  if(!data||typeof data!=="object"||typeof (data as RentalDetail).description!=="string")
-    throw Error("Rental details were unavailable.");
+  if(!data||typeof data!=="object"||typeof (data as RentalDetail).description!=="string")throw Error("Rental details were unavailable.");
   return data as RentalDetail;
 }
-export function rentLabel(centavos:number):string{
-  return "₱"+Math.round(centavos/100).toLocaleString("en-PH");
-}
-export function propertyLabel(type:string):string{
-  return ({
-    house:"House",apartment:"Apartment",boarding_house:"Boarding house",bedspace:"Bedspace",
-  } as Record<string,string>)[type] || "Rental";
-}
+export function rentLabel(centavos:number):string{return "₱"+Math.round(centavos/100).toLocaleString("en-PH");}
+export function propertyLabel(type:string):string{return ({house:"House",apartment:"Apartment",boarding_house:"Boarding house",bedspace:"Bedspace"} as Record<string,string>)[type] || "Rental";}
