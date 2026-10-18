@@ -4,7 +4,6 @@ import {EmailLoginForm} from "@/components/auth-forms";
 import {loginAdministrator} from "./actions";
 import {emailPasswordSignInConfigured,googleSignInConfigured} from "@/lib/email-auth";
 import Link from "next/link";
-import {notFound} from "next/navigation";
 import {ArrowLeft,ClipboardCheck,Flag,ShieldCheck,UserRoundX} from "lucide-react";
 import {desc,eq,sql} from "drizzle-orm";
 import {currentUser} from "@/lib/session-user";
@@ -16,10 +15,15 @@ import {AdminOverview} from "@/components/admin-overview";
 
 export const dynamic="force-dynamic";
 type SafetyRow={id:string;category:string;details:string;status:string;created_at:Date;reporter_name:string|null;target_name:string|null;target_user_id:string|null;target_status:string|null;listing_title:string|null;message_body:string|null};
+
+function AdminSignIn({switching=false}:{switching?:boolean}){
+ return <section className="container interior-page narrow-page"><div className="info-card"><p className="section-kicker">PRIVATE ACCESS</p><h1>Administrator sign in</h1><p>{switching?"You are signed in with a HomeTayo account that does not have administrator access. Sign in with the configured administrator account to continue.":"Use your existing verified HomeTayo administrator account."}</p><EmailLoginForm enabled={emailPasswordSignInConfigured()} loginAction={loginAdministrator}/>{googleSignInConfigured()&&<form action={async()=>{"use server";await signIn("google",{redirectTo:"/administratorsite"});}}><button className="auth-google-button" type="submit">Continue with Google</button></form>}<p><Link href="/">Back to HomeTayo</Link></p></div></section>;
+}
+
 export default async function AdminPage(){
  const user=await currentUser();
- if(!user)return <section className="container interior-page narrow-page"><div className="info-card"><p className="section-kicker">PRIVATE ACCESS</p><h1>Administrator sign in</h1><p>Use your existing verified HomeTayo account.</p><EmailLoginForm enabled={emailPasswordSignInConfigured()} loginAction={loginAdministrator}/>{googleSignInConfigured()&&<form action={async()=>{"use server";await signIn("google",{redirectTo:"/administratorsite"});}}><button className="auth-google-button" type="submit">Continue with Google</button></form>}<p>Need an account first? <Link href="/sign-up">Create a HomeTayo account</Link></p></div></section>;
- if(!canAdminister(user))notFound();
+ if(!user)return <AdminSignIn/>;
+ if(!canAdminister(user))return <AdminSignIn switching/>;
  const db=getDatabase();if(!db)throw new Error("Database not configured.");
  const [submissions,published]=await Promise.all([
   db.select({id:listings.id,title:listings.title,description:listings.description,city:listings.city,barangay:listings.barangay,monthlyRentCentavos:listings.monthlyRentCentavos,propertyType:listings.propertyType,createdAt:listings.createdAt}).from(listings).where(eq(listings.status,"pending_review")).orderBy(desc(listings.createdAt)).limit(50),
