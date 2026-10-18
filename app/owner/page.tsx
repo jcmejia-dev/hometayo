@@ -95,7 +95,7 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
               ))}
             </div>
           )}
-          <p className="owner-disclaimer">Room availability and photo links can be managed from each property when rental management is enabled. Only advertise a property you own or have permission to list.</p>
+          <p className="owner-disclaimer">Room availability and rental photos can be managed from each property when rental management is enabled. Only advertise a property you own or have permission to list.</p>
         </>
       )}
     </section>
