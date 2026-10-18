@@ -78,8 +78,8 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
               {owned.map((listing) => (
                 <article key={listing.id} className="owner-listing">
                   <div>
-                    <span className="owner-status">{listing.status==="pending_review"?"Ready to publish":listing.status.replaceAll("_", " ")}</span>
-                    {["draft","pending_review","paused"].includes(listing.status)&&<form action={publishProperty}><input type="hidden" name="id" value={listing.id}/><button className="button button-primary">Publish rental</button></form>}
+                    <span className="owner-status">{listing.status==="published"?"Available":listing.status==="paused"?"Unavailable":listing.status==="pending_review"?"Ready to publish":listing.status.replaceAll("_", " ")}</span>
+                    {["draft","pending_review","paused"].includes(listing.status)&&<form action={publishProperty}><input type="hidden" name="id" value={listing.id}/><button className="button button-primary">{listing.status==="paused"?"Make available again":"Publish rental"}</button></form>}
                     <h2>{listing.title}</h2>
                     <p>{formatRent(listing.monthlyRentCentavos)} / month</p>
                     {user.role === "landlord" && <Link href={`/owner/listings/${listing.id}/units`} className="button button-outline">Manage rooms & availability</Link>}
