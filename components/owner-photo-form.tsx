@@ -2,6 +2,7 @@
 import {useState} from "react";
 import {ImagePlus,LoaderCircle} from "lucide-react";
 import {MAX_RENTAL_PHOTOS,uploadRentalPhotos} from "@/lib/client-rental-photo-upload";
+import styles from "./rental-photo-upload.module.css";
 
 export function OwnerPhotoForm({listingId}:{listingId:string}){
  const [message,setMessage]=useState(""),[busy,setBusy]=useState(false),[progress,setProgress]=useState("");
@@ -21,7 +22,7 @@ export function OwnerPhotoForm({listingId}:{listingId:string}){
  }}>
   <h2>Rental photos</h2>
   <p>Upload up to {MAX_RENTAL_PHOTOS} JPG, PNG, or WebP images directly from your device. Each image can be up to 4 MB. Saving replaces the current published photo set without changing publication status.</p>
-  <label className="rental-photo-picker"><span><ImagePlus size={19}/> Choose rental photos</span><input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple required disabled={busy}/><small>Select up to {MAX_RENTAL_PHOTOS} photos you own or have permission to publish.</small></label>
+  <label className={styles.picker}><span><ImagePlus size={19}/> Choose rental photos</span><input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple required disabled={busy}/><small>Select up to {MAX_RENTAL_PHOTOS} photos you own or have permission to publish.</small></label>
   <button className="button button-outline" disabled={busy}>{busy?<><LoaderCircle size={17} className="submission-spinner"/>{progress||"Uploading…"}</>:"Replace photos"}</button>
   {progress&&<p role="status">{progress}</p>}{message&&<p role="status">{message}</p>}
  </form>;
