@@ -12,15 +12,18 @@ export async function currentUser() {
   if (!id || !(id.startsWith("google:") || id.startsWith("email:"))) return null;
   const db = getDatabase();
   if (!db) return null;
-  const [account] = await db.select({
-    id: users.id,
-    email: users.email,
-    displayName: sql<string | null>`COALESCE(${users.preferredName},${users.displayName})`,
-    role: users.role,
-    accountStatus: sql<string>`COALESCE(account_status,'active')`,
-  }).from(users).where(eq(users.id, id)).limit(1);
-  if(!account || account.accountStatus === "banned") return null;
-  return {...account,role:publicAccountRole(account.role)};
+  try{
+    const [account] = await db.select({
+      id: users.id,email: users.email,displayName: sql<string | null>`COALESCE(${users.preferredName},${users.displayName})`,role: users.role,
+      accountStatus: sql<string>`COALESCE(account_status,'active')`,
+    }).from(users).where(eq(users.id, id)).limit(1);
+    if(!account || account.accountStatus === "banned") return null;
+    return {...account,role:publicAccountRole(account.role)};
+  }catch{
+    // Backward-safe during deployment before migration 008 reaches the database.
+    const [account] = await db.select({id:users.id,email:users.email,displayName:sql<string|null>`COALESCE(${users.preferredName},${users.displayName})`,role:users.role}).from(users).where(eq(users.id,id)).limit(1);
+    return account?{...account,accountStatus:"active",role:publicAccountRole(account.role)}:null;
+  }
 }
 
 export async function requireAccount() {
