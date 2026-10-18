@@ -41,7 +41,7 @@ export function HeaderInboxActions() {
   const rentalNotices=notices.filter(n=>n.kind!=="message");
   const messageUnread=messageNotices.filter(n=>!n.readAt).length;
   const rentalUnread=rentalNotices.filter(n=>!n.readAt).length;
-  const otherName=(conversationId:string)=>conversations.find(c=>c.id===conversationId)?.otherName||"Someone";
+  const otherName=(conversationId:string|null)=>conversationId?conversations.find(c=>c.id===conversationId)?.otherName||"Someone":"Someone";
   const noticeBody=(n:Notice)=>n.kind==="message"?`${otherName(n.conversationId)} sent you a message`:n.kind==="inquiry"?`New rental inquiry from ${otherName(n.conversationId)}`:n.body;
 
   async function read(id:string){
@@ -53,7 +53,7 @@ export function HeaderInboxActions() {
     }catch(e){setError(e instanceof Error?e.message:"Please try again.");}finally{setSaving("");}
   }
   function openPanel(panel:Exclude<OpenPanel,null>){setOpen(current=>current===panel?null:panel);void load();}
-  function item(n:Notice){return <article key={n.id} className={`notification-item ${!n.readAt?"is-unread":""}`}><span className="notification-dot" aria-label={n.readAt?"Read":"Unread"}/><div><Link onClick={()=>{setOpen(null);if(!n.readAt)void read(n.id);}} href={`/inbox?conversationId=${encodeURIComponent(n.conversationId)}`}><p>{noticeBody(n)}</p><time dateTime={n.createdAt}>{new Date(n.createdAt).toLocaleString("en-PH",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</time></Link>{!n.readAt&&<button className="notification-read" disabled={!!saving} onClick={()=>void read(n.id)}><Check size={14}/>{saving===n.id?"Saving…":"Mark read"}</button>}</div></article>}
+  function item(n:Notice){const href=n.conversationId?`/inbox?conversationId=${encodeURIComponent(n.conversationId)}`:"/owner";return <article key={n.id} className={`notification-item ${!n.readAt?"is-unread":""}`}><span className="notification-dot" aria-label={n.readAt?"Read":"Unread"}/><div><Link onClick={()=>{setOpen(null);if(!n.readAt)void read(n.id);}} href={href}><p>{noticeBody(n)}</p><time dateTime={n.createdAt}>{new Date(n.createdAt).toLocaleString("en-PH",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</time></Link>{!n.readAt&&<button className="notification-read" disabled={!!saving} onClick={()=>void read(n.id)}><Check size={14}/>{saving===n.id?"Saving…":"Mark read"}</button>}</div></article>}
 
   return <div className="header-inbox-actions" ref={root}>
     <button ref={messageButton} type="button" className={`header-icon-button ${open==="messages"?"is-open":""}`} aria-label={`Messages${messageUnread?`, ${messageUnread} unread`:""}`} aria-expanded={open==="messages"} aria-controls="header-messages" onClick={()=>openPanel("messages")} title={messageUnread?`${messageUnread} unread message${messageUnread===1?"":"s"}`:"Messages"}><MessageCircle size={21}/>{messageUnread>0&&<span className="header-notification-count" aria-hidden="true">{messageUnread>99?"99+":messageUnread}</span>}</button>
@@ -67,10 +67,10 @@ export function HeaderInboxActions() {
     </section>}
 
     {open==="notifications"&&<section id="header-notifications" className="notification-popover" aria-label="Notifications">
-      <div className="notification-heading"><div><h2>Notifications</h2><p>{rentalUnread?`${rentalUnread} unread rental update${rentalUnread===1?"":"s"}`:"Your rental updates, all here"}</p></div><button className="header-icon-button" aria-label="Close notifications" onClick={()=>{setOpen(null);notificationButton.current?.focus();}}><X size={18}/></button></div>
+      <div className="notification-heading"><div><h2>Notifications</h2><p>{rentalUnread?`${rentalUnread} unread update${rentalUnread===1?"":"s"}`:"Your rental updates, all here"}</p></div><button className="header-icon-button" aria-label="Close notifications" onClick={()=>{setOpen(null);notificationButton.current?.focus();}}><X size={18}/></button></div>
       <button type="button" className="notification-sound-toggle" onClick={sound.toggle} aria-pressed={sound.enabled}>{sound.enabled?<Volume2 size={16}/>:<VolumeX size={16}/>}Notification sound {sound.enabled?"on":"off"}</button>
       {error&&<div className="notification-error" role="status">{error}<button className="text-link" onClick={()=>void load()}>Try again</button></div>}
-      {loading?<p className="notification-empty" role="status">Loading updates…</p>:!error&&!rentalNotices.length?<div className="notification-empty"><span className="notification-empty-icon"><Bell size={26}/></span><h3>You’re all caught up</h3><p>Rental inquiries, tenancy changes and payment updates will appear here.</p></div>:<div className="notification-items">{rentalNotices.map(item)}</div>}
+      {loading?<p className="notification-empty" role="status">Loading updates…</p>:!error&&!rentalNotices.length?<div className="notification-empty"><span className="notification-empty-icon"><Bell size={26}/></span><h3>You’re all caught up</h3><p>Reactions, inquiries, tenancy changes and payment updates will appear here.</p></div>:<div className="notification-items">{rentalNotices.map(item)}</div>}
       <Link className="notification-footer" href="/inbox" onClick={()=>setOpen(null)}>Open rental workspace<ArrowUpRight size={16}/></Link>
     </section>}
   </div>;
