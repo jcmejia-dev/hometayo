@@ -1,0 +1,122 @@
+.live :global(.chat-refresh) {
+  display: none !important;
+}
+
+.live :global(.chat-workspace .composer-shell) {
+  grid-column: 1;
+  grid-row: 4;
+  min-width: 0;
+  border-top: 1px solid color-mix(in srgb, var(--green) 10%, var(--line));
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  z-index: 4;
+}
+
+.live :global(.chat-workspace .workspace-compose) {
+  grid-column: auto;
+  grid-row: auto;
+  border-top: 0;
+}
+
+.live :global(.composer-extras) {
+  padding: 8px 14px 0;
+}
+
+.live :global(.message-bubble) {
+  position: relative;
+  padding-top: 27px !important;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.live :global(.message-bubble::before) {
+  position: absolute;
+  top: 7px;
+  left: 11px;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .45px;
+  text-transform: uppercase;
+  opacity: .82;
+}
+
+.live :global(.message-owner) {
+  border-color: #9bc5aa !important;
+  background: #edf7f0 !important;
+}
+
+.live :global(.message-owner::before) {
+  content: "🏠  Owner";
+  color: #17623f;
+}
+
+.live :global(.message-renter) {
+  border-color: #a7c5dd !important;
+  background: #eef6fb !important;
+}
+
+.live :global(.message-renter::before) {
+  content: "👤  Renter";
+  color: #245f89;
+}
+
+.live :global(.message-mine.message-owner) {
+  background: #dff0e5 !important;
+}
+
+.live :global(.message-mine.message-renter) {
+  background: #e0f0fa !important;
+}
+
+.live :global(.chat-role-pill) {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+
+.live :global(.chat-role-pill[data-role="owner"]) {
+  background: #e3f2e8;
+  color: #17623f;
+}
+
+.live :global(.chat-role-pill[data-role="renter"]) {
+  background: #e7f2fa;
+  color: #245f89;
+}
+
+.live :global(.compact-report .button),
+.live :global(.chat-heading-actions .report-control .button) {
+  border-color: #d92d20 !important;
+  background: #fff5f4 !important;
+  color: #b42318 !important;
+}
+
+.live :global(.compact-report .button:hover),
+.live :global(.chat-heading-actions .report-control .button:hover) {
+  background: #fee4e2 !important;
+}
+
+.live :global(.message-tools button) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.live :global(.workspace-messages) {
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 900px) {
+  .live :global(.chat-workspace .composer-shell) {
+    grid-column: 1;
+    grid-row: 4;
+  }
+}
