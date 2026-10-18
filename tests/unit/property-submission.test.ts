@@ -16,6 +16,7 @@ function load(relative: string, dependencies: Record<string,unknown>, env = {}) 
   return serviceModule.exports;
 }
 const validation = load("../../lib/property-validation.ts",{});
+const rentalPhotoInput = load("../../lib/rental-photo-input.ts",{});
 function harness({role="landlord",failure=false,session=true}={}) {
   let writes = 0;
   const db = {
@@ -29,12 +30,13 @@ function harness({role="landlord",failure=false,session=true}={}) {
     "@/lib/db":{getDatabase:()=>db},
     "@/lib/session-user":{requireAccount:async()=>{if(!session)throw new Error("Please sign in to continue.");return {id:"owner",role};}},
     "@/lib/property-validation":validation,
+    "@/lib/rental-photo-input":rentalPhotoInput,
   },{ENABLE_RENTAL_MANAGEMENT:"true"});
   return {submit:actions.createProperty as (form:FormData)=>Promise<{error:string}>,writes:()=>writes};
 }
 function form() {
   const data = new FormData();
-  for(const [key,value] of Object.entries({title:"Local test apartment",description:"Synthetic property for submission testing only.",propertyType:"apartment",rentalMode:"per_room",city:"Test City",province:"Test Province",barangay:"Test area",monthlyRent:"3000",bedrooms:"1",bathrooms:"1",availableSlots:"1",furnished:"partial"}))data.set(key,value);
+  for(const [key,value] of Object.entries({title:"Local test apartment",description:"Synthetic property for submission testing only.",propertyType:"apartment",rentalMode:"per_room",city:"Test City",province:"Test Province",barangay:"Test area",monthlyRent:"3000",bedrooms:"1",bathrooms:"1",availableSlots:"1",furnished:"partial",photoUrls:"[]"}))data.set(key,value);
   return data;
 }
 test("submission gives field validation and pin-confirmation errors without database writes",async()=>{
