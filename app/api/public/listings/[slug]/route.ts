@@ -3,7 +3,7 @@ import { getPublishedListing, safePublicContact } from "@/lib/listings";
 import { publicUnits } from "@/lib/rental-units";
 import {safePhotoUrls} from "@/lib/rental-photos";
 
-/** Details for one genuinely published rental. No internal owner IDs or admin fields. */
+/** Details for one genuinely published rental. */
 export const dynamic = "force-dynamic";
 export async function GET(_request:Request, {params}:{params:Promise<{slug:string}>}) {
   const {slug}=await params;
@@ -29,7 +29,8 @@ export async function GET(_request:Request, {params}:{params:Promise<{slug:strin
     furnished:listing.furnished,
     availableSlots:listing.availableSlots,
     lastConfirmedAt:listing.lastConfirmedAt?.toISOString() ?? null,
-    // Contact methods are user-supplied PUBLIC listing details, but must be safe URL schemes.
+    ownerName:listing.ownerName,
+    ownerPhoto:listing.ownerPhoto,
     contactUrl:safePublicContact(listing.ownerContactKind,listing.ownerContactValue),
   },{headers:{"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"}});
 }
