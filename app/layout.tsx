@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import {PlatformAnnouncement} from "@/components/platform-announcement";
 import "./globals.css";
 import "./social-upgrades.css";
 import {NavigationMotion} from "@/components/navigation-motion";
@@ -41,6 +42,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <ThemeRestore/><NavigationMotion/>
         <div className="site-shell">
           <SiteHeader />
+          <PlatformAnnouncement role={user?.role??null}/>
           <main id="main-content">{children}</main>
           <SiteFooter />
           <MobileBottomNav role={user?.role??null}/>
