@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, Home, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Home, ImagePlus, ShieldCheck } from "lucide-react";
 import { redirect } from "next/navigation";
 import { authIsConfigured } from "@/auth";
 import { currentUser } from "@/lib/session-user";
 import { PropertySubmissionForm } from "@/components/property-submission-form";
 import { GuideNudge } from "@/components/guide-nudge";
 import {PropertyLocationPicker} from "@/components/property-location-picker";
+import photoStyles from "@/components/rental-photo-upload.module.css";
 
 export const dynamic = "force-dynamic";
 export default async function NewListingPage() {
@@ -29,7 +30,7 @@ export default async function NewListingPage() {
       <GuideNudge audience="owner" compact />
       <div className="form-howto" aria-label="Before you submit">
         <div><span>01</span><p><strong>Describe your actual rental</strong> Include its location, rent and basic facilities.</p></div>
-        <div><span>02</span><p><strong>Choose the property location</strong> Search an address, use your location, or place a pin. Renters message you inside HomeTayo.</p></div>
+        <div><span>02</span><p><strong>Add location & photos</strong> Choose the property pin and upload clear photos renters can trust.</p></div>
         <div><span>03</span><p><strong>Publish rental</strong> Your property appears publicly when you publish it.</p></div>
       </div>
       <PropertySubmissionForm>
@@ -56,7 +57,8 @@ export default async function NewListingPage() {
           </select></label>
         </div>
         <PropertyLocationPicker/>
-        <p className="owner-disclaimer"><ShieldCheck size={17}/> Your listing becomes public when you publish it. After publishing you can manage rooms and photo links from Owner studio.</p>
+        <label className={photoStyles.picker}><span><ImagePlus size={19}/> Rental photos</span><input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple/><small>Optional: choose up to 8 JPG, PNG, or WebP photos. Each image can be up to 4 MB. The selected photos upload automatically when you publish.</small></label>
+        <p className="owner-disclaimer"><ShieldCheck size={17}/> Your listing becomes public when you publish it. You can replace its photos later from your property management page.</p>
       </PropertySubmissionForm>
     </section>
   );
