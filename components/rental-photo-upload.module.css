@@ -1,0 +1,46 @@
+.picker {
+  display: grid !important;
+  gap: 10px !important;
+  padding: 18px;
+  border: 1px dashed color-mix(in srgb, var(--sage) 55%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--soft) 55%, white);
+}
+
+.picker > span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 780;
+}
+
+.picker input[type="file"] {
+  min-height: 48px;
+  padding: 8px;
+  border-style: solid;
+  background: white;
+  cursor: pointer;
+}
+
+.picker input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 9px 13px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--green);
+  color: white;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.picker small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .picker { padding: 14px; }
+}
