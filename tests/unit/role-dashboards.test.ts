@@ -37,12 +37,13 @@ test("renter dashboard contains discovery and tenancy tools without owner links"
  const html=renderToStaticMarkup(createElement(dashboard as never,{name:"Local tester",latest:empty}));
  assert.ok(html.includes("RENTER WORKSPACE"));assert.ok(html.includes("Messages &amp; my tenancy"));assert.ok(!html.includes('href="/owner"'));assert.ok(!html.includes("List a property"));
 });
-test("phone navigation shows messages for renters and listings only for owners",()=>{
+test("phone navigation keeps renter discovery while owners get messages and listings",()=>{
  const component=load("../../components/mobile-bottom-nav.tsx",{...common,"next/navigation":{usePathname:()=>"/rentals"}}).MobileBottomNav;
  for(const role of ["renter","landlord",null]){
   const html=renderToStaticMarkup(createElement(component as never,{role}));
   assert.equal(html.includes('href="/owner"'),role==="landlord");
-  assert.equal(html.includes('href="/inbox"'),role==="renter");
+  assert.equal(html.includes('href="/inbox"'),role==="renter"||role==="landlord");
+  assert.equal(html.includes('href="/rentals"'),role!=="landlord");
  }
 });
 test("renter cannot open the owner dashboard, even by typing its URL",async()=>{
