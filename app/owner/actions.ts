@@ -81,15 +81,15 @@ export async function createProperty(form: FormData): Promise<{error: string}> {
   revalidatePath("/owner");revalidatePath("/rentals","layout");revalidatePath("/");redirect("/owner?submitted=1");
 }
 
-export async function updatePropertyDetails(form:FormData):Promise<{error?:string}|void>{
+export async function updatePropertyDetails(form:FormData):Promise<void>{
  const account=await requireAccount();
- if(account.role!=="landlord")return {error:"A property-owner account is required."};
- const id=stringField(form,"id");if(!/^[0-9a-f-]{36}$/i.test(id))return {error:"Invalid rental."};
- const parsed=parsedProperty(form);if(!parsed.success)return {error:propertyError(parsed)};
- const value=parsed.data,db=getDatabase();if(!db)return {error:"Database not configured."};
+ if(account.role!=="landlord")throw new Error("A property-owner account is required.");
+ const id=stringField(form,"id");if(!/^[0-9a-f-]{36}$/i.test(id))throw new Error("Invalid rental.");
+ const parsed=parsedProperty(form);if(!parsed.success)throw new Error(propertyError(parsed));
+ const value=parsed.data,db=getDatabase();if(!db)throw new Error("Database not configured.");
  const result=await db.execute(sql`UPDATE listings l SET title=${value.title},description=${value.description},property_type=${value.propertyType},rental_mode=${value.rentalMode},city=${value.city},province=${value.province},barangay=${value.barangay},monthly_rent_centavos=${value.monthlyRent*100},bedrooms=${value.bedrooms===""?null:value.bedrooms},bathrooms=${value.bathrooms===""?null:value.bathrooms},available_slots=${value.availableSlots===""?null:value.availableSlots},furnished=${value.furnished},updated_at=now()
  FROM owner_profiles o WHERE l.owner_id=o.id AND o.user_id=${account.id} AND l.id=${id}::uuid AND l.status NOT IN ('removed','rejected') RETURNING l.slug`);
- if(!result.rows.length)return {error:"Rental not found or cannot be edited."};
+ if(!result.rows.length)throw new Error("Rental not found or cannot be edited.");
  revalidatePath("/owner");revalidatePath(`/owner/listings/${id}/edit`);revalidatePath("/rentals","layout");revalidatePath("/");
  redirect("/owner?updated=1");
 }
