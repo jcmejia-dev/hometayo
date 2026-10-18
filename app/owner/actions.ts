@@ -8,10 +8,18 @@ import { ownerProfiles } from "@/db/schema";
 import { getDatabase } from "@/lib/db";
 import { requireAccount } from "@/lib/session-user";
 import { generateSlug, propertyInputSchema } from "@/lib/property-validation";
+import {photoUrl} from "@/lib/rental-photo-input";
 
 function stringField(form: FormData, key: string) {
   const value = form.get(key);
   return typeof value === "string" ? value : "";
+}
+function photoUrlsField(form:FormData):string[]|null{
+  try{
+    const value=JSON.parse(stringField(form,"photoUrls")||"[]") as unknown;
+    if(!Array.isArray(value)||value.length>8||!value.every(item=>photoUrl.safeParse(item).success))return null;
+    return value as string[];
+  }catch{return null;}
 }
 export async function createProperty(form: FormData): Promise<{error: string}> {
   try {
@@ -39,6 +47,8 @@ export async function createProperty(form: FormData): Promise<{error: string}> {
     const labels: Record<string,string> = {title:"Property title",description:"Description",propertyType:"Property type",rentalMode:"Rent basis",city:"City",province:"Province",barangay:"Barangay",monthlyRent:"Monthly rent",bedrooms:"Bedrooms",bathrooms:"Bathrooms",availableSlots:"Available slots",furnished:"Furnishing",latitude:"Property location",longitude:"Property location"};
     return {error: parsed.error.issues.map(issue => `${labels[String(issue.path[0])] || "Rental details"}: ${issue.message}`).join(" ")};
   }
+  const photoUrls=photoUrlsField(form);
+  if(photoUrls===null)return {error:"Rental photos are invalid. Choose up to eight JPG, PNG, or WebP images and try again."};
   const value = parsed.data;
   const locationsReady=process.env.ENABLE_NATIVE_AUTH==="true"||process.env.ENABLE_RENTAL_MANAGEMENT==="true";
   if(!locationsReady && value.latitude!==null)return {error:"Property map pins are awaiting server setup. Remove the pin to submit without it, or try again after setup is complete."};
@@ -59,7 +69,7 @@ export async function createProperty(form: FormData): Promise<{error: string}> {
   }
   if (!profile) throw new Error("Could not initialize the owner profile.");
 
-  // Create listing and its operational event together in one SQL statement.
+  // Create the listing, its photos, and its operational event together.
   const newId = randomUUID();
   await db.execute(sql`
     WITH created AS (
@@ -77,9 +87,15 @@ export async function createProperty(form: FormData): Promise<{error: string}> {
         ${value.ownerContactKind}, ${value.ownerContactKind === "none" ? null : value.ownerContactValue},
         now(), now()
       ) RETURNING id
+    ), images AS (
+      INSERT INTO listing_images(listing_id,storage_key,alt_text,display_order)
+      SELECT created.id,v.url,'Owner supplied rental photo',v.position::int
+      FROM created CROSS JOIN jsonb_array_elements_text(${JSON.stringify(photoUrls)}::jsonb) WITH ORDINALITY AS v(url,position)
+      RETURNING listing_id
     )
     INSERT INTO platform_events (actor_user_id, kind, listing_id)
     SELECT ${account.id}, 'listing.submitted', id FROM created
+    WHERE (SELECT count(*) FROM images)>=0
   `);
   } catch (error) {
     if (error instanceof Error && error.message === "Please sign in to continue.") return {error:"Your session has expired. Sign in again before submitting your rental."};
