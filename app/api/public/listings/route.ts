@@ -5,10 +5,7 @@ import { browseMapRentals } from "@/lib/geo-listings";
 
 export const dynamic = "force-dynamic";
 
-/** Public read-only JSON API for the native Android application.
- * Authentication/owner/admin actions are NOT exposed to the client.
- * Neon credentials and private owner contact information never leave the server.
- */
+/** Public read-only JSON API for web/native rental discovery. */
 export async function GET(request: Request) {
   const url = new URL(request.url);
   if(url.searchParams.get("map")==="1") {
@@ -33,6 +30,7 @@ export async function GET(request: Request) {
     listings: result.listings.map(listing => ({
       slug:listing.slug,
       title:listing.title,
+      description:listing.description,
       propertyType:listing.propertyType,
       city:listing.city,
       barangay:listing.barangay,
@@ -41,6 +39,10 @@ export async function GET(request: Request) {
       bathrooms:listing.bathrooms,
       rentalMode:listing.rentalMode,
       lastConfirmedAt:listing.lastConfirmedAt?.toISOString() ?? null,
+      ownerName:listing.ownerName,
+      ownerPhoto:listing.ownerPhoto,
+      photoUrl:listing.photoUrls[0] ?? null,
+      unitCounts:listing.unitCounts,
     })),
   }, {headers:{"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"}});
 }
