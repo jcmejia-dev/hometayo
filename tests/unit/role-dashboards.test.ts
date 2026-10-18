@@ -16,13 +16,14 @@ function load(path:string,dependencies:Record<string,unknown>){
 const empty={state:"ready",listings:[]};
 const Link=({href,children,...props}:{href:string;children:unknown})=>createElement("a",{href,...props},children as never);
 const common={"@/components/rental-search-map":{RentalSearchMap:()=>null},"next/link":{default:Link},"next/navigation":{redirect:(url:string)=>{throw Error(`REDIRECT:${url}`);}},"@/components/search-form":{SearchForm:()=>createElement("div",null,"Search filters")},"@/components/guide-nudge":{GuideNudge:()=>null},"next/image":{default:()=>null},"@/lib/rental-photos":{safePhotoUrls:()=>[]},"@/components/rental-social":{RentalSocial:()=>null},"@/lib/search-filters":{parseRentalFilters:()=>({city:"Test City"}),formatRent:()=>"₱100"}};
-test("rental search gives renters search/messages actions and reserves owner prompts for owners or guests",async()=>{
- for(const role of ["renter","landlord",null]){
+test("rental feed is renter-facing and owners return to their dashboard",async()=>{
+ for(const role of ["renter",null]){
   const page=load("../../app/rentals/page.tsx",{...common,"@/lib/listings":{browsePublishedListings:async()=>empty},"@/lib/session-user":{currentUser:async()=>role?{role}:null}}).default;
   const html=renderToStaticMarkup(await page({searchParams:Promise.resolve({})}) as never);
-  assert.equal(html.includes("Own a rental?"),role!=="renter");
-  if(role==="renter"){assert.ok(html.includes("Adjust your search"));assert.ok(html.includes("My messages"));assert.ok(!html.includes('href="/owner"'));}
+  assert.ok(html.includes("Adjust your search"));if(role==="renter")assert.ok(html.includes("My messages"));
  }
+ const ownerPage=load("../../app/rentals/page.tsx",{...common,"@/lib/listings":{browsePublishedListings:async()=>empty},"@/lib/session-user":{currentUser:async()=>({role:"landlord"})}}).default;
+ await assert.rejects(ownerPage({searchParams:Promise.resolve({})}) as Promise<unknown>,/REDIRECT:\/owner/);
 });
 test("authenticated home selects the renter dashboard and routes owners to their studio",async()=>{
  for(const role of ["renter","landlord"]){
@@ -35,7 +36,7 @@ test("renter dashboard contains discovery and tenancy tools without owner links"
  const featured=load("../../components/featured-rentals.tsx",common).FeaturedRentalsPanel;
  const dashboard=load("../../components/renter-dashboard.tsx",{...common,"@/components/featured-rentals":{FeaturedRentalsPanel:featured}}).RenterDashboard;
  const html=renderToStaticMarkup(createElement(dashboard as never,{name:"Local tester",latest:empty}));
- assert.ok(html.includes("RENTER WORKSPACE"));assert.ok(html.includes("Messages &amp; my tenancy"));assert.ok(!html.includes('href="/owner"'));assert.ok(!html.includes("List a property"));
+ assert.ok(html.includes("RENTER WORKSPACE"));assert.ok(html.includes("Messages &amp; my tenancy"));assert.ok(html.includes("Explore rental feed"));assert.ok(!html.includes("Where would you like to live?"));assert.ok(!html.includes('href="/owner"'));assert.ok(!html.includes("List a property"));
 });
 test("phone navigation keeps renter discovery while owners get messages and listings",()=>{
  const component=load("../../components/mobile-bottom-nav.tsx",{...common,"next/navigation":{usePathname:()=>"/rentals"}}).MobileBottomNav;
