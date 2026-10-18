@@ -27,8 +27,17 @@ export function operationQuery(userId:string,v:RentalOperation):{sql:string;args
  }
 }
 export async function performOperation(userId:string,body:unknown){
- const v=rentalOperation.parse(body), query=operationQuery(userId,v);
- const rows=await client().query(query.sql,query.args);
+ const v=rentalOperation.parse(body), query=operationQuery(userId,v),db=client();
+ const rows=await db.query(query.sql,query.args);
+ if(v.action==="react"&&v.kind!=="none"&&rows.length){
+  await db.query(`INSERT INTO rental_notifications(user_id,conversation_id,listing_id,kind,body,event_key)
+   SELECT o.user_id,NULL,l.id,'reaction',COALESCE(u.preferred_name,u.display_name,'Someone')||' '||
+    CASE $3 WHEN 'like' THEN 'liked' WHEN 'love' THEN 'loved' ELSE 'is interested in' END||' your listing',
+    'reaction:'||l.id::text||':'||$1
+   FROM listings l JOIN owner_profiles o ON o.id=l.owner_id JOIN users u ON u.id=$1
+   WHERE l.slug=$2 AND o.user_id<>$1
+   ON CONFLICT(event_key) DO UPDATE SET body=excluded.body,read_at=NULL,created_at=now(),listing_id=excluded.listing_id`,[userId,v.slug,v.kind]);
+ }
  // A replay is harmless. Other no-op results need a clear retry/access message.
  if(!rows.length && !["message","payment","charge","remind","read","react"].includes(v.action))throw Error("Action unavailable. Check access and current status.");
  return {id:rows[0]?.id as string|undefined,message:rows.length?"Saved.":"Already recorded, unavailable, or no change needed."};
@@ -45,7 +54,6 @@ export async function operationsState(userId:string,conversationId?:string,month
  const db=client();
  if(conversationId)uuidInput.parse(conversationId);
  if(before)uuidInput.parse(before);
- // Intl separators differ between runtimes; extract the parts explicitly.
  const parts=new Intl.DateTimeFormat("en",{timeZone:"Asia/Manila",year:"numeric",month:"2-digit"}).formatToParts(new Date());
  const selected=month&&/^\d{4}-(0[1-9]|1[0-2])$/.test(month)?month:`${parts.find(p=>p.type==="year")!.value}-${parts.find(p=>p.type==="month")!.value}`;
  const [conversations,notifications,summary,messages,tenancies,charges,payments]=await Promise.all([
