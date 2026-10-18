@@ -21,6 +21,11 @@ function photoUrlsField(form:FormData):string[]|null{
     return value as string[];
   }catch{return null;}
 }
+function listingManagementReturnPath(form:FormData,id:string):string|null{
+  const value=form.get("returnTo");
+  const expected=`/owner/listings/${id}/units`;
+  return typeof value==="string"&&value===expected?value:null;
+}
 export async function createProperty(form: FormData): Promise<{error: string}> {
   try {
   const account = await requireAccount();
@@ -116,6 +121,7 @@ export async function publishProperty(form:FormData){
   if(account.role!=="landlord")throw Error("A property-owner account is required.");
   const id=form.get("id");
   if(typeof id!=="string"||!/^[0-9a-f-]{36}$/i.test(id))throw Error("Invalid listing ID.");
+  const returnTo=listingManagementReturnPath(form,id);
   const db=getDatabase();if(!db)throw Error("Database not configured.");
   const result=await db.execute(sql`WITH changed AS (
     UPDATE listings l SET status='published',published_at=now(),last_confirmed_at=now(),updated_at=now()
@@ -125,6 +131,7 @@ export async function publishProperty(form:FormData){
     SELECT ${account.id},'listing.submitted',id FROM changed RETURNING listing_id`);
   if(!result.rows.length)throw Error("Listing not found, already live, or unavailable for publication.");
   revalidatePath("/owner");revalidatePath("/rentals","layout");revalidatePath("/");
+  if(returnTo){revalidatePath(returnTo);redirect(`${returnTo}?availability=live`);}
   redirect("/owner?submitted=1");
 }
 
@@ -133,6 +140,7 @@ export async function pauseProperty(form: FormData) {
   if(account.role!=="landlord")throw new Error("A property-owner account is required.");
   const id = form.get("id");
   if (typeof id !== "string" || !/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid listing ID.");
+  const returnTo=listingManagementReturnPath(form,id);
   const db = getDatabase();
   if (!db) throw new Error("Database not configured.");
   const [owner] = await db.select({ id: ownerProfiles.id }).from(ownerProfiles)
@@ -150,4 +158,5 @@ export async function pauseProperty(form: FormData) {
   `);
   revalidatePath("/owner");
   revalidatePath("/rentals");
+  if(returnTo){revalidatePath(returnTo);redirect(`${returnTo}?availability=paused`);}
 }
