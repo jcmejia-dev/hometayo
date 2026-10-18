@@ -27,6 +27,7 @@ export default async function AdminPage() {
     monthlyRentCentavos: listings.monthlyRentCentavos,
     propertyType: listings.propertyType, createdAt: listings.createdAt,
   }).from(listings).where(eq(listings.status, "pending_review")).orderBy(desc(listings.createdAt)).limit(50);
+  const published=await db.select({id:listings.id,title:listings.title,slug:listings.slug}).from(listings).where(eq(listings.status,"published")).orderBy(desc(listings.createdAt)).limit(100);
 
   return (
     <section className="container interior-page admin-control-page">
@@ -34,9 +35,10 @@ export default async function AdminPage() {
       <div className="interior-heading">
         <span className="page-icon"><ClipboardCheck size={27}/></span>
         <p className="section-kicker">MODERATION</p><h1>Admin dashboard</h1>
-        <p>Review new listings and manage platform operations.</p>
+        <p>Owners publish directly. Moderate listings and manage platform operations.</p>
       </div>
       <AdminOverview />
+      <section className="info-card"><h2>Published rentals</h2><p>Remove a listing from public search when it violates platform rules.</p>{!published.length&&<p>No published rentals yet.</p>}{published.map(item=><article className="owner-listing" key={item.id}><div><h3>{item.title}</h3><Link href={`/rentals/${item.slug}`} className="text-link">View listing</Link></div><form action={reviewProperty} className="review-actions"><input type="hidden" name="id" value={item.id}/><input type="hidden" name="decision" value="removed"/><label>Removal reason<input name="reason" required minLength={5} maxLength={500}/></label><button className="button button-outline">Remove listing</button></form></article>)}</section>
       <div className="admin-section-heading admin-review-queue-heading"><div><p className="section-kicker">NEEDS YOUR ATTENTION</p><h2>Rental review queue</h2></div></div>
       {submissions.length === 0 && <div className="info-card"><h2>You&apos;re all caught up.</h2><p>No rental submissions are waiting for review.</p></div>}
       <div className="owner-list">

@@ -27,7 +27,7 @@ test("migrations apply locally; expired/revoked sessions fail and owner choice p
     const id="00000000-0000-4000-8000-000000000001";
     assert.equal((await db.query(UPDATE_OWNER_PIN,[6,124,"admin",id])).rows.length,0);
     assert.equal((await db.query(UPDATE_OWNER_PIN,[6,124,"member",id])).rows.length,1);
-    assert.equal((await db.query<{status:string}>("SELECT status FROM listings WHERE id=$1",[id])).rows[0].status,"pending_review");
+    assert.equal((await db.query<{status:string}>("SELECT status FROM listings WHERE id=$1",[id])).rows[0].status,"published");
     await assert.rejects(db.query("UPDATE listings SET latitude=100 WHERE id=$1",[id]));
   }finally {await db.close();}
 });

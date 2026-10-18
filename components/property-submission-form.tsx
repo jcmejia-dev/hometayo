@@ -40,7 +40,7 @@ export function PropertySubmissionForm({children}: {children: ReactNode}) {
     {children}
     {error && <div ref={feedback} role="alert" tabIndex={-1} className="status-notice submission-error"><strong>Your rental has not been submitted.</strong><p>{error}</p></div>}
     <button className="button button-primary" type="submit" disabled={pending}>
-      {pending ? <><LoaderCircle size={18} className="submission-spinner"/>Submitting…</> : "Submit for review"}
+      {pending ? <><LoaderCircle size={18} className="submission-spinner"/>Submitting…</> : "Publish rental"}
     </button>
   </form>;
 }

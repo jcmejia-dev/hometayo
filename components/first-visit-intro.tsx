@@ -7,8 +7,8 @@ import { ArrowLeft, ArrowRight, Building2, Compass, Home, MapPin, ShieldCheck, X
 export const INTRO_STORAGE_KEY = "hometayo.intro.v1";
 const slides = [
   { title:"Find your next home", copy:"Explore houses, apartments, boarding houses and bedspaces that fit your needs.", Icon:Home, tag:"DISCOVER" },
-  { title:"Search on your terms", copy:"Choose a location, set your budget and find properties approved for publication.", Icon:Compass, tag:"EXPLORE" },
-  { title:"Have a place to rent?", copy:"Submit accurate rental details and track the administrator review from your owner dashboard.", Icon:Building2, tag:"LIST YOUR SPACE" },
+  { title:"Search on your terms", copy:"Choose a location, set your budget and find properties published by property owners.", Icon:Compass, tag:"EXPLORE" },
+  { title:"Have a place to rent?", copy:"Publish accurate rental details and manage availability from your owner dashboard.", Icon:Building2, tag:"LIST YOUR SPACE" },
 ];
 
 /** First visit is optional. Skipping or browsing as guest never requires account creation. */

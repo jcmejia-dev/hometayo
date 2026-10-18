@@ -1,3 +1,5 @@
+> Current publication policy (2026-10-18, user approved): owners publish immediately. Earlier pre-publication approval requirements in this blueprint are superseded by docs/DIRECT_OWNER_PUBLISHING.md. Admin takedown and server ownership checks remain required.
+
 # HomeTayo — Product and Engineering Blueprint v1.0
 
 **Status:** Proposed product specification, not implemented  

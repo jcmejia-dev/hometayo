@@ -6,7 +6,7 @@ import { currentUser } from "@/lib/session-user";
 import { getDatabase } from "@/lib/db";
 import { listings, ownerProfiles } from "@/db/schema";
 import { formatRent } from "@/lib/search-filters";
-import { pauseProperty } from "./actions";
+import { pauseProperty,publishProperty } from "./actions";
 import { GuideNudge } from "@/components/guide-nudge";
 import { redirect } from "next/navigation";
 
@@ -32,15 +32,15 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
       <div className="interior-heading">
         <p className="section-kicker">PROPERTY OWNER STUDIO</p>
         <h1>{user ? "Your rental listings." : "Let people discover your space."}</h1>
-        <p>{user ? "See listing status and manage availability." : "List a space for review before it appears publicly."}</p>
+        <p>{user ? "See listing status and manage availability." : "Publish a space and manage its availability."}</p>
       </div>
       <GuideNudge audience="owner" compact />
       {user?.role === "landlord" && <Link className="button button-primary" href="/inbox">Dashboard, messages & rent ledger <ArrowRight size={18}/></Link>}
       {!user ? (
         <div className="info-card">
           <h2>What owners will get</h2>
-          <div className="info-step"><Building2 size={22}/><p>Submit property details, rent, location and contact preferences for review.</p></div>
-          <div className="info-step"><ShieldCheck size={22}/><p>Property submissions remain unpublished until an administrator approves them.</p></div>
+          <div className="info-step"><Building2 size={22}/><p>Publish property details, rent and location, then manage inquiries in HomeTayo.</p></div>
+          <div className="info-step"><ShieldCheck size={22}/><p>Owners publish their own listings. HomeTayo can remove listings that violate its rules.</p></div>
           {authIsConfigured() ? (
             <Link className="button button-primary bottom-link" href="/sign-in">Sign in or create account <ArrowRight size={17}/></Link>
           ) : (
@@ -49,7 +49,7 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
         </div>
       ) : (
         <>
-          {params.submitted === "1" && <div className="status-notice">Your rental was submitted for review. It is not public until approved.</div>}
+          {params.submitted === "1" && <div className="status-notice">Your rental is published. Renters can now find it when their search filters match.</div>}
           <div className="owner-toolbar">
             <span>Signed in as {user.displayName || user.email}</span>
             <div className="owner-actions">
@@ -64,7 +64,7 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
           </div>
           <div className="owner-quick-stats" aria-label="Your listing overview">
             <span><strong>{owned.length}</strong> Total</span>
-            <span><strong>{owned.filter((item) => item.status === "pending_review").length}</strong> In review</span>
+            <span><strong>{owned.filter((item) => ["draft","pending_review","paused"].includes(item.status)).length}</strong> Not published</span>
             <span><strong>{owned.filter((item) => item.status === "published").length}</strong> Live</span>
           </div>
           {owned.length === 0 ? (
@@ -78,7 +78,8 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
               {owned.map((listing) => (
                 <article key={listing.id} className="owner-listing">
                   <div>
-                    <span className="owner-status">{listing.status.replaceAll("_", " ")}</span>
+                    <span className="owner-status">{listing.status==="pending_review"?"Ready to publish":listing.status.replaceAll("_", " ")}</span>
+                    {["draft","pending_review","paused"].includes(listing.status)&&<form action={publishProperty}><input type="hidden" name="id" value={listing.id}/><button className="button button-primary">Publish rental</button></form>}
                     <h2>{listing.title}</h2>
                     <p>{formatRent(listing.monthlyRentCentavos)} / month</p>
                     {user.role === "landlord" && <Link href={`/owner/listings/${listing.id}/units`} className="button button-outline">Manage rooms & availability</Link>}

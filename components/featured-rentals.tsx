@@ -13,7 +13,7 @@ export function FeaturedRentalsPanel({ result,audience }: { result: BrowseResult
     <aside className="market-preview-wrap featured-wrap" aria-labelledby="featured-rentals-heading">
       <div className="featured-panel">
         <div className="featured-panel-header">
-          <span className="featured-label"><ShieldCheck size={15} aria-hidden="true"/> Admin-approved listings</span>
+          <span className="featured-label"><ShieldCheck size={15} aria-hidden="true"/> Owner-published rentals</span>
           <h2 id="featured-rentals-heading">Recently added rentals</h2>
           <p>Browse local places with clear rental details.</p>
         </div>
@@ -38,7 +38,7 @@ export function FeaturedRentalsPanel({ result,audience }: { result: BrowseResult
             <h3>Find a place that feels right.</h3>
             <p>{result.state === "error"
               ? "Rental listings are temporarily unavailable. Please try again shortly."
-              : "New rentals will appear here after property owners submit them and an administrator approves them."}</p>
+              : "New rentals will appear here as property owners publish their listings."}</p>
           </div>
         )}
         <div className="featured-panel-actions">
@@ -46,7 +46,7 @@ export function FeaturedRentalsPanel({ result,audience }: { result: BrowseResult
           {audience!=="renter"&&<Link href="/owner" className="featured-secondary-link">List a property <ArrowRight size={15} aria-hidden="true"/></Link>}
         </div>
       </div>
-      <p className="featured-disclaimer">Listings are reviewed before publication. Always verify property details independently.</p>
+      <p className="featured-disclaimer">Listings are published by owners. Always verify property details independently.</p>
     </aside>
   );
 }

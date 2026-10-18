@@ -140,7 +140,7 @@ function NativeApp(){
           {selected.units.map(unit=><View key={unit.id} style={styles.amenity}><Icon name="building" size={20}/><View><Text style={styles.infoText}>{unit.label} · {unit.status}</Text><Text style={styles.paragraph}>{rentLabel(unit.monthlyRentCentavos)} / month</Text></View></View>)}
         </View>}
         {selected.inclusions&&<><Text style={styles.sectionTitle}>Inclusions & amenities</Text>{selected.inclusions.map(item=><View key={item} style={styles.amenity}><Icon name={item.includes("Wi-Fi")?"wifi":"check"} size={19}/><Text style={styles.infoText}>{item}</Text></View>)}<Text style={styles.paragraph}>Electricity is billed separately. Sample terms: one month deposit and one month advance.</Text><Text style={styles.paragraph}>{selected.availableSlots?selected.availableSlots+" sample slots":"Whole unit"}</Text></>}
-        {!selected.demo&&<Text style={styles.disclaimer}>Admin review does not guarantee property ownership, condition or safety. Verify details independently before paying.</Text>}
+        {!selected.demo&&<Text style={styles.disclaimer}>HomeTayo does not guarantee property ownership, condition or safety. Verify details independently before paying.</Text>}
         {selected.demo&&<Text style={styles.disclaimer}>Demo only — contacting or booking is disabled.</Text>}
       </>:null}
     </ScrollView> :
@@ -162,7 +162,7 @@ you’ll love.</Text><Text style={styles.homeArtText}>Explore homes on the map</
       </View>
       <Text style={styles.sectionTitle}>How HomeTayo works</Text>
       <View style={styles.infoRow}><View style={styles.infoIcon}><Icon name="pin" size={20}/></View><Text style={styles.infoText}>Search by location and property type.</Text></View>
-      <View style={styles.infoRow}><View style={styles.infoIcon}><Icon name="search" size={20}/></View><Text style={styles.infoText}>Review approved property details.</Text></View>
+      <View style={styles.infoRow}><View style={styles.infoIcon}><Icon name="search" size={20}/></View><Text style={styles.infoText}>Review property details.</Text></View>
       <View style={styles.infoRow}><View style={styles.infoIcon}><Icon name="shield" size={20}/></View><Text style={styles.infoText}>Verify the home and owner before making payments.</Text></View>
       <Pressable accessibilityRole="button" onPress={()=>{setIntro(0);setWelcomeOpen(true);}} style={styles.textAction}><Text style={styles.inlineLink}>Replay introduction →</Text></Pressable>
     </ScrollView> :

@@ -90,10 +90,10 @@ test("complete private rental lifecycle, partial payments, correction, notificat
   assert.equal((await db.query("SELECT * FROM listing_reactions")).rows.length,0);
   assert.equal((await db.query(SAVE_PHOTOS,[listing,"other",JSON.stringify(["https://example.com/photo.jpg"])] )).rows.length,0);
   await db.query(SAVE_PHOTOS,[listing,"owner",JSON.stringify(["https://example.com/photo.jpg","https://example.com/photo2.jpg"])]);
-  assert.equal((await db.query<{status:string}>("SELECT status FROM listings WHERE id=$1",[listing])).rows[0].status,"pending_review");
+  assert.equal((await db.query<{status:string}>("SELECT status FROM listings WHERE id=$1",[listing])).rows[0].status,"published");
   assert.equal((await db.query("SELECT * FROM listing_images WHERE listing_id=$1",[listing])).rows.length,2);
-  assert.equal((await db.query(q.REACT,["renter","test-home","like"])).rows.length,0);
-  assert.equal((await db.query(q.INQUIRE,["renter","test-home"])).rows.length,0);
+  assert.equal((await db.query(q.REACT,["renter","test-home","like"])).rows.length,1);
+  assert.equal((await db.query(q.INQUIRE,["renter","test-home"])).rows.length,1);
   await db.query(SAVE_PHOTOS,[listing,"owner",JSON.stringify(["https://example.com/new.jpg"])]);
   assert.equal((await db.query("SELECT * FROM listing_images WHERE listing_id=$1",[listing])).rows.length,1);
  }finally{await db.close();}

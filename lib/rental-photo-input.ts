@@ -10,5 +10,5 @@ export const SAVE_PHOTOS=`WITH owned AS MATERIALIZED (
  added AS (INSERT INTO listing_images(listing_id,storage_key,alt_text,display_order)
  SELECT owned.id,v.url,'Owner supplied rental photo',v.position::int FROM owned CROSS JOIN jsonb_array_elements_text($3::jsonb) WITH ORDINALITY AS v(url,position)
  WHERE (SELECT count(*) FROM removed)>=0 RETURNING id),
- changed AS (UPDATE listings SET status='pending_review',updated_at=now() WHERE id IN(SELECT id FROM owned) AND (SELECT count(*) FROM added)>=0 RETURNING id)
+ changed AS (UPDATE listings SET updated_at=now() WHERE id IN(SELECT id FROM owned) AND (SELECT count(*) FROM added)>=0 RETURNING id)
  SELECT id FROM changed`;

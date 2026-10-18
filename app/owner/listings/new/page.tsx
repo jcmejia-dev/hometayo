@@ -24,13 +24,13 @@ export default async function NewListingPage() {
       <div className="interior-heading">
         <span className="page-icon"><Home size={25}/></span>
         <p className="section-kicker">ADD A RENTAL</p><h1>Tell us about your property.</h1>
-        <p>Only submit genuine, authorized rental offers. This form sends your property for human review — not immediate publication.</p>
+        <p>Only submit genuine, authorized rental offers. Publishing makes your rental visible to renters immediately.</p>
       </div>
       <GuideNudge audience="owner" compact />
       <div className="form-howto" aria-label="Before you submit">
         <div><span>01</span><p><strong>Describe your actual rental</strong> Include its location, rent and basic facilities.</p></div>
         <div><span>02</span><p><strong>Choose the property location</strong> Search an address, use your location, or place a pin. Renters message you inside HomeTayo.</p></div>
-        <div><span>03</span><p><strong>Submit for review</strong> Your property stays private until an administrator approves it.</p></div>
+        <div><span>03</span><p><strong>Publish rental</strong> Your property appears publicly when you publish it.</p></div>
       </div>
       <PropertySubmissionForm>
         <label>Property title <input required name="title" minLength={8} maxLength={120} placeholder="e.g. Spacious 4-bedroom family house"/></label>
@@ -56,7 +56,7 @@ export default async function NewListingPage() {
           </select></label>
         </div>
         <PropertyLocationPicker/>
-        <p className="owner-disclaimer"><ShieldCheck size={17}/> Your listing stays private until an administrator reviews it. After submission you can manage rooms and photo links from Owner studio.</p>
+        <p className="owner-disclaimer"><ShieldCheck size={17}/> Your listing becomes public when you publish it. After publishing you can manage rooms and photo links from Owner studio.</p>
       </PropertySubmissionForm>
     </section>
   );
