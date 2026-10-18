@@ -34,9 +34,9 @@ export default async function Home({ searchParams }:{searchParams:Promise<{intro
       <section className="container home-search" aria-label="Find a rental"><SearchForm/></section>
 
       {!user && <section className="container web-purpose-section" aria-label="What HomeTayo does">
-        <div><p className="section-kicker">ONE COMMUNITY. TWO WAYS TO BELONG.</p><h2>A home for renters.<br/>A place for your rental.</h2><p>Discover what fits your next chapter, with clear details and listings reviewed before publication.</p></div>
+        <div><p className="section-kicker">ONE COMMUNITY. TWO WAYS TO BELONG.</p><h2>A home for renters.<br/>A place for your rental.</h2><p>Discover what fits your next chapter, with clear details and owner-published rentals.</p></div>
         <article><House size={28}/><h3>Looking for a home?</h3><p>Search by location, property type and budget. Review the details and contact the owner.</p><Link href="/sign-up?audience=renter" className="text-link">Join as a renter <ArrowUpRight size={16}/></Link></article>
-        <article><Building2 size={28}/><h3>Have a space to rent?</h3><p>Submit your property for review, track its status and manage its availability.</p><Link href="/sign-up?audience=owner" className="text-link">Join as a property owner <ArrowUpRight size={16}/></Link></article>
+        <article><Building2 size={28}/><h3>Have a space to rent?</h3><p>Publish your property, track its status and manage its availability.</p><Link href="/sign-up?audience=owner" className="text-link">Join as a property owner <ArrowUpRight size={16}/></Link></article>
       </section>}
 
       <section className="categories-section container" id="categories">
@@ -49,7 +49,7 @@ export default async function Home({ searchParams }:{searchParams:Promise<{intro
         </div>
       </section>
 
-      <section className="container pilot-banner"><ShieldCheck size={20}/><p>Listings are reviewed before publication. Always verify the property and owner independently.</p><Link href="/owner" className="text-link">List a property <ArrowUpRight size={16}/></Link></section>
+      <section className="container pilot-banner"><ShieldCheck size={20}/><p>Listings are published by owners. Always verify the property and owner independently.</p><Link href="/owner" className="text-link">List a property <ArrowUpRight size={16}/></Link></section>
     </>
   );
 }

@@ -13,7 +13,7 @@ import type {Account} from "./session";
 const details:Array<{icon:IconName;title:string;copy:string;tag:string}>= [
   {icon:"home",title:"Your next chapter\nstarts at home.",copy:"Discover houses, apartments, boarding houses and bedspaces. Find a space that fits your life, all in one place.",tag:"A space for every story"},
   {icon:"pin",title:"Closer to where\nyou want to be.",copy:"Explore rentals on the map. Compare prices, details and distances to the places that matter to you.",tag:"Explore your neighbourhood"},
-  {icon:"key",title:"Open the door\nto new possibilities.",copy:"Own a rental? Share your property for review and manage your listings. Renters can browse freely and check details before contacting owners.",tag:"For renters & property owners"},
+  {icon:"key",title:"Open the door\nto new possibilities.",copy:"Own a rental? Publish your property and manage your listings. Renters can browse freely and check details before contacting owners.",tag:"For renters & property owners"},
 ];
 function WelcomeArt({icon,tag,reduced}:{icon:IconName;tag:string;secondary:IconName;reduced:boolean}){
   return <OnboardingArt variant={icon==="pin"?"map":icon==="key"?"keys":"home"} tag={tag} reduced={reduced}/>;

@@ -14,9 +14,9 @@ export async function reviewProperty(form: FormData) {
   const verdict = form.get("decision");
   const reason = form.get("reason");
   if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error("Invalid listing.");
-  if (verdict !== "approved" && verdict !== "rejected") throw new Error("Invalid review decision.");
+  if (verdict !== "approved" && verdict !== "rejected" && verdict!=="removed") throw new Error("Invalid review decision.");
   const explanation = typeof reason === "string" ? reason.trim().slice(0, 500) : "";
-  if (verdict === "rejected" && explanation.length < 5) throw new Error("Please explain rejection.");
+  if (verdict !== "approved" && explanation.length < 5) throw new Error("Please explain the moderation decision.");
   const db = getDatabase();
   if (!db) throw new Error("Database not configured.");
 
@@ -25,10 +25,11 @@ export async function reviewProperty(form: FormData) {
   const result = await db.execute(sql`
     WITH transitioned AS (
       UPDATE listings
-      SET status = ${verdict === "approved" ? "published" : "rejected"},
+      SET status = ${verdict === "approved" ? "published" : verdict},
           published_at = CASE WHEN ${verdict === "approved"} THEN now() ELSE NULL END,
           updated_at = now()
-      WHERE id = ${id}::uuid AND status = 'pending_review'
+      WHERE id = ${id}::uuid AND ((status = 'pending_review' AND ${verdict} IN ('approved','rejected'))
+        OR (status IN ('published','paused','occupied') AND ${verdict}='removed'))
       RETURNING id
     ),
     audited AS (

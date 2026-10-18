@@ -66,16 +66,16 @@ export async function createProperty(form: FormData): Promise<{error: string}> {
       INSERT INTO listings (
         id, owner_id, slug, title, description, property_type, rental_mode, status,
         city, barangay, province${coordinateColumns}, monthly_rent_centavos, bedrooms, bathrooms,
-        available_slots, furnished, owner_contact_kind, owner_contact_value, last_confirmed_at
+        available_slots, furnished, owner_contact_kind, owner_contact_value, last_confirmed_at, published_at
       ) VALUES (
         ${newId}::uuid, ${profile.id}::uuid, ${generateSlug(value.title, newId.replace(/-/g, ""))},
         ${value.title}, ${value.description}, ${value.propertyType}, ${value.rentalMode},
-        'pending_review', ${value.city}, ${value.barangay}, ${value.province}${coordinateValues},
+        'published', ${value.city}, ${value.barangay}, ${value.province}${coordinateValues},
         ${value.monthlyRent * 100}, ${value.bedrooms === "" ? null : value.bedrooms},
         ${value.bathrooms === "" ? null : value.bathrooms},
         ${value.availableSlots === "" ? null : value.availableSlots}, ${value.furnished},
         ${value.ownerContactKind}, ${value.ownerContactKind === "none" ? null : value.ownerContactValue},
-        now()
+        now(), now()
       ) RETURNING id
     )
     INSERT INTO platform_events (actor_user_id, kind, listing_id)
@@ -90,6 +90,25 @@ export async function createProperty(form: FormData): Promise<{error: string}> {
     return {error:`We could not submit your rental. Your details have been kept. Please try again; if it continues, share reference ${reference} with support.`};
   }
   revalidatePath("/owner");
+  revalidatePath("/rentals", "layout");
+  revalidatePath("/");
+  redirect("/owner?submitted=1");
+}
+
+export async function publishProperty(form:FormData){
+  const account=await requireAccount();
+  if(account.role!=="landlord")throw Error("A property-owner account is required.");
+  const id=form.get("id");
+  if(typeof id!=="string"||!/^[0-9a-f-]{36}$/i.test(id))throw Error("Invalid listing ID.");
+  const db=getDatabase();if(!db)throw Error("Database not configured.");
+  const result=await db.execute(sql`WITH changed AS (
+    UPDATE listings l SET status='published',published_at=now(),last_confirmed_at=now(),updated_at=now()
+    FROM owner_profiles o WHERE l.owner_id=o.id AND o.user_id=${account.id} AND l.id=${id}::uuid
+      AND l.status IN ('draft','pending_review','paused') RETURNING l.id
+  ) INSERT INTO platform_events(actor_user_id,kind,listing_id)
+    SELECT ${account.id},'listing.submitted',id FROM changed RETURNING listing_id`);
+  if(!result.rows.length)throw Error("Listing not found, already live, or unavailable for publication.");
+  revalidatePath("/owner");revalidatePath("/rentals","layout");revalidatePath("/");
   redirect("/owner?submitted=1");
 }
 

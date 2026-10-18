@@ -12,7 +12,7 @@ test("renter guide gives current steps and opens working search", async ({ page 
   const guide = page.locator("#renters");
   await expect(guide.getByRole("heading", { name: "Choose a location" })).toBeVisible();
   await expect(guide.getByRole("heading", { name: "Set your budget and space" })).toBeVisible();
-  await expect(guide.getByRole("heading", { name: "Review approved listings" })).toBeVisible();
+  await expect(guide.getByRole("heading", { name: "Review rental listings" })).toBeVisible();
   await expect(guide.getByRole("heading", { name: "Message the owner in HomeTayo" })).toBeVisible();
   await guide.getByRole("link", { name: /Browse rentals/i }).click();
   await expect(page).toHaveURL(/\/rentals$/);
@@ -24,7 +24,7 @@ test("owner guide accurately describes the current moderation workflow", async (
   const guide = page.locator("#owners");
   await expect(guide.getByRole("heading", { name: "Property owner guide" })).toBeVisible();
   await expect(guide.getByRole("heading", { name: "Sign in with Google" })).toBeVisible();
-  await expect(guide.getByRole("heading", { name: "Wait for administrator review" })).toBeVisible();
+  await expect(guide.getByRole("heading", { name: "Publish your rental" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Can owners upload photos or edit listings?" })).toBeVisible();
   await guide.getByRole("link", { name: /Open owner dashboard/i }).click();
   await expect(page).toHaveURL(/\/owner$/);

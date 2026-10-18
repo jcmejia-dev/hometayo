@@ -11,8 +11,8 @@ export function GuideNudge({ audience, compact = false }: GuideNudgeProps) {
         <span className="guide-nudge-kicker"><BookOpenCheck size={14}/> NEW TO HOMETAYO?</span>
         <strong>{renter ? "Here’s how to find a place." : "Here’s how to list your rental."}</strong>
         <p>{renter
-          ? "Choose your location, set a budget, review approved listings, then message the owner inside HomeTayo."
-          : "Sign in, provide genuine property details, and wait for admin approval before your listing goes public."}</p>
+          ? "Choose your location, set a budget, review published listings, then message the owner inside HomeTayo."
+          : "Sign in, provide genuine property details, and publish your rental and keep its availability up to date."}</p>
       </div>
       <Link href={renter ? "/how-it-works#renters" : "/how-it-works#owners"} className="guide-nudge-link">
         View guide <ArrowRight size={16} aria-hidden="true"/>

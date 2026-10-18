@@ -12,7 +12,7 @@ import {currentUser} from "@/lib/session-user";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Explore rentals", description: "Browse current administrator-approved rental listings on HomeTayo.",
+  title: "Explore rentals", description: "Browse current owner-published rental listings on HomeTayo.",
 };
 type Params = { city?: string | string[]; type?: string | string[]; maxRent?: string | string[]; bedrooms?: string | string[] };
 function first(value: string | string[] | undefined): string {
@@ -36,7 +36,7 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
       <div className="interior-heading">
         <p className="section-kicker">EXPLORE HOMES</p>
         <h1>Explore rentals</h1>
-        <p>Filter approved rentals by location, price and type.</p>
+        <p>Filter published rentals by location, price and type.</p>
       </div>
       <div id="rental-search"><SearchForm compact initialCity={filters.city}
         initialType={allowedTypes.includes(type) ? type : "all"}
@@ -45,7 +45,7 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
       <GuideNudge audience="renter" compact />
       {result.state === "ready" && result.listings.length > 0 ? (
         <section aria-label="Rental properties" className="published-results">
-          <div className="results-heading"><h2>Rental posts</h2><p>{result.listings.length} approved result(s) · {filters.city}</p></div>
+          <div className="results-heading"><h2>Rental posts</h2><p>{result.listings.length} result(s) · {filters.city}</p></div>
           <div className="rental-results-grid">
             {result.listings.map((listing) => (
               <article key={listing.id} className="rental-result-card">
@@ -74,15 +74,15 @@ export default async function Rentals({ searchParams }: { searchParams: Promise<
       ) : (
         <section className="empty-state" aria-labelledby="rental-empty-title">
           <span className="empty-icon"><SearchX size={37}/></span>
-          <span className="launch-pill"><ShieldCheck size={14}/> Administrator-reviewed listings</span>
+          <span className="launch-pill"><ShieldCheck size={14}/> Owner-published rentals</span>
           <h2 id="rental-empty-title">{result.state === "not_configured" ? "We're preparing the first listings."
             : result.state === "error" ? "Search is temporarily unavailable."
-            : "No approved listings match yet."}</h2>
+            : "No rentals match yet."}</h2>
           <p>{result.state === "not_configured"
             ? "HomeTayo doesn't have published rentals yet. We won't show imaginary homes or outdated posts just to fill this page."
             : result.state === "error"
             ? "We couldn't reach the rental database right now. Please try again later."
-            : "Try changing your filters or return later when more owners add verified, approved rental listings."}</p>
+            : "Try changing your filters or return later when more owners publish rental listings."}</p>
           <div className="empty-actions">
             {user?.role==="renter"?<><a href="#rental-search" className="button button-primary">Adjust your search <ArrowRight size={18}/></a><Link href="/inbox" className="button button-outline">My messages</Link></>:<><Link href="/requests/new" className="button button-primary">About rental requests <ArrowRight size={18}/></Link><Link href="/owner" className="button button-outline"><House size={18}/> Own a rental?</Link></>}
           </div>

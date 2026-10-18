@@ -14,15 +14,15 @@ export const metadata: Metadata = {
 const renterSteps = [
   { icon: MapPin, title: "Choose a location", body: "Start with Koronadal City, or enter the city or municipality where you want to rent. You do not need an account to search." },
   { icon: SlidersHorizontal, title: "Set your budget and space", body: "Filter by house, apartment, boarding house or bedspace, maximum monthly rent, and minimum bedrooms where applicable." },
-  { icon: Search, title: "Review approved listings", body: "Open a listing to check its monthly rent, approximate location, description and last confirmed availability. New listings may take time to appear." },
+  { icon: Search, title: "Review rental listings", body: "Open a listing to check its monthly rent, approximate location, description and last confirmed availability. New listings may take time to appear." },
   { icon: ShieldCheck, title: "Message the owner in HomeTayo", body: "Use Message owner on the rental to start a private HomeTayo conversation. Verify the property, rental terms and the person offering it before paying." },
 ];
 
 const ownerSteps = [
   { icon: KeyRound, title: "Sign in with Google", body: "Open the owner dashboard. You can use your regular Google account; you cannot choose admin privileges during sign-up." },
   { icon: HousePlus, title: "Submit accurate property details", body: "Describe the rental and choose its location by address, current location, or a map pin. No coordinates or public phone number are required. Renters message you inside HomeTayo. Only list places you are authorized to advertise." },
-  { icon: ClipboardCheck, title: "Wait for administrator review", body: "Your submission starts as Pending review. It does not appear to renters until an admin approves it. You can see its status in My Listings." },
-  { icon: BadgeCheck, title: "Keep availability up to date", body: "After approval, your listing can appear in search. You can currently mark a published listing unavailable from your owner dashboard." },
+  { icon: ClipboardCheck, title: "Publish your rental", body: "Your rental appears publicly as soon as you publish it. You can see its status and manage availability in My listings." },
+  { icon: BadgeCheck, title: "Keep availability up to date", body: "After publishing, your listing can appear in search. You can currently mark a published listing unavailable from your owner dashboard." },
 ];
 
 export default function HowItWorks() {
@@ -68,7 +68,7 @@ export default function HowItWorks() {
           ))}
         </div>
         <div className="guide-inline-action">
-          <div><strong>Ready to explore?</strong><p>You&apos;ll see only admin-approved properties that match your filters. It&apos;s okay if there are no results yet.</p></div>
+          <div><strong>Ready to explore?</strong><p>You&apos;ll see published rentals that match your filters. It&apos;s okay if there are no results yet.</p></div>
           <Link className="button button-primary" href="/rentals">Browse rentals <ArrowRight size={17}/></Link>
         </div>
       </section>
@@ -80,7 +80,7 @@ export default function HowItWorks() {
             <div>
               <p className="section-kicker">FOR LANDLORDS AND PROPERTY OWNERS</p>
               <h2 id="guide-owner-title">Property owner guide</h2>
-              <p>Share your authorized rental and follow its review status from one dashboard.</p>
+              <p>Publish your authorized rental and manage availability from one dashboard.</p>
             </div>
           </div>
           <div className="guide-step-grid">
@@ -93,7 +93,7 @@ export default function HowItWorks() {
             ))}
           </div>
           <div className="guide-inline-action">
-            <div><strong>Have a place to list?</strong><p>Basic property submission is currently free. An administrator reviews every new listing before publication.</p></div>
+            <div><strong>Have a place to list?</strong><p>Basic property submission is currently free. Owners publish their own listings immediately.</p></div>
             <Link className="button button-primary" href="/owner">Open owner dashboard <ArrowRight size={17}/></Link>
           </div>
         </div>
@@ -102,11 +102,11 @@ export default function HowItWorks() {
       <section className="container guide-section guide-faq" aria-labelledby="guide-faq-title">
         <div className="guide-faq-title"><CircleHelp size={24}/><div><p className="section-kicker">GOOD TO KNOW</p><h2 id="guide-faq-title">A few common questions</h2></div></div>
         <div className="guide-faq-grid">
-          <div><h3>Do renters need an account?</h3><p>No. Anyone can browse approved rental listings and use the filters. Saved searches and rental requests are planned, not active yet.</p></div>
-          <div><h3>Are HomeTayo properties verified?</h3><p>Listings require admin approval before publication. That is not a guarantee of ownership, condition or safety. Please verify details independently.</p></div>
+          <div><h3>Do renters need an account?</h3><p>No. Anyone can browse published rental listings and use the filters. Saved searches and rental requests are planned, not active yet.</p></div>
+          <div><h3>Are HomeTayo properties verified?</h3><p>Owners publish listings directly. HomeTayo does not independently verify ownership, condition or safety. Please verify details independently.</p></div>
           <div><h3>Can owners upload photos or edit listings?</h3><p>Not yet. Those features are in development. The current form supports property details, and published listings can be marked unavailable.</p></div>
         </div>
-        <div className="guide-safety-note"><Sparkles size={21}/><p><strong>HomeTayo publishes approved listings as owners submit them.</strong> Availability depends on genuine, approved listings. For a safer search, review our <Link href="/safety">rental safety guide</Link>.</p></div>
+        <div className="guide-safety-note"><Sparkles size={21}/><p><strong>Owners publish rental listings directly.</strong> Availability depends on current owner listings. For a safer search, review our <Link href="/safety">rental safety guide</Link>.</p></div>
       </section>
     </div>
   );

@@ -19,7 +19,7 @@ export default async function ListingDetail({ params }: { params: Promise<{slug:
     <article className="container interior-page narrow-page">
       <Link className="back-link" href="/rentals"><ArrowLeft size={17}/> Back to rentals</Link>
       <div className="interior-heading">
-        <p className="section-kicker">APPROVED OWNER LISTING · {category.toUpperCase()}</p>
+        <p className="section-kicker">OWNER-PUBLISHED LISTING · {category.toUpperCase()}</p>
         <h1>{listing.title}</h1>
         <p><MapPin size={17} style={{display:"inline",verticalAlign:"middle"}}/> {listing.barangay}, {listing.city}, {listing.province}</p>
       </div>
@@ -39,7 +39,7 @@ export default async function ListingDetail({ params }: { params: Promise<{slug:
           <span>{listing.bathrooms ?? "Not provided"} bathrooms</span>
           <span>{listing.furnished === "unspecified" ? "Furnishing not specified" : "Furnishing: " + listing.furnished}</span>
         </div>
-        <div className="status-notice"><ShieldCheck size={16} style={{display:"inline"}}/> Listing approved for publication; property identity, legal ownership, and physical condition are not independently guaranteed. Verify details before paying anything.</div>
+        <div className="status-notice"><ShieldCheck size={16} style={{display:"inline"}}/> Published by the property owner; property identity, legal ownership, and physical condition are not independently guaranteed. Verify details before paying anything.</div>
         {listing.lastConfirmedAt && <p className="rental-confirmed">Last owner-confirmed: {new Intl.DateTimeFormat("en-PH",{dateStyle:"medium",timeZone:"Asia/Manila"}).format(listing.lastConfirmedAt)}</p>}
         {process.env.ENABLE_RENTAL_MANAGEMENT!=="true"&&<p className="status-notice">HomeTayo messaging is awaiting server setup.</p>}
       </div>
