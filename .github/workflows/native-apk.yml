@@ -44,6 +44,8 @@ jobs:
       EAS_UPDATE_CHANNEL: preview
       APP_VERSION: 0.5.0
       REQUIRE_EAS_UPDATES: 'true'
+      REQUIRE_PUSH_NOTIFICATIONS: 'true'
+      GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
 
     steps:
       - uses: actions/checkout@v4
@@ -68,6 +70,17 @@ jobs:
           test -n "$EAS_PROJECT_ID"
           echo "Building OTA-enabled HomeTayo ${APP_VERSION} on channel ${EAS_UPDATE_CHANNEL}"
 
+      - name: Prepare Firebase Android registration
+        shell: bash
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "GOOGLE_SERVICES_JSON is missing. Add the Firebase Android google-services.json contents as a GitHub Actions repository secret."
+            exit 1
+          fi
+          printf '%s' "$GOOGLE_SERVICES_JSON" > apps/mobile/google-services.json
+          node -e "JSON.parse(require('fs').readFileSync('apps/mobile/google-services.json','utf8')); console.log('Firebase google-services.json is valid JSON')"
+          echo "GOOGLE_SERVICES_FILE=./google-services.json" >> "$GITHUB_ENV"
+
       - name: Verify runner Android SDK
         run: test -d "$ANDROID_HOME/platforms" && echo "Android SDK ready"
 
@@ -88,11 +101,11 @@ jobs:
           echo "ANDROID_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
           echo "Android versionCode: $((1000 + GITHUB_RUN_NUMBER)); app/runtime version: ${APP_VERSION}"
 
-      - name: Verify Expo OTA configuration
+      - name: Verify Expo OTA and push configuration
         working-directory: apps/mobile
         run: |
           npx expo config --type public > /tmp/expo-config.txt
-          grep -E '0.5.0|version|versionCode|runtimeVersion|updates|u.expo.dev|expo-channel-name|preview' /tmp/expo-config.txt
+          grep -E '0.5.0|version|versionCode|runtimeVersion|updates|u.expo.dev|expo-channel-name|preview|googleServicesFile|expo-notifications|pushConfigured' /tmp/expo-config.txt
 
       - name: Create native Android project
         working-directory: apps/mobile
@@ -138,12 +151,12 @@ jobs:
             gh release upload android-latest HomeTayo.apk --clobber
             gh release edit android-latest \
               --title "HomeTayo Android — Latest" \
-              --notes "OTA-ready HomeTayo ${APP_VERSION} preview baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+              --notes "OTA-ready HomeTayo ${APP_VERSION} preview baseline with Android message notifications. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
           else
             gh release create android-latest HomeTayo.apk \
               --target "$GITHUB_SHA" \
               --title "HomeTayo Android — Latest" \
-              --notes "OTA-ready HomeTayo ${APP_VERSION} preview baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+              --notes "OTA-ready HomeTayo ${APP_VERSION} preview baseline with Android message notifications. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
           fi
 
       - name: Verify public APK release asset
