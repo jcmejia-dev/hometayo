@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export function SiteFooter({signedIn=false}:{signedIn?:boolean}){
+export function SiteFooter({signedIn=false,isLandlord=false}:{signedIn?:boolean;isLandlord?:boolean}){
   return <footer className="site-footer">
     <div className="container footer-layout">
       <div className="footer-identity">
@@ -9,8 +9,9 @@ export function SiteFooter({signedIn=false}:{signedIn?:boolean}){
       </div>
       <nav aria-label="Footer navigation">
         <div>
-          <span>{signedIn?"Discover":"Learn"}</span>
-          {signedIn&&<Link href="/rentals">Explore rentals</Link>}
+          <span>{signedIn?isLandlord?"Owner tools":"Discover":"Learn"}</span>
+          {signedIn&&!isLandlord&&<Link href="/rentals">Explore rentals</Link>}
+          {signedIn&&isLandlord&&<Link href="/owner">My listings</Link>}
           <Link href="/how-it-works">How it works</Link>
           <Link href="/safety">Rental safety</Link>
           <Link href="/download">Get the Android app</Link>
