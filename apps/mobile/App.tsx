@@ -53,8 +53,8 @@ function NativeApp(){
  </ScrollView>:
  tab==="explore"?<RentalFeed city={city} onSelect={setSelectedSlug} onInquiry={id=>{setInboxConversation(id);setTab("messages");}}/>:
  tab==="messages"?(account?<NativeRentalWorkspace owner={account.role==="landlord"} initialConversation={inboxConversation}/>:<AccountPanel account={null} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/> ):
- tab==="owner"?<AccountPanel account={account} owner initialConversation={inboxConversation} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>:
- tab==="profile"?<AccountPanel account={account} owner={false} initialConversation={inboxConversation} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>:
+ tab==="owner"?<AccountPanel account={account} owner onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>:
+ tab==="profile"?<AccountPanel account={account} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>:
  <ScrollView contentContainerStyle={s.homeBody}>
   <Text style={[s.eyebrow,{color:c.sage}]}>RENTER WORKSPACE</Text><Text style={[s.hero,{color:c.green}]}>Make room for <Text style={{color:c.sage}}>your next chapter.</Text></Text><Text style={{color:c.muted,lineHeight:22}}>Browse local rental posts, talk to owners, and keep your rental details together.</Text>
   <View style={[s.heroCard,{backgroundColor:c.soft}]}><View style={{flex:1}}><Text style={[s.section,{color:c.green}]}>Rental feed</Text><Text style={{color:c.muted,lineHeight:19}}>See current listings, owner profiles, photos, reactions, and availability.</Text></View><Icon name="building" size={46}/></View>
