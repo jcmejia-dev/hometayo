@@ -8,7 +8,7 @@ export default ({config}:ConfigContext):ExpoConfig => {
   const mapsKey=process.env.GOOGLE_MAPS_ANDROID_API_KEY?.trim();
   const ciVersionCode=Number.parseInt(process.env.ANDROID_VERSION_CODE||"",10);
   const versionCode=Number.isInteger(ciVersionCode)&&ciVersionCode>0?ciVersionCode:5;
-  const appVersion=process.env.APP_VERSION?.trim()||"0.4.0";
+  const appVersion=process.env.APP_VERSION?.trim()||"0.5.0";
 
   if(process.env.EAS_BUILD==="true"&&process.env.REQUIRE_ANDROID_MAPS==="true"&&!mapsKey){
     throw new Error("Set GOOGLE_MAPS_ANDROID_API_KEY in the EAS preview environment before building preview-maps.");
