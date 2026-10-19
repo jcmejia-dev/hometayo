@@ -1,15 +1,27 @@
-name: Android native APK preview
+name: Android native APK baseline
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'apps/mobile/**'
+      - 'apps/mobile/app.config.ts'
+      - 'apps/mobile/app.json'
+      - 'apps/mobile/eas.json'
+      - 'apps/mobile/package.json'
+      - 'apps/mobile/package-lock.json'
+      - 'apps/mobile/assets/icon.png'
+      - 'apps/mobile/assets/adaptive-icon.png'
       - '.github/workflows/native-apk.yml'
   pull_request:
     paths:
-      - 'apps/mobile/**'
+      - 'apps/mobile/app.config.ts'
+      - 'apps/mobile/app.json'
+      - 'apps/mobile/eas.json'
+      - 'apps/mobile/package.json'
+      - 'apps/mobile/package-lock.json'
+      - 'apps/mobile/assets/icon.png'
+      - 'apps/mobile/assets/adaptive-icon.png'
       - '.github/workflows/native-apk.yml'
 
 permissions:
@@ -29,6 +41,8 @@ jobs:
       EXPO_PUBLIC_API_URL: https://hometayoph.vercel.app
       NODE_OPTIONS: --max-old-space-size=4096
       EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID || secrets.EAS_PROJECT_ID }}
+      EAS_UPDATE_CHANNEL: production
+      REQUIRE_EAS_UPDATES: 'true'
 
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +53,7 @@ jobs:
           cache: npm
           cache-dependency-path: apps/mobile/package-lock.json
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -47,6 +61,14 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: false
+
+      - name: Verify OTA project link
+        run: |
+          test -n "$EAS_PROJECT_ID" || {
+            echo "EAS_PROJECT_ID is missing. Add the existing HomeTayo Expo project ID as a GitHub Actions variable or secret before building this OTA baseline."
+            exit 1
+          }
+          echo "Building OTA-enabled HomeTayo 0.4.0 on channel ${EAS_UPDATE_CHANNEL}"
 
       - name: Verify runner Android SDK
         run: test -d "$ANDROID_HOME/platforms" && echo "Android SDK ready"
@@ -63,19 +85,24 @@ jobs:
         working-directory: apps/mobile
         run: npx expo export --platform android --output-dir dist-ci --clear
 
-      - name: Set unique Android build version
+      - name: Set unique Android build code
         run: |
           echo "ANDROID_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
-          echo "APP_VERSION=0.3.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
-          echo "Building HomeTayo 0.3.${GITHUB_RUN_NUMBER} ($((1000 + GITHUB_RUN_NUMBER)))"
+          echo "Android versionCode: $((1000 + GITHUB_RUN_NUMBER)); app/runtime version: 0.4.0"
 
-      - name: Verify Expo resolved version
+      - name: Verify Expo OTA configuration
         working-directory: apps/mobile
-        run: npx expo config --type public | grep -E 'version|versionCode|updates'
+        run: |
+          npx expo config --type public > /tmp/expo-config.txt
+          grep -E 'version|versionCode|runtimeVersion|updates|u.expo.dev|expo-channel-name|production' /tmp/expo-config.txt
 
       - name: Create native Android project
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --clean
+
+      - name: Verify Expo native autolinking
+        working-directory: apps/mobile
+        run: npx expo-modules-autolinking resolve --platform android --json > /tmp/expo-autolinking.json
 
       - name: Configure Gradle memory
         working-directory: apps/mobile/android
@@ -83,7 +110,7 @@ jobs:
           sed -i '/^org.gradle.jvmargs=/d' gradle.properties
           sed -i '/^kotlin.daemon.jvmargs=/d' gradle.properties
           sed -i '/^org.gradle.workers.max=/d' gradle.properties
-          printf '%s\n' \
+          printf '\n%s\n' \
             'org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1536m -Dfile.encoding=UTF-8' \
             'kotlin.daemon.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=768m' \
             'org.gradle.workers.max=2' >> gradle.properties
@@ -113,12 +140,12 @@ jobs:
             gh release upload android-latest HomeTayo.apk --clobber
             gh release edit android-latest \
               --title "HomeTayo Android — Latest" \
-              --notes "Latest HomeTayo Android build from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+              --notes "OTA-ready HomeTayo 0.4.0 baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
           else
             gh release create android-latest HomeTayo.apk \
               --target "$GITHUB_SHA" \
               --title "HomeTayo Android — Latest" \
-              --notes "Latest HomeTayo Android build from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+              --notes "OTA-ready HomeTayo 0.4.0 baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
           fi
 
       - name: Verify public APK release asset
