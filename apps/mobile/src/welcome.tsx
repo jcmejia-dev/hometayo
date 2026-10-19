@@ -62,7 +62,6 @@ export function NativeWelcome({returning,onGuest,onSignedIn}:{returning:boolean;
         <Text style={s.kicker}>WELCOME TO HOMETAYO</Text><Text style={s.title}>{"Find a space.\nFeel at home."}</Text><Text style={s.copy}>Connect with your next home or share a place with someone new.</Text>
         <Pressable accessibilityRole="button" style={s.primary} onPress={()=>navigate(3,"sign-up")}><Text style={s.primaryText}>Create account</Text><Icon name="arrow"/></Pressable><Pressable accessibilityRole="button" style={s.secondary} onPress={()=>navigate(3,"sign-in")}><Text style={s.secondaryText}>Sign in</Text></Pressable><Pressable accessibilityRole="button" style={s.link} onPress={()=>navigate(0,null,false)}><Text style={s.linkText}>How HomeTayo works</Text></Pressable>
       </>}
-      {step===3&&<Pressable accessibilityRole="button" style={s.link} onPress={onGuest}><Text style={[s.linkText,auth&&{color:colors.green2}]}>Explore as a guest</Text><Icon name="arrow" size={16} color={auth?colors.green2:colors.border}/></Pressable>}
     </Animated.View>
     </ScrollView></KeyboardAvoidingView>
   </SafeAreaView>;
