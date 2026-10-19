@@ -24,6 +24,11 @@ export async function registerMobilePushToken(userId:string,token:string,platfor
   ON CONFLICT(token) DO UPDATE SET user_id=excluded.user_id,platform=excluded.platform,updated_at=now()`,[token,userId,platform]);
 }
 
+export async function removeMobilePushTokens(userId:string){
+ const sql=await ensurePushTokens();
+ await sql.query(`DELETE FROM mobile_push_tokens WHERE user_id=$1`,[userId]);
+}
+
 export async function sendConversationPush(senderId:string,conversationId:string,body:string){
  try{
   const sql=await ensurePushTokens();
@@ -41,7 +46,9 @@ export async function sendConversationPush(senderId:string,conversationId:string
    body:clean.length>150?clean.slice(0,147)+"…":clean,
    data:{type:"message",conversationId,propertyTitle:row.title},
    priority:"high",
+   sound:"default",
    channelId:"messages",
+   ttl:3600,
   }));
   if(!payload.length)return;
   await fetch("https://exp.host/--/api/v2/push/send",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
