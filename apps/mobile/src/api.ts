@@ -13,6 +13,7 @@ export type Rental = {
   lastConfirmedAt: string | null;
   ownerName:string;
   ownerPhoto:string|null;
+  ownerVerified?:boolean;
   photoUrl:string|null;
   unitCounts?:{total:number;available:number}|null;
 };
