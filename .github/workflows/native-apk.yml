@@ -57,20 +57,15 @@ jobs:
         working-directory: apps/mobile
         run: npm run check
 
-      - name: Stamp unique Android build version
-        working-directory: apps/mobile
+      - name: Set unique Android build version
         run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const path = 'app.json';
-          const config = JSON.parse(fs.readFileSync(path, 'utf8'));
-          const run = Number(process.env.GITHUB_RUN_NUMBER || '1');
-          config.expo.android = config.expo.android || {};
-          config.expo.android.versionCode = 1000 + run;
-          config.expo.version = `0.1.${run}`;
-          fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
-          console.log(`HomeTayo Android version ${config.expo.version} (${config.expo.android.versionCode})`);
-          NODE
+          echo "ANDROID_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          echo "APP_VERSION=0.3.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "Building HomeTayo 0.3.${GITHUB_RUN_NUMBER} ($((1000 + GITHUB_RUN_NUMBER)))"
+
+      - name: Verify Expo resolved version
+        working-directory: apps/mobile
+        run: npx expo config --type public | grep -E 'version|versionCode'
 
       - name: Create native Android project
         working-directory: apps/mobile
