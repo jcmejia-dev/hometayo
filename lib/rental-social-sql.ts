@@ -17,16 +17,19 @@ export const MESSAGE_REACT=`INSERT INTO message_reactions(message_id,user_id,emo
 export const MESSAGE_UNREACT=`DELETE FROM message_reactions mr USING rental_messages m,rental_conversations c
  WHERE mr.message_id=m.id AND m.conversation_id=c.id AND mr.message_id=$2::uuid AND mr.user_id=$1 AND $1 IN(c.owner_id,c.renter_id) RETURNING mr.message_id AS id`;
 
+// Typing presence reuses the existing notification table without introducing a new
+// notification kind. The synthetic row is excluded from normal notification reads.
 export const TYPING=`WITH c AS (
  SELECT * FROM rental_conversations WHERE id=$2::uuid AND $1 IN(owner_id,renter_id)
 ), t AS (
  INSERT INTO rental_notifications(user_id,conversation_id,kind,body,event_key)
- SELECT CASE WHEN c.owner_id=$1 THEN c.renter_id ELSE c.owner_id END,c.id,'typing','typing','typing:'||c.id::text||':'||$1
+ SELECT CASE WHEN c.owner_id=$1 THEN c.renter_id ELSE c.owner_id END,c.id,'message','__typing__','typing:'||c.id::text||':'||$1
  FROM c ON CONFLICT(event_key) DO UPDATE SET created_at=now(),read_at=NULL RETURNING id
 ) SELECT id FROM t`;
 
 export const TYPING_STATE=`SELECT EXISTS(
- SELECT 1 FROM rental_notifications n WHERE n.user_id=$1 AND n.conversation_id=$2::uuid AND n.kind='typing' AND n.created_at>now()-interval '6 seconds'
+ SELECT 1 FROM rental_notifications n WHERE n.user_id=$1 AND n.conversation_id=$2::uuid
+ AND n.event_key LIKE 'typing:%' AND n.body='__typing__' AND n.created_at>now()-interval '5 seconds'
 ) AS typing`;
 
 export const CONVERSATIONS_SOCIAL=`SELECT c.id,c.listing_id AS "listingId",l.title,l.slug,c.owner_id=$1 AS "isOwner",
