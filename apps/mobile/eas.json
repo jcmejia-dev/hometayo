@@ -9,6 +9,9 @@
       "distribution": "internal",
       "environment": "preview",
       "channel": "development",
+      "env": {
+        "EAS_UPDATE_CHANNEL": "development"
+      },
       "android": {
         "buildType": "apk"
       }
@@ -16,6 +19,9 @@
     "preview": {
       "channel": "preview",
       "distribution": "internal",
+      "env": {
+        "EAS_UPDATE_CHANNEL": "preview"
+      },
       "android": {
         "buildType": "apk"
       },
@@ -23,6 +29,9 @@
     },
     "production": {
       "channel": "production",
+      "env": {
+        "EAS_UPDATE_CHANNEL": "production"
+      },
       "android": {
         "buildType": "app-bundle"
       }
@@ -31,6 +40,7 @@
       "extends": "preview",
       "environment": "preview",
       "env": {
+        "EAS_UPDATE_CHANNEL": "preview",
         "REQUIRE_ANDROID_MAPS": "true"
       }
     }
