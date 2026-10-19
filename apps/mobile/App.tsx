@@ -16,6 +16,7 @@ import {RentalFeed} from "./src/rental-feed";
 import {fetchRentalDetail,propertyLabel,rentLabel,type RentalDetail} from "./src/api";
 import {useReducedMotion,useSceneTransition} from "./src/motion";
 import {api} from "./src/session";
+import {listenForNotificationResponses,registerPushNotifications} from "./src/push-notifications";
 
 type Tab="home"|"explore"|"messages"|"owner"|"profile";
 const INTRO_KEY="hometayo.native.intro.v1";
@@ -32,6 +33,8 @@ function NativeApp(){
  const tabs=useMemo(()=>account?.role==="landlord"?ownerTabs:renterTabs,[account?.role]);
  useEffect(()=>watchSessionExpired(()=>{setAccount(null);setWelcomeOpen(true);setTab("home");}),[]);
  useEffect(()=>{let alive=true;Promise.all([AsyncStorage.getItem(INTRO_KEY),restoreAccount().catch(()=>null)]).then(([value,saved])=>{if(!alive)return;setAccount(saved);if(saved){setWelcomeOpen(false);setTab(saved.role==="landlord"?"owner":"home");}setIntro(value==="done"?null:0);setReady(true);}).catch(()=>{if(alive){setIntro(0);setReady(true);}});return()=>{alive=false;};},[]);
+ useEffect(()=>{if(!account)return;void registerPushNotifications().catch(()=>{});},[account?.id]);
+ useEffect(()=>listenForNotificationResponses(conversationId=>{setInboxConversation(conversationId);setSelectedSlug(null);setWelcomeOpen(false);setTab("messages");}),[]);
  useEffect(()=>{if(!account||account.role==="landlord")return;let live=true;api("/api/mobile/profile").then(v=>{if(live&&v.profile?.homeCity)setCity(v.profile.homeCity);}).catch(()=>{});return()=>{live=false;};},[account]);
  useEffect(()=>{if(!selectedSlug){setSelected(null);return;}let live=true;const ctrl=new AbortController();setDetailBusy(true);fetchRentalDetail(selectedSlug,ctrl.signal).then(v=>{if(live)setSelected(v);}).catch(()=>{if(live)setSelectedSlug(null);}).finally(()=>{if(live)setDetailBusy(false);});return()=>{live=false;ctrl.abort();};},[selectedSlug]);
  useEffect(()=>{const sub=BackHandler.addEventListener("hardwareBackPress",()=>{if(selectedSlug){setSelectedSlug(null);return true;}if(account?.role==="landlord"&&tab!=="owner"){setTab("owner");return true;}if(account?.role!=="landlord"&&tab!=="home"){setTab("home");return true;}return false;});return()=>sub.remove();},[selectedSlug,tab,account?.role]);
