@@ -20,9 +20,11 @@ export const MESSAGE_UNREACT=`DELETE FROM message_reactions mr USING rental_mess
 export const CONVERSATIONS_SOCIAL=`SELECT c.id,c.listing_id AS "listingId",l.title,l.slug,c.owner_id=$1 AS "isOwner",
  CASE WHEN c.owner_id=$1 THEN COALESCE(r.preferred_name,r.display_name,'Renter') ELSE COALESCE(o.preferred_name,o.display_name,'Owner') END AS "otherName",
  CASE WHEN c.owner_id=$1 THEN r.profile_photo ELSE o.profile_photo END AS "otherPhoto",
- CASE WHEN c.owner_id=$1 THEN c.renter_id ELSE c.owner_id END AS "otherUserId"
+ CASE WHEN c.owner_id=$1 THEN c.renter_id ELSE c.owner_id END AS "otherUserId",
+ lm.body AS "lastMessage",lm.created_at AS "lastMessageAt",lm.sender_id=$1 AS "lastMessageMine",lm.media_type AS "lastMediaType"
  FROM rental_conversations c JOIN listings l ON l.id=c.listing_id JOIN users r ON r.id=c.renter_id JOIN users o ON o.id=c.owner_id
- WHERE $1 IN(c.owner_id,c.renter_id) ORDER BY c.created_at DESC LIMIT 200`;
+ LEFT JOIN LATERAL (SELECT m.body,m.created_at,m.sender_id,m.media_type FROM rental_messages m WHERE m.conversation_id=c.id ORDER BY m.created_at DESC,m.id DESC LIMIT 1) lm ON true
+ WHERE $1 IN(c.owner_id,c.renter_id) ORDER BY COALESCE(lm.created_at,c.created_at) DESC LIMIT 200`;
 
 export const THREAD_MESSAGES_SOCIAL=`SELECT m.id,m.body,m.sender_id AS "senderId",m.sender_id=$1 AS mine,m.created_at AS "createdAt",
  m.reply_to_id AS "replyToId",parent.body AS "replyBody",m.media_type AS "mediaType",
