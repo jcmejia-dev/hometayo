@@ -22,7 +22,7 @@ jobs:
       EXPO_NO_TELEMETRY: '1'
       EXPO_PUBLIC_API_URL: 'https://hometayoph.vercel.app'
       EAS_PROJECT_ID: '55714287-6e36-4377-8807-460f5027bd7c'
-      EAS_UPDATE_CHANNEL: 'production'
+      EAS_UPDATE_CHANNEL: 'preview'
       REQUIRE_EAS_UPDATES: 'true'
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
@@ -56,7 +56,7 @@ jobs:
         working-directory: apps/mobile
         run: |
           npx expo config --type public > /tmp/expo-config.txt
-          grep -E '0.4.0|runtimeVersion|u.expo.dev|expo-channel-name|production' /tmp/expo-config.txt
+          grep -E '0.4.0|runtimeVersion|u.expo.dev|expo-channel-name|preview' /tmp/expo-config.txt
 
       - name: Publish Android OTA update
         working-directory: apps/mobile
