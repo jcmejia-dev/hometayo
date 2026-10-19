@@ -43,32 +43,60 @@ export function SiteHeaderClient({
             <span className="brand-icon" aria-hidden="true" />
             <span className="brand-wordmark">Home<span className="brand-accent">Tayo</span></span>
           </Link>
+
           <nav className="desktop-nav" aria-label="Primary navigation">
-            {signedIn && <Link href={isLandlord ? "/owner" : "/"}>My dashboard</Link>}
-            {!isLandlord && <Link href="/rentals">Explore rentals</Link>}
-            <Link href="/how-it-works">How it works</Link>
-            <Link href="/safety">Rental safety</Link>
-            {signedIn ? <Link href="/profile">My profile</Link> : <Link href="/sign-in">Sign in</Link>}
-            <Link href="/download">Install app</Link>
+            {signedIn ? (
+              <>
+                <Link href={isLandlord ? "/owner" : "/"}>My dashboard</Link>
+                {!isLandlord && <Link href="/rentals">Explore rentals</Link>}
+                <Link href="/how-it-works">How it works</Link>
+                <Link href="/safety">Rental safety</Link>
+                <Link href="/profile">My profile</Link>
+                <Link href="/download">Install app</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/how-it-works">How it works</Link>
+                <Link href="/safety">Rental safety</Link>
+                <Link href="/download">Install app</Link>
+                <Link href="/sign-in">Sign in</Link>
+              </>
+            )}
           </nav>
+
           {(!signedIn || isLandlord) && (
             <Link className="header-owner" href={signedIn ? "/owner" : "/sign-up"}>
               {signedIn ? "List your property" : "Create account"} <ArrowUpRight size={16} aria-hidden="true" />
             </Link>
           )}
+
           {signedIn && rentalManagementEnabled && <HeaderInboxActions />}
+
           <details className="mobile-menu">
             <summary aria-label="Open navigation menu"><Menu size={23} /></summary>
             <nav aria-label="Mobile navigation">
-              {signedIn && <Link href={isLandlord ? "/owner" : "/"}>My dashboard</Link>}
-              {!isLandlord && <Link href="/rentals">Explore rentals</Link>}
-              <Link href="/how-it-works">How it works</Link>
-              <Link href="/safety">Rental safety</Link>
-              {(!signedIn || isLandlord) && <Link href="/owner">List your property</Link>}
-              {signedIn ? <Link href="/profile">My profile</Link> : <><Link href="/sign-in">Sign in</Link><Link href="/sign-up">Create account</Link></>}
-              {signedIn && <Link href="/inbox">Messages</Link>}
-              <Link href="/download">Install Android app</Link>
-              <Link href="/privacy">Privacy</Link>
+              {signedIn ? (
+                <>
+                  <Link href={isLandlord ? "/owner" : "/"}>My dashboard</Link>
+                  {!isLandlord && <Link href="/rentals">Explore rentals</Link>}
+                  <Link href="/how-it-works">How it works</Link>
+                  <Link href="/safety">Rental safety</Link>
+                  {isLandlord && <Link href="/owner">List your property</Link>}
+                  <Link href="/profile">My profile</Link>
+                  <Link href="/inbox">Messages</Link>
+                  <Link href="/download">Install Android app</Link>
+                  <Link href="/privacy">Privacy</Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/how-it-works">How it works</Link>
+                  <Link href="/safety">Rental safety</Link>
+                  <Link href="/download">Install Android app</Link>
+                  <Link href="/sign-in">Sign in</Link>
+                  <Link href="/sign-up">Create account</Link>
+                  <Link href="/privacy">Privacy</Link>
+                </>
+              )}
             </nav>
           </details>
         </div>
