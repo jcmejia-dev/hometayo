@@ -1,55 +1,159 @@
 import Link from "next/link";
-import { ArrowUpRight, BedDouble, Building2, House, Users, ShieldCheck } from "lucide-react";
-import { SearchForm } from "@/components/search-form";
-import { FeaturedRentalsPanel } from "@/components/featured-rentals";
+import {
+  ArrowRight,
+  Building2,
+  CheckCircle2,
+  Home as HomeIcon,
+  MapPin,
+  MessageCircle,
+  Search,
+  ShieldCheck,
+  Smartphone,
+  UsersRound,
+} from "lucide-react";
 import { getLatestPublishedListings } from "@/lib/listings";
 import { FirstVisitIntro } from "@/components/first-visit-intro";
 import { currentUser } from "@/lib/session-user";
 import { RenterDashboard } from "@/components/renter-dashboard";
 import { redirect } from "next/navigation";
+import styles from "./landing.module.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }:{searchParams:Promise<{intro?:string}>}) {
-  const [latest, params, user] = await Promise.all([getLatestPublishedListings(), searchParams, currentUser()]);
-  if(user?.role==="landlord"&&params.intro!=="1")redirect("/owner");
-  if(user?.role==="renter")return <>{params.intro==="1"&&<FirstVisitIntro forceOpen/>}<RenterDashboard name={user.displayName||"neighbor"} latest={latest}/></>;
+  const [params, user] = await Promise.all([searchParams, currentUser()]);
+
+  if (user?.role === "landlord" && params.intro !== "1") redirect("/owner");
+
+  if (user?.role === "renter") {
+    const latest = await getLatestPublishedListings();
+    return <>{params.intro === "1" && <FirstVisitIntro forceOpen/>}<RenterDashboard name={user.displayName || "neighbor"} latest={latest}/></>;
+  }
+
   return (
-    <>
+    <div className={styles.landing}>
       {params.intro === "1" && <FirstVisitIntro forceOpen/>}
-      <section className="hero-section">
-        <div className="container hero-grid">
-          <div className="hero-copy">
-            <div className="eyebrow">HANAP BAHAY. DITO TAYO.</div>
-            <h1>Find a place <span>to call home.</span></h1>
-            <p className="hero-description">Homes, rooms and bedspaces, all in one place. Find a rental that fits your life in Koronadal.</p>
-            {user ? <p className="launch-note">Welcome back, {user.displayName || "neighbor"}. <Link href="/profile" className="text-link">My profile</Link></p> : <div className="welcome-entry-actions">
-              <Link className="button button-primary" href="/sign-up">Get started</Link>
-              <Link className="text-link" href="/sign-in">Sign in</Link>
-            </div>}
+
+      <section className={styles.hero}>
+        <div className={`${styles.shell} ${styles.heroGrid}`}>
+          <div className={styles.heroCopy}>
+            <span className={styles.badge}><HomeIcon size={15}/> Built for renting in the Philippines</span>
+            <h1>Finding a home should feel <span>simpler.</span></h1>
+            <p>HomeTayo brings renters and property owners into one clear, familiar place—so finding, publishing and talking about a rental feels less complicated.</p>
+            <div className={styles.actions}>
+              <Link href="/sign-up" className={styles.primary}>Create your account <ArrowRight size={18}/></Link>
+              <Link href="/sign-in" className={styles.secondary}>I already have an account</Link>
+            </div>
+            <div className={styles.trustRow}>
+              <span><CheckCircle2 size={15}/> Renter and owner accounts</span>
+              <span><CheckCircle2 size={15}/> Owner-published rentals</span>
+              <span><CheckCircle2 size={15}/> Android access</span>
+            </div>
           </div>
-          <FeaturedRentalsPanel result={latest} />
+
+          <div className={styles.previewWrap} aria-label="HomeTayo product preview">
+            <span className={styles.previewGlow} aria-hidden="true"/>
+            <div className={styles.preview}>
+              <div className={styles.previewTop}>
+                <div className={styles.previewBrand}><span className={styles.previewMark}/>HomeTayo</div>
+                <small>HANAP BAHAY. DITO TAYO.</small>
+              </div>
+              <div className={styles.previewHero}>
+                <small>ONE PLACE TO START</small>
+                <strong>A clearer way to rent and be found.</strong>
+              </div>
+              <div className={styles.previewCards}>
+                <div className={styles.previewCard}>
+                  <span className={styles.previewIcon}><Search size={19}/></span>
+                  <strong>Discover</strong>
+                  <p>Search with useful rental details after you sign in.</p>
+                </div>
+                <div className={styles.previewCard}>
+                  <span className={styles.previewIcon}><MessageCircle size={19}/></span>
+                  <strong>Connect</strong>
+                  <p>Keep renter and owner conversations in one place.</p>
+                </div>
+                <div className={`${styles.previewCard} ${styles.previewCardWide}`}>
+                  <span className={styles.previewIcon}><Building2 size={19}/></span>
+                  <div><strong>Manage</strong><p>Owners can publish and manage their rental presence from HomeTayo.</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
-      <section className="container home-search" aria-label="Find a rental"><SearchForm/></section>
 
-      {!user && <section className="container web-purpose-section" aria-label="What HomeTayo does">
-        <div><p className="section-kicker">ONE COMMUNITY. TWO WAYS TO BELONG.</p><h2>A home for renters.<br/>A place for your rental.</h2><p>Discover what fits your next chapter, with clear details and owner-published rentals.</p></div>
-        <article><House size={28}/><h3>Looking for a home?</h3><p>Search by location, property type and budget. Review the details and contact the owner.</p><Link href="/sign-up?audience=renter" className="text-link">Join as a renter <ArrowUpRight size={16}/></Link></article>
-        <article><Building2 size={28}/><h3>Have a space to rent?</h3><p>Publish your property, track its status and manage its availability.</p><Link href="/sign-up?audience=owner" className="text-link">Join as a property owner <ArrowUpRight size={16}/></Link></article>
-      </section>}
+      <div className={styles.introStrip}>
+        <div className={`${styles.shell} ${styles.introStripInner}`}>
+          <strong>HomeTayo is not just a listing page.</strong>
+          <span>It is a rental discovery and property-management space designed around the way people actually look for a place to live.</span>
+          <span>Start in Koronadal. Built with the Philippines in mind.</span>
+        </div>
+      </div>
 
-      <section className="categories-section container" id="categories">
-        <div className="section-heading"><div><p className="section-kicker">EXPLORE BY TYPE</p><h2>What are you looking for?</h2></div><Link href="/rentals" className="text-link">See all rentals <ArrowUpRight size={18}/></Link></div>
-        <div className="category-grid">
-          <Link href="/rentals?type=house" className="category-card card-house"><span className="category-icon"><House size={27} /></span><span><strong>Houses</strong><small>Room to grow together</small></span><ArrowUpRight size={19} /></Link>
-          <Link href="/rentals?type=apartment" className="category-card card-apartment"><span className="category-icon"><Building2 size={27} /></span><span><strong>Apartments</strong><small>Your own cozy corner</small></span><ArrowUpRight size={19} /></Link>
-          <Link href="/rentals?type=boarding_house" className="category-card card-boarding"><span className="category-icon"><BedDouble size={27} /></span><span><strong>Boarding houses</strong><small>Simple and practical</small></span><ArrowUpRight size={19} /></Link>
-          <Link href="/rentals?type=bedspace" className="category-card card-bed"><span className="category-icon"><Users size={27} /></span><span><strong>Bedspaces</strong><small>Start somewhere new</small></span><ArrowUpRight size={19} /></Link>
+      <section className={styles.section}>
+        <div className={styles.shell}>
+          <div className={styles.sectionHead}>
+            <p className={styles.kicker}>WHAT HOMETAYO DOES</p>
+            <h2>One platform. Two sides of the same move.</h2>
+            <p>Renters need clarity. Owners need a practical way to publish and manage. HomeTayo gives both sides a focused place to start.</p>
+          </div>
+          <div className={styles.featureGrid}>
+            <article className={styles.featureCard}>
+              <span><MapPin size={22}/></span>
+              <h3>Discover with context</h3>
+              <p>Explore rental options by location, type and budget instead of jumping between scattered posts.</p>
+            </article>
+            <article className={styles.featureCard}>
+              <span><MessageCircle size={22}/></span>
+              <h3>Connect in one place</h3>
+              <p>Keep rental conversations connected to the property and the people involved.</p>
+            </article>
+            <article className={styles.featureCard}>
+              <span><UsersRound size={22}/></span>
+              <h3>Built for renters and owners</h3>
+              <p>Choose the account that matches what you need now, while HomeTayo keeps the experience familiar.</p>
+            </article>
+          </div>
         </div>
       </section>
 
-      <section className="container pilot-banner"><ShieldCheck size={20}/><p>Listings are published by owners. Always verify the property and owner independently.</p><Link href="/owner" className="text-link">List a property <ArrowUpRight size={16}/></Link></section>
-    </>
+      <section className={`${styles.section} ${styles.sectionAlt}`}>
+        <div className={styles.shell}>
+          <div className={styles.sectionHead}>
+            <p className={styles.kicker}>HOW IT WORKS</p>
+            <h2>From “where do I start?” to a place that makes sense.</h2>
+          </div>
+          <div className={styles.steps}>
+            <article className={styles.step}><h3>Create your account</h3><p>Sign up and choose whether you are looking for a home or managing a property.</p></article>
+            <article className={styles.step}><h3>Use the right workspace</h3><p>Renters get discovery tools. Property owners get publishing and rental-management tools.</p></article>
+            <article className={styles.step}><h3>Move the conversation forward</h3><p>Review the details, connect, and independently verify a property before making commitments or payments.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.shell}>
+          <div className={styles.safety}>
+            <span className={styles.safetyIcon}><ShieldCheck size={26}/></span>
+            <div><h2>Trust starts with clear expectations.</h2><p>Owner-published does not mean independently verified. HomeTayo encourages renters to inspect the property, confirm the owner and verify details before sending money.</p></div>
+            <Link href="/safety" className={styles.safetyLink}>Read rental safety <ArrowRight size={17}/></Link>
+          </div>
+        </div>
+      </section>
+
+      <section className={`${styles.section} ${styles.sectionAlt}`}>
+        <div className={styles.shell}>
+          <div className={styles.appCta}>
+            <div>
+              <p className={styles.kicker}>HOMETAYO FOR ANDROID</p>
+              <h2>Take HomeTayo with you.</h2>
+              <p>Install the Android app from the official HomeTayo download page. Your account unlocks the rental experience on the web and on Android.</p>
+            </div>
+            <Link href="/download" className={styles.primary}><Smartphone size={18}/> Install Android app</Link>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
