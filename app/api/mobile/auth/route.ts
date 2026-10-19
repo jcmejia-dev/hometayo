@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { nativeAuthInput } from "@/lib/native-auth-input";
 import { authenticateEmailPassword, emailPasswordSignInConfigured, emailSignUpConfigured, registerEmailUser, verifyNativeEmailCode } from "@/lib/email-auth";
 import { issueNativeSession, nativeAccount, nativeDb, nativeGoogleAccount, nativeReady, revokeNativeSession } from "@/lib/native-auth";
+import {removeMobilePushTokens} from "@/lib/push-notifications";
 
 export const dynamic="force-dynamic";
 const reply=(body:unknown,status=200)=>NextResponse.json(body,{status,headers:{"Cache-Control":"no-store"}});
@@ -35,7 +36,7 @@ export async function POST(request:Request) {
     }
     const account=await nativeAccount(request);
     if(!account)return reply({message:"Please sign in again."},401);
-    if(data.action==="logout") {await revokeNativeSession(request);return reply({ok:true});}
+    if(data.action==="logout") {await removeMobilePushTokens(account.id).catch(()=>{});await revokeNativeSession(request);return reply({ok:true});}
     const role=data.audience==="owner"?"landlord":"renter";
     if(role!==account.role)return reply({message:"Your account type was saved when you registered. Sign in with your existing account type."},409);
     return reply({account});
