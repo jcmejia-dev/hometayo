@@ -42,6 +42,7 @@ jobs:
       NODE_OPTIONS: --max-old-space-size=4096
       EAS_PROJECT_ID: 55714287-6e36-4377-8807-460f5027bd7c
       EAS_UPDATE_CHANNEL: preview
+      APP_VERSION: 0.5.0
       REQUIRE_EAS_UPDATES: 'true'
 
     steps:
@@ -65,7 +66,7 @@ jobs:
       - name: Verify OTA project link
         run: |
           test -n "$EAS_PROJECT_ID"
-          echo "Building OTA-enabled HomeTayo 0.4.0 on channel ${EAS_UPDATE_CHANNEL}"
+          echo "Building OTA-enabled HomeTayo ${APP_VERSION} on channel ${EAS_UPDATE_CHANNEL}"
 
       - name: Verify runner Android SDK
         run: test -d "$ANDROID_HOME/platforms" && echo "Android SDK ready"
@@ -85,13 +86,13 @@ jobs:
       - name: Set unique Android build code
         run: |
           echo "ANDROID_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
-          echo "Android versionCode: $((1000 + GITHUB_RUN_NUMBER)); app/runtime version: 0.4.0"
+          echo "Android versionCode: $((1000 + GITHUB_RUN_NUMBER)); app/runtime version: ${APP_VERSION}"
 
       - name: Verify Expo OTA configuration
         working-directory: apps/mobile
         run: |
           npx expo config --type public > /tmp/expo-config.txt
-          grep -E 'version|versionCode|runtimeVersion|updates|u.expo.dev|expo-channel-name|preview' /tmp/expo-config.txt
+          grep -E '0.5.0|version|versionCode|runtimeVersion|updates|u.expo.dev|expo-channel-name|preview' /tmp/expo-config.txt
 
       - name: Create native Android project
         working-directory: apps/mobile
@@ -137,12 +138,12 @@ jobs:
             gh release upload android-latest HomeTayo.apk --clobber
             gh release edit android-latest \
               --title "HomeTayo Android — Latest" \
-              --notes "OTA-ready HomeTayo 0.4.0 preview baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+              --notes "OTA-ready HomeTayo ${APP_VERSION} preview baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
           else
             gh release create android-latest HomeTayo.apk \
               --target "$GITHUB_SHA" \
               --title "HomeTayo Android — Latest" \
-              --notes "OTA-ready HomeTayo 0.4.0 preview baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+              --notes "OTA-ready HomeTayo ${APP_VERSION} preview baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
           fi
 
       - name: Verify public APK release asset
