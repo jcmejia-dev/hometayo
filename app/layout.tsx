@@ -44,7 +44,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <SiteHeader />
           <PlatformAnnouncement role={user?.role??null}/>
           <main id="main-content">{children}</main>
-          <SiteFooter />
+          <SiteFooter signedIn={Boolean(user)} />
           <MobileBottomNav role={user?.role??null}/>
         </div>
       </body>
