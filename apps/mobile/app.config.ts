@@ -11,14 +11,16 @@ export default ({config}:ConfigContext):ExpoConfig => {
   const ciVersionCode=Number.parseInt(process.env.ANDROID_VERSION_CODE||"",10);
   const versionCode=Number.isInteger(ciVersionCode)&&ciVersionCode>0?ciVersionCode:5;
   const appVersion=process.env.APP_VERSION?.trim()||"0.5.0";
+  const isEasRemoteBuild=process.env.EAS_BUILD==="true";
 
-  if(process.env.EAS_BUILD==="true"&&process.env.REQUIRE_ANDROID_MAPS==="true"&&!mapsKey){
+  if(isEasRemoteBuild&&process.env.REQUIRE_ANDROID_MAPS==="true"&&!mapsKey){
     throw new Error("Set GOOGLE_MAPS_ANDROID_API_KEY in the EAS preview environment before building preview-maps.");
   }
   if(process.env.REQUIRE_EAS_UPDATES==="true"&&!projectId){
     throw new Error("EAS_PROJECT_ID is required for the OTA-enabled HomeTayo APK.");
   }
-  if(process.env.REQUIRE_PUSH_NOTIFICATIONS==="true"&&!googleServicesFile){
+  // EAS secret file variables are materialized only on the remote builder, so validate them there.
+  if(isEasRemoteBuild&&process.env.REQUIRE_PUSH_NOTIFICATIONS==="true"&&!googleServicesFile){
     throw new Error("GOOGLE_SERVICES_FILE or GOOGLE_SERVICES_JSON is required for Android push notifications.");
   }
 
