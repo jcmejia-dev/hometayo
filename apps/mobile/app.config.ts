@@ -1,4 +1,5 @@
 import type { ExpoConfig, ConfigContext } from "expo/config";
+import {existsSync} from "node:fs";
 
 const HOME_TAYO_EAS_PROJECT_ID="55714287-6e36-4377-8807-460f5027bd7c";
 
@@ -6,6 +7,8 @@ export default ({config}:ConfigContext):ExpoConfig => {
   const projectId=process.env.EAS_PROJECT_ID || config.extra?.eas?.projectId || HOME_TAYO_EAS_PROJECT_ID;
   const updateChannel=process.env.EAS_UPDATE_CHANNEL?.trim()||"preview";
   const mapsKey=process.env.GOOGLE_MAPS_ANDROID_API_KEY?.trim();
+  const configuredGoogleServices=process.env.GOOGLE_SERVICES_FILE?.trim();
+  const googleServicesFile=configuredGoogleServices || (existsSync("./google-services.json")?"./google-services.json":undefined);
   const ciVersionCode=Number.parseInt(process.env.ANDROID_VERSION_CODE||"",10);
   const versionCode=Number.isInteger(ciVersionCode)&&ciVersionCode>0?ciVersionCode:5;
   const appVersion=process.env.APP_VERSION?.trim()||"0.5.0";
@@ -15,6 +18,9 @@ export default ({config}:ConfigContext):ExpoConfig => {
   }
   if(process.env.REQUIRE_EAS_UPDATES==="true"&&!projectId){
     throw new Error("EAS_PROJECT_ID is required for the OTA-enabled HomeTayo APK.");
+  }
+  if(process.env.REQUIRE_PUSH_NOTIFICATIONS==="true"&&!googleServicesFile){
+    throw new Error("GOOGLE_SERVICES_FILE is required for Android push notifications.");
   }
 
   return {
@@ -26,6 +32,7 @@ export default ({config}:ConfigContext):ExpoConfig => {
     android:{
       ...config.android,
       versionCode,
+      ...(googleServicesFile?{googleServicesFile}:{}),
       adaptiveIcon:{
         ...config.android?.adaptiveIcon,
         foregroundImage:"./assets/adaptive-icon.png",
@@ -55,6 +62,7 @@ export default ({config}:ConfigContext):ExpoConfig => {
       ...config.extra,
       note:"HomeTayo native renter/owner parity with social rental feed, management and safety reporting.",
       mapsConfigured:Boolean(mapsKey),
+      pushConfigured:Boolean(googleServicesFile),
       updateChannel,
       eas:{projectId},
     },
