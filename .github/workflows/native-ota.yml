@@ -1,0 +1,66 @@
+name: Android OTA update
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/App.tsx'
+      - 'apps/mobile/src/**'
+      - '.github/workflows/native-ota.yml'
+
+concurrency:
+  group: hometayo-android-ota
+  cancel-in-progress: true
+
+jobs:
+  publish-update:
+    runs-on: ubuntu-latest
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_API_URL: https://hometayoph.vercel.app
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID || secrets.EAS_PROJECT_ID }}
+      EAS_UPDATE_CHANNEL: production
+      REQUIRE_EAS_UPDATES: 'true'
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Verify OTA credentials
+        run: |
+          test -n "$EAS_PROJECT_ID" || {
+            echo "EAS_PROJECT_ID is missing."
+            exit 1
+          }
+          test -n "$EXPO_TOKEN" || {
+            echo "EXPO_TOKEN is missing. Create an Expo access token and save it as the GitHub Actions secret EXPO_TOKEN."
+            exit 1
+          }
+
+      - name: Install dependencies
+        working-directory: apps/mobile
+        run: npm install --no-audit --no-fund
+
+      - name: Type check native app
+        working-directory: apps/mobile
+        run: npm run check
+
+      - name: Verify OTA runtime
+        working-directory: apps/mobile
+        run: |
+          npx expo config --type public > /tmp/expo-config.txt
+          grep -E '0.4.0|runtimeVersion|u.expo.dev|expo-channel-name|production' /tmp/expo-config.txt
+
+      - name: Publish Android OTA update
+        working-directory: apps/mobile
+        run: npx eas-cli@latest update --channel "$EAS_UPDATE_CHANNEL" --platform android --message "${GITHUB_SHA::7}: ${GITHUB_COMMIT_MESSAGE}" --non-interactive
+        env:
+          GITHUB_COMMIT_MESSAGE: ${{ github.event.head_commit.message || 'Manual HomeTayo OTA update' }}
