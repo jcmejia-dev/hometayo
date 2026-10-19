@@ -31,6 +31,7 @@ export async function GET(_request:Request, {params}:{params:Promise<{slug:strin
     lastConfirmedAt:listing.lastConfirmedAt?.toISOString() ?? null,
     ownerName:listing.ownerName,
     ownerPhoto:listing.ownerPhoto,
+    ownerVerified:true,
     contactUrl:safePublicContact(listing.ownerContactKind,listing.ownerContactValue),
   },{headers:{"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"}});
 }
