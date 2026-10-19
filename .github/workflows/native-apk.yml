@@ -1,4 +1,5 @@
 name: Android native APK preview
+
 on:
   workflow_dispatch:
   push:
@@ -16,8 +17,14 @@ on:
       - 'app/api/mobile/**'
       - 'app/api/public/listings/**'
       - '.github/workflows/native-apk.yml'
+
 permissions:
   contents: write
+
+concurrency:
+  group: hometayo-android-latest
+  cancel-in-progress: true
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -26,41 +33,87 @@ jobs:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
       EXPO_PUBLIC_API_URL: https://hometayoph.vercel.app
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Verify runner Android SDK
         run: test -d "$ANDROID_HOME/platforms" && echo "Android SDK ready"
+
       - name: Install dependencies
         working-directory: apps/mobile
         run: npm install --no-audit --no-fund
+
       - name: Type check native app
         working-directory: apps/mobile
         run: npm run check
+
+      - name: Stamp unique Android build version
+        working-directory: apps/mobile
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'app.json';
+          const config = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const run = Number(process.env.GITHUB_RUN_NUMBER || '1');
+          config.expo.android = config.expo.android || {};
+          config.expo.android.versionCode = 1000 + run;
+          config.expo.version = `0.1.${run}`;
+          fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
+          console.log(`HomeTayo Android version ${config.expo.version} (${config.expo.android.versionCode})`);
+          NODE
+
       - name: Create native Android project
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --non-interactive --clean
-      - name: Build standalone Android APK for internal testing
+
+      - name: Build standalone Android APK
         working-directory: apps/mobile/android
         run: ./gradlew :app:assembleRelease --no-daemon
+
       - name: Prepare branded APK
         run: cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk HomeTayo.apk
+
       - uses: actions/upload-artifact@v4
         with:
           name: hometayo-android-latest
           path: HomeTayo.apk
           if-no-files-found: error
           retention-days: 14
+
       - name: Publish stable latest APK release
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view android-latest >/dev/null 2>&1 || gh release create android-latest --title "HomeTayo Android — Latest" --notes "Latest HomeTayo Android build from main."
-          gh release upload android-latest HomeTayo.apk --clobber
+          set -euo pipefail
+          if gh release view android-latest >/dev/null 2>&1; then
+            gh release upload android-latest HomeTayo.apk --clobber
+            gh release edit android-latest \
+              --title "HomeTayo Android — Latest" \
+              --notes "Latest HomeTayo Android build from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+          else
+            gh release create android-latest HomeTayo.apk \
+              --target "$GITHUB_SHA" \
+              --title "HomeTayo Android — Latest" \
+              --notes "Latest HomeTayo Android build from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+          fi
+
+      - name: Verify public APK release asset
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          APK_URL="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/android-latest" --jq '.assets[] | select(.name == "HomeTayo.apk") | .browser_download_url')"
+          test -n "$APK_URL"
+          echo "Published HomeTayo.apk: $APK_URL"
