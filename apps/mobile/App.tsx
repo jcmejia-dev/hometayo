@@ -10,7 +10,8 @@ import {colors} from "./src/design";
 import {NativeWelcome} from "./src/welcome";
 import {restoreAccount,watchSessionExpired,type Account} from "./src/session";
 import {AccountPanel} from "./src/account-panel";
-import {NativeRentalSocial,NativeRentalWorkspace} from "./src/rental-workspace";
+import {NativeRentalSocial} from "./src/rental-workspace";
+import {MessengerWorkspace} from "./src/messenger-workspace";
 import {RentalFeed} from "./src/rental-feed";
 import {fetchRentalDetail,propertyLabel,rentLabel,type RentalDetail} from "./src/api";
 import {useReducedMotion,useSceneTransition} from "./src/motion";
@@ -52,7 +53,7 @@ function NativeApp(){
   </>:null}
  </ScrollView>:
  tab==="explore"?<RentalFeed city={city} onSelect={setSelectedSlug} onInquiry={id=>{setInboxConversation(id);setTab("messages");}}/>:
- tab==="messages"?(account?<NativeRentalWorkspace owner={account.role==="landlord"} initialConversation={inboxConversation}/>:<AccountPanel account={null} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/> ):
+ tab==="messages"?(account?<MessengerWorkspace owner={account.role==="landlord"} initialConversation={inboxConversation}/>:<AccountPanel account={null} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/> ):
  tab==="owner"?<AccountPanel account={account} owner onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>:
  tab==="profile"?<AccountPanel account={account} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>:
  <ScrollView contentContainerStyle={s.homeBody}>
