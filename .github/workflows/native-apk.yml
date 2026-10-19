@@ -6,16 +6,10 @@ on:
     branches: [main]
     paths:
       - 'apps/mobile/**'
-      - 'app/api/mobile/**'
-      - 'app/api/public/listings/**'
-      - 'lib/rental-operation-*.ts'
-      - 'lib/rental-operations.ts'
       - '.github/workflows/native-apk.yml'
   pull_request:
     paths:
       - 'apps/mobile/**'
-      - 'app/api/mobile/**'
-      - 'app/api/public/listings/**'
       - '.github/workflows/native-apk.yml'
 
 permissions:
