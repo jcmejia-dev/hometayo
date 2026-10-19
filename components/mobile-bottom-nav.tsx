@@ -24,7 +24,7 @@ function roleTabs(role:string|null){
  */
 export function MobileBottomNav({role=null}:{role?:string|null}) {
   const pathname = usePathname();
-  if ((!role&&pathname==="/")||["/sign-in", "/sign-up", "/account/start", "/download"].includes(pathname)) return null;
+  if (pathname === "/administratorsite" || pathname.startsWith("/administratorsite/") || (!role&&pathname==="/")||["/sign-in", "/sign-up", "/account/start", "/download"].includes(pathname)) return null;
   return (
     <nav className="app-bottom-nav" aria-label="App navigation">
       {roleTabs(role).map(({ href, label, icon: Icon }) => {
