@@ -12,3 +12,4 @@ ios/
 *.aab
 .expo/
 dist-check/
+google-services.json
