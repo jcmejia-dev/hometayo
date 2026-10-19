@@ -57,7 +57,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: apps/mobile
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Type check native app
         working-directory: apps/mobile
