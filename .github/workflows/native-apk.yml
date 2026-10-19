@@ -28,7 +28,7 @@ concurrency:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     env:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
@@ -40,18 +40,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
       - name: Verify runner Android SDK
         run: test -d "$ANDROID_HOME/platforms" && echo "Android SDK ready"
 
       - name: Install dependencies
         working-directory: apps/mobile
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Type check native app
         working-directory: apps/mobile
@@ -73,7 +79,7 @@ jobs:
 
       - name: Build standalone Android APK
         working-directory: apps/mobile/android
-        run: ./gradlew :app:assembleRelease --no-daemon
+        run: ./gradlew :app:assembleRelease --no-daemon --build-cache --parallel
 
       - name: Prepare branded APK
         run: cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk HomeTayo.apk
