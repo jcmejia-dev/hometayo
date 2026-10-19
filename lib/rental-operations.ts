@@ -5,6 +5,7 @@ import * as q from "./rental-operation-sql";
 import * as social from "./rental-social-sql";
 import {uuidInput} from "./rental-unit-input";
 import type {Conversation,OperationsState,Notice} from "./rental-operation-types";
+import {sendConversationPush} from "./push-notifications";
 
 function client(){if(process.env.ENABLE_RENTAL_MANAGEMENT!=="true"||!process.env.DATABASE_URL)throw Error("Rental management is awaiting setup.");return neon(process.env.DATABASE_URL);}
 function validGifUrl(value:string){try{const url=new URL(value);return url.protocol==="https:"&&!url.username&&!url.password;}catch{return false;}}
@@ -36,6 +37,7 @@ export async function performOperation(userId:string,body:unknown){
   else if(v.action==="messageReact")throw Error("Message reactions are being enabled. Please try again after the latest database update.");
   else throw error;
  }
+ if(v.action==="message"&&rows.length)await sendConversationPush(userId,v.conversationId,v.mediaType==="gif"?"Sent a GIF":v.body);
  if(v.action==="react"&&v.kind!=="none"&&rows.length){
   try{await db.query(`INSERT INTO rental_notifications(user_id,conversation_id,listing_id,kind,body,event_key)
    SELECT o.user_id,NULL,l.id,'reaction',COALESCE(u.preferred_name,u.display_name,'Someone')||' '||CASE $3 WHEN 'like' THEN 'liked' WHEN 'love' THEN 'loved' ELSE 'is interested in' END||' your listing','reaction:'||l.id::text||':'||$1
@@ -45,9 +47,9 @@ export async function performOperation(userId:string,body:unknown){
  if(!rows.length&&!["message","typing","messageReact","payment","charge","remind","read","react"].includes(v.action))throw Error("Action unavailable. Check access and current status.");
  return {id:rows[0]?.id as string|undefined,message:rows.length?"Saved.":"Already recorded, unavailable, or no change needed."};
 }
-export async function notificationState(userId:string):Promise<Notice[]>{const rows=await client().query(q.NOTICES,[userId]) as Notice[];return rows.filter(n=>n.kind!=="typing");}
+export async function notificationState(userId:string):Promise<Notice[]>{return await client().query(social.NOTICES_SOCIAL,[userId]) as Notice[];}
 export async function headerNotificationState(userId:string):Promise<{notifications:Notice[];conversations:Conversation[]}>{
- const db=client();const notices=await db.query(q.NOTICES,[userId]) as Notice[];const notifications=notices.filter(n=>n.kind!=="typing");let conversations:Conversation[];
+ const db=client();const notifications=await db.query(social.NOTICES_SOCIAL,[userId]) as Notice[];let conversations:Conversation[];
  try{conversations=await db.query(social.CONVERSATIONS_SOCIAL,[userId]) as Conversation[];}catch{conversations=await db.query(q.CONVERSATIONS,[userId]) as Conversation[];}
  return {notifications,conversations};
 }
@@ -58,9 +60,9 @@ export async function operationsState(userId:string,conversationId?:string,month
  try{conversations=await db.query(social.CONVERSATIONS_SOCIAL,[userId]);}catch{conversations=await db.query(q.CONVERSATIONS,[userId]);}
  if(conversationId){try{messages=await db.query(social.THREAD_MESSAGES_SOCIAL,[userId,conversationId,before||null]);}catch{messages=await db.query(q.THREAD_MESSAGES_PAGE,[userId,conversationId,before||null]);}}else messages=[];
  const [noticeRows,summary,tenancies,charges,payments,typingRows]=await Promise.all([
-  db.query(q.NOTICES,[userId]),db.query(q.SUMMARY,[userId,selected]),conversationId?db.query(q.TENANCIES,[userId,conversationId]):[],conversationId?db.query(q.CHARGES,[userId,conversationId]):[],conversationId?db.query(q.PAYMENTS,[userId,conversationId]):[],conversationId?db.query(social.TYPING_STATE,[userId,conversationId]):[],
+  db.query(social.NOTICES_SOCIAL,[userId]),db.query(q.SUMMARY,[userId,selected]),conversationId?db.query(q.TENANCIES,[userId,conversationId]):[],conversationId?db.query(q.CHARGES,[userId,conversationId]):[],conversationId?db.query(q.PAYMENTS,[userId,conversationId]):[],conversationId?db.query(social.TYPING_STATE,[userId,conversationId]):[],
  ]);
- const notifications=(noticeRows as Notice[]).filter(n=>n.kind!=="typing");const typing=Boolean((typingRows[0] as {typing?:boolean}|undefined)?.typing);
+ const notifications=noticeRows as Notice[];const typing=Boolean((typingRows[0] as {typing?:boolean}|undefined)?.typing);
  return {conversations,notifications,summary:summary[0],messages:messages.reverse(),tenancies,charges,payments,month:selected,typing} as OperationsState;
 }
 export async function reactionState(slug:string,userId?:string){if(process.env.ENABLE_RENTAL_MANAGEMENT!=="true")return {counts:[],mine:null};const db=client();const counts=await db.query(`SELECT r.kind,count(*)::int AS count FROM listing_reactions r JOIN listings l ON l.id=r.listing_id WHERE l.slug=$1 AND l.status='published' GROUP BY r.kind`,[slug]);const mine=userId?await db.query(`SELECT r.kind FROM listing_reactions r JOIN listings l ON l.id=r.listing_id WHERE l.slug=$1 AND l.status='published' AND r.user_id=$2`,[slug,userId]):[];return {counts,mine:mine[0]?.kind??null};}
