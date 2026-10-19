@@ -2,36 +2,20 @@ import "server-only";
 import {neon} from "@neondatabase/serverless";
 
 const TOKEN=/^(?:Exponent|Expo)PushToken\[[A-Za-z0-9_-]+\]$/;
-
 function db(){if(!process.env.DATABASE_URL)throw Error("Database unavailable.");return neon(process.env.DATABASE_URL);}
-
-async function ensurePushTokens(){
- const sql=db();
- await sql.query(`CREATE TABLE IF NOT EXISTS mobile_push_tokens (
-  token text PRIMARY KEY,
-  user_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  platform text NOT NULL DEFAULT 'android',
-  updated_at timestamptz NOT NULL DEFAULT now()
- )`);
- await sql.query(`CREATE INDEX IF NOT EXISTS mobile_push_tokens_user_idx ON mobile_push_tokens(user_id)`);
- return sql;
-}
 
 export async function registerMobilePushToken(userId:string,token:string,platform="android"){
  if(!TOKEN.test(token))throw Error("Invalid Expo push token.");
- const sql=await ensurePushTokens();
+ const sql=db();
  await sql.query(`INSERT INTO mobile_push_tokens(token,user_id,platform,updated_at) VALUES($1,$2,$3,now())
   ON CONFLICT(token) DO UPDATE SET user_id=excluded.user_id,platform=excluded.platform,updated_at=now()`,[token,userId,platform]);
 }
 
-export async function removeMobilePushTokens(userId:string){
- const sql=await ensurePushTokens();
- await sql.query(`DELETE FROM mobile_push_tokens WHERE user_id=$1`,[userId]);
-}
+export async function removeMobilePushTokens(userId:string){await db().query(`DELETE FROM mobile_push_tokens WHERE user_id=$1`,[userId]);}
 
 export async function sendConversationPush(senderId:string,conversationId:string,body:string){
  try{
-  const sql=await ensurePushTokens();
+  const sql=db();
   const meta=await sql.query(`SELECT CASE WHEN c.owner_id=$1 THEN c.renter_id ELSE c.owner_id END AS recipient_id,
    COALESCE(u.preferred_name,u.display_name,'HomeTayo user') AS sender_name,l.title
    FROM rental_conversations c JOIN users u ON u.id=$1 JOIN listings l ON l.id=c.listing_id
@@ -53,6 +37,6 @@ export async function sendConversationPush(senderId:string,conversationId:string
   if(!payload.length)return;
   await fetch("https://exp.host/--/api/v2/push/send",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
  }catch{
-  // A push failure must never prevent the chat message itself from being saved.
+  // A push failure must never prevent the Neon-backed chat message from being saved.
  }
 }
