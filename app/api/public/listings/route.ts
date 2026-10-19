@@ -41,6 +41,7 @@ export async function GET(request: Request) {
       lastConfirmedAt:listing.lastConfirmedAt?.toISOString() ?? null,
       ownerName:listing.ownerName,
       ownerPhoto:listing.ownerPhoto,
+      ownerVerified:true,
       photoUrl:listing.photoUrls[0] ?? null,
       unitCounts:listing.unitCounts,
     })),
