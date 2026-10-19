@@ -33,6 +33,7 @@ export const CONVERSATIONS_SOCIAL=`SELECT c.id,c.listing_id AS "listingId",l.tit
  CASE WHEN c.owner_id=$1 THEN COALESCE(r.preferred_name,r.display_name,'Renter') ELSE COALESCE(o.preferred_name,o.display_name,'Owner') END AS "otherName",
  CASE WHEN c.owner_id=$1 THEN r.profile_photo ELSE o.profile_photo END AS "otherPhoto",
  CASE WHEN c.owner_id=$1 THEN c.renter_id ELSE c.owner_id END AS "otherUserId",
+ (c.owner_id<>$1) AS "otherVerified",
  lm.body AS "lastMessage",lm.created_at AS "lastMessageAt",lm.sender_id=$1 AS "lastMessageMine",lm.media_type AS "lastMediaType"
  FROM rental_conversations c JOIN listings l ON l.id=c.listing_id JOIN users r ON r.id=c.renter_id JOIN users o ON o.id=c.owner_id
  LEFT JOIN LATERAL (SELECT m.body,m.created_at,m.sender_id,m.media_type FROM rental_messages m WHERE m.conversation_id=c.id ORDER BY m.created_at DESC,m.id DESC LIMIT 1) lm ON true
