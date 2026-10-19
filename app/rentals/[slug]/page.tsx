@@ -1,5 +1,5 @@
 import Link from "next/link";
-import {notFound} from "next/navigation";
+import {notFound,redirect} from "next/navigation";
 import {ArrowLeft,BedDouble,Building2,MapPin,ShieldCheck,UserRound} from "lucide-react";
 import {getPublishedListing} from "@/lib/listings";
 import {formatRent} from "@/lib/search-filters";
@@ -12,13 +12,15 @@ import {currentUser} from "@/lib/session-user";
 
 export const dynamic="force-dynamic";
 export default async function ListingDetail({params}:{params:Promise<{slug:string}>}){
- const {slug}=await params;const [listing,user]=await Promise.all([getPublishedListing(slug),currentUser()]);if(!listing)notFound();
- const category=listing.propertyType.replaceAll("_"," "),units=await publicUnits(listing.id),ownerPreview=user?.role==="landlord";
+ const {slug}=await params,user=await currentUser();
+ if(!user)redirect(`/sign-in?next=${encodeURIComponent(`/rentals/${slug}`)}`);
+ const listing=await getPublishedListing(slug);if(!listing)notFound();
+ const category=listing.propertyType.replaceAll("_"," "),units=await publicUnits(listing.id),ownerPreview=user.role==="landlord";
  return <article className="container interior-page narrow-page">
   <Link className="back-link" href={ownerPreview?"/owner":"/rentals"}><ArrowLeft size={17}/> {ownerPreview?"Back to owner dashboard":"Back to rentals"}</Link>
   <div className="interior-heading"><p className="section-kicker">OWNER-PUBLISHED LISTING · {category.toUpperCase()}</p><h1>{listing.title}</h1><p><MapPin size={17} style={{display:"inline",verticalAlign:"middle"}}/> {listing.barangay}, {listing.city}, {listing.province}</p></div>
   <div className="info-card listing-detail">
-   <div className="listing-owner-row"><span className="listing-owner-avatar">{listing.ownerPhoto?<Image src={listing.ownerPhoto} alt={`${listing.ownerName} profile`} width={52} height={52} unoptimized/>:<UserRound size={25}/>}</span><div><small>Property owner</small><strong>{listing.ownerName}</strong><span>Published this rental on HomeTayo</span></div>{user?.role==="renter"&&<ReportSafety listingId={listing.id} category="scam" label="Report owner / scam" compact/>}</div>
+   <div className="listing-owner-row"><span className="listing-owner-avatar">{listing.ownerPhoto?<Image src={listing.ownerPhoto} alt={`${listing.ownerName} profile`} width={52} height={52} unoptimized/>:<UserRound size={25}/>}</span><div><small>Property owner</small><strong>{listing.ownerName}</strong><span>Published this rental on HomeTayo</span></div>{user.role==="renter"&&<ReportSafety listingId={listing.id} category="scam" label="Report owner / scam" compact/>}</div>
    {safePhotoUrls(listing.photoUrls).length?<div className="rental-photo-gallery">{safePhotoUrls(listing.photoUrls).map((url,i)=><Image key={url+i} src={url} alt={`${listing.title} · photo ${i+1}`} width={900} height={600} unoptimized style={{width:"100%",height:"auto",borderRadius:18}}/>)}</div>:<div className="detail-icon"><Building2 size={46}/><span>No owner photos provided yet</span></div>}
    <h2>{formatRent(listing.monthlyRentCentavos)} <span className="month-label">/month</span></h2><p>{listing.description}</p>
    {process.env.ENABLE_RENTAL_MANAGEMENT==="true"&&!ownerPreview&&<RentalSocial slug={listing.slug}/>} 
