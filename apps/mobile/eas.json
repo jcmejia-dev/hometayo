@@ -20,7 +20,8 @@
       "channel": "preview",
       "distribution": "internal",
       "env": {
-        "EAS_UPDATE_CHANNEL": "preview"
+        "EAS_UPDATE_CHANNEL": "preview",
+        "REQUIRE_PUSH_NOTIFICATIONS": "true"
       },
       "android": {
         "buildType": "apk"
