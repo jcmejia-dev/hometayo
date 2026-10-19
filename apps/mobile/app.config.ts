@@ -41,6 +41,7 @@ export default ({config}:ConfigContext):ExpoConfig => {
         microphonePermission:false,
       }],
       ["expo-location",{locationWhenInUsePermission:"Use your location to show nearby rentals and approximate distances."}],
+      ["expo-notifications",{color:"#173D32",defaultChannel:"messages"}],
       "@react-native-google-signin/google-signin",
       ["react-native-maps",{androidGoogleMapsApiKey:mapsKey||""}],
     ],
