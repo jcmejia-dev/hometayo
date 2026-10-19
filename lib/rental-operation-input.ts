@@ -6,6 +6,7 @@ const message=z.object({action:z.literal("message"),conversationId:id,eventId:id
 export const rentalOperation=z.discriminatedUnion("action",[
  z.object({action:z.literal("inquire"),slug:z.string().regex(/^[a-z0-9][a-z0-9-]{0,119}$/)}),
  message,
+ z.object({action:z.literal("typing"),conversationId:id}),
  z.object({action:z.literal("messageReact"),messageId:id,emoji:z.enum(["👍","❤️","😂","😮","😢","🙏","none"])}),
  z.object({action:z.literal("read"),notificationId:id}),
  z.object({action:z.literal("invite"),conversationId:id,unitId:id,monthlyRent:money.pipe(z.number().min(100)),startsOn:date}),
