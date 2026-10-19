@@ -1,0 +1,93 @@
+.ownerInbox :global(.rental-workspace) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  column-gap: 16px;
+  row-gap: 12px;
+  align-items: start;
+}
+
+.ownerInbox :global(.workspace-owner-overview) {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  margin: 0;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100dvh - 118px);
+  overflow-y: auto;
+  border-radius: 18px;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--green) 7%, transparent);
+}
+
+.ownerInbox :global(.workspace-owner-overview > summary) {
+  padding: 18px;
+}
+
+.ownerInbox :global(.workspace-owner-overview .workspace-overview) {
+  padding: 0 16px 18px;
+}
+
+.ownerInbox :global(.workspace-owner-overview .workspace-heading) {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+
+.ownerInbox :global(.workspace-owner-overview .workspace-heading label) {
+  width: 100%;
+}
+
+.ownerInbox :global(.workspace-owner-overview .workspace-heading input) {
+  width: 100%;
+}
+
+.ownerInbox :global(.workspace-owner-overview .workspace-stats) {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.ownerInbox :global(.workspace-owner-overview .workspace-stats .info-card) {
+  min-height: 76px;
+  padding: 14px;
+}
+
+.ownerInbox :global(.chat-section-heading) {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.ownerInbox :global(.rental-workspace > .status-notice),
+.ownerInbox :global(.rental-workspace > p[role="status"]) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.ownerInbox :global(.chat-workspace) {
+  grid-column: 1;
+  grid-row: 3;
+  width: 100%;
+}
+
+@media (max-width: 1180px) {
+  .ownerInbox :global(.rental-workspace) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ownerInbox :global(.workspace-owner-overview) {
+    position: static;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .ownerInbox :global(.workspace-owner-overview .workspace-stats) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ownerInbox :global(.workspace-owner-overview .workspace-stats) {
+    grid-template-columns: 1fr;
+  }
+}
