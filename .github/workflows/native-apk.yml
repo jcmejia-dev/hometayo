@@ -40,7 +40,7 @@ jobs:
       EXPO_NO_TELEMETRY: '1'
       EXPO_PUBLIC_API_URL: https://hometayoph.vercel.app
       NODE_OPTIONS: --max-old-space-size=4096
-      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID || secrets.EAS_PROJECT_ID }}
+      EAS_PROJECT_ID: 55714287-6e36-4377-8807-460f5027bd7c
       EAS_UPDATE_CHANNEL: production
       REQUIRE_EAS_UPDATES: 'true'
 
@@ -64,10 +64,7 @@ jobs:
 
       - name: Verify OTA project link
         run: |
-          test -n "$EAS_PROJECT_ID" || {
-            echo "EAS_PROJECT_ID is missing. Add the existing HomeTayo Expo project ID as a GitHub Actions variable or secret before building this OTA baseline."
-            exit 1
-          }
+          test -n "$EAS_PROJECT_ID"
           echo "Building OTA-enabled HomeTayo 0.4.0 on channel ${EAS_UPDATE_CHANNEL}"
 
       - name: Verify runner Android SDK
