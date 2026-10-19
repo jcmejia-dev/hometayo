@@ -3,7 +3,8 @@ name: Android OTA update
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - 'apps/mobile/App.tsx'
       - 'apps/mobile/src/**'
@@ -19,9 +20,9 @@ jobs:
     env:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
-      EXPO_PUBLIC_API_URL: https://hometayoph.vercel.app
-      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID || secrets.EAS_PROJECT_ID }}
-      EAS_UPDATE_CHANNEL: production
+      EXPO_PUBLIC_API_URL: 'https://hometayoph.vercel.app'
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+      EAS_UPDATE_CHANNEL: 'production'
       REQUIRE_EAS_UPDATES: 'true'
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
@@ -35,15 +36,16 @@ jobs:
           cache-dependency-path: apps/mobile/package-lock.json
 
       - name: Verify OTA credentials
+        shell: bash
         run: |
-          test -n "$EAS_PROJECT_ID" || {
+          if [ -z "$EAS_PROJECT_ID" ]; then
             echo "EAS_PROJECT_ID is missing."
             exit 1
-          }
-          test -n "$EXPO_TOKEN" || {
-            echo "EXPO_TOKEN is missing. Create an Expo access token and save it as the GitHub Actions secret EXPO_TOKEN."
+          fi
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "EXPO_TOKEN is missing. Add it as the GitHub Actions secret EXPO_TOKEN."
             exit 1
-          }
+          fi
 
       - name: Install dependencies
         working-directory: apps/mobile
@@ -61,6 +63,4 @@ jobs:
 
       - name: Publish Android OTA update
         working-directory: apps/mobile
-        run: npx eas-cli@latest update --channel "$EAS_UPDATE_CHANNEL" --platform android --message "${GITHUB_SHA::7}: ${GITHUB_COMMIT_MESSAGE}" --non-interactive
-        env:
-          GITHUB_COMMIT_MESSAGE: ${{ github.event.head_commit.message || 'Manual HomeTayo OTA update' }}
+        run: npx eas-cli@latest update --channel "$EAS_UPDATE_CHANNEL" --platform android --message "GitHub ${GITHUB_SHA}" --non-interactive
