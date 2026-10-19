@@ -41,7 +41,7 @@ jobs:
       EXPO_PUBLIC_API_URL: https://hometayoph.vercel.app
       NODE_OPTIONS: --max-old-space-size=4096
       EAS_PROJECT_ID: 55714287-6e36-4377-8807-460f5027bd7c
-      EAS_UPDATE_CHANNEL: production
+      EAS_UPDATE_CHANNEL: preview
       REQUIRE_EAS_UPDATES: 'true'
 
     steps:
@@ -91,7 +91,7 @@ jobs:
         working-directory: apps/mobile
         run: |
           npx expo config --type public > /tmp/expo-config.txt
-          grep -E 'version|versionCode|runtimeVersion|updates|u.expo.dev|expo-channel-name|production' /tmp/expo-config.txt
+          grep -E 'version|versionCode|runtimeVersion|updates|u.expo.dev|expo-channel-name|preview' /tmp/expo-config.txt
 
       - name: Create native Android project
         working-directory: apps/mobile
@@ -137,12 +137,12 @@ jobs:
             gh release upload android-latest HomeTayo.apk --clobber
             gh release edit android-latest \
               --title "HomeTayo Android — Latest" \
-              --notes "OTA-ready HomeTayo 0.4.0 baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+              --notes "OTA-ready HomeTayo 0.4.0 preview baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
           else
             gh release create android-latest HomeTayo.apk \
               --target "$GITHUB_SHA" \
               --title "HomeTayo Android — Latest" \
-              --notes "OTA-ready HomeTayo 0.4.0 baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
+              --notes "OTA-ready HomeTayo 0.4.0 preview baseline from main. Build ${GITHUB_RUN_NUMBER}, commit ${GITHUB_SHA}."
           fi
 
       - name: Verify public APK release asset
