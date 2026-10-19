@@ -77,9 +77,22 @@ jobs:
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --non-interactive --clean
 
+      - name: Configure Gradle memory
+        working-directory: apps/mobile/android
+        run: |
+          sed -i '/^org.gradle.jvmargs=/d' gradle.properties
+          sed -i '/^kotlin.daemon.jvmargs=/d' gradle.properties
+          sed -i '/^org.gradle.workers.max=/d' gradle.properties
+          cat >> gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1536m -Dfile.encoding=UTF-8
+          kotlin.daemon.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=768m
+          org.gradle.workers.max=2
+          EOF
+          grep -E '^(org.gradle.jvmargs|kotlin.daemon.jvmargs|org.gradle.workers.max)=' gradle.properties
+
       - name: Build standalone Android APK
         working-directory: apps/mobile/android
-        run: ./gradlew :app:assembleRelease --no-daemon --build-cache --parallel
+        run: ./gradlew :app:assembleRelease --no-daemon --build-cache --max-workers=2
 
       - name: Prepare branded APK
         run: cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk HomeTayo.apk
