@@ -12,6 +12,7 @@ export function operationQuery(userId:string,v:RentalOperation):{sql:string;args
  switch(v.action){
   case "inquire":return {sql:q.INQUIRE,args:[userId,v.slug]};
   case "message":return {sql:social.MESSAGE_V2,args:[userId,v.conversationId,v.eventId,v.body,v.replyToId??null,v.mediaType]};
+  case "typing":return {sql:social.TYPING,args:[userId,v.conversationId]};
   case "messageReact":return {sql:v.emoji==="none"?social.MESSAGE_UNREACT:social.MESSAGE_REACT,args:v.emoji==="none"?[userId,v.messageId]:[userId,v.messageId,v.emoji]};
   case "read":return {sql:q.READ_NOTICE,args:[userId,v.notificationId]};
   case "invite":return {sql:q.INVITE,args:[userId,v.conversationId,v.unitId,v.monthlyRent,v.startsOn]};
@@ -41,12 +42,12 @@ export async function performOperation(userId:string,body:unknown){
    FROM listings l JOIN owner_profiles o ON o.id=l.owner_id JOIN users u ON u.id=$1 WHERE l.slug=$2 AND o.user_id<>$1
    ON CONFLICT(event_key) DO UPDATE SET body=excluded.body,read_at=NULL,created_at=now(),listing_id=excluded.listing_id`,[userId,v.slug,v.kind]);}catch{/* Reaction itself remains saved while migration 008 is rolling out. */}
  }
- if(!rows.length&&!["message","messageReact","payment","charge","remind","read","react"].includes(v.action))throw Error("Action unavailable. Check access and current status.");
+ if(!rows.length&&!["message","typing","messageReact","payment","charge","remind","read","react"].includes(v.action))throw Error("Action unavailable. Check access and current status.");
  return {id:rows[0]?.id as string|undefined,message:rows.length?"Saved.":"Already recorded, unavailable, or no change needed."};
 }
-export async function notificationState(userId:string):Promise<Notice[]>{return await client().query(q.NOTICES,[userId]) as Notice[];}
+export async function notificationState(userId:string):Promise<Notice[]>{const rows=await client().query(q.NOTICES,[userId]) as Notice[];return rows.filter(n=>n.kind!=="typing");}
 export async function headerNotificationState(userId:string):Promise<{notifications:Notice[];conversations:Conversation[]}>{
- const db=client();const notifications=await db.query(q.NOTICES,[userId]) as Notice[];let conversations:Conversation[];
+ const db=client();const notices=await db.query(q.NOTICES,[userId]) as Notice[];const notifications=notices.filter(n=>n.kind!=="typing");let conversations:Conversation[];
  try{conversations=await db.query(social.CONVERSATIONS_SOCIAL,[userId]) as Conversation[];}catch{conversations=await db.query(q.CONVERSATIONS,[userId]) as Conversation[];}
  return {notifications,conversations};
 }
@@ -56,9 +57,10 @@ export async function operationsState(userId:string,conversationId?:string,month
  let conversations:unknown[],messages:unknown[];
  try{conversations=await db.query(social.CONVERSATIONS_SOCIAL,[userId]);}catch{conversations=await db.query(q.CONVERSATIONS,[userId]);}
  if(conversationId){try{messages=await db.query(social.THREAD_MESSAGES_SOCIAL,[userId,conversationId,before||null]);}catch{messages=await db.query(q.THREAD_MESSAGES_PAGE,[userId,conversationId,before||null]);}}else messages=[];
- const [notifications,summary,tenancies,charges,payments]=await Promise.all([
-  db.query(q.NOTICES,[userId]),db.query(q.SUMMARY,[userId,selected]),conversationId?db.query(q.TENANCIES,[userId,conversationId]):[],conversationId?db.query(q.CHARGES,[userId,conversationId]):[],conversationId?db.query(q.PAYMENTS,[userId,conversationId]):[],
+ const [noticeRows,summary,tenancies,charges,payments,typingRows]=await Promise.all([
+  db.query(q.NOTICES,[userId]),db.query(q.SUMMARY,[userId,selected]),conversationId?db.query(q.TENANCIES,[userId,conversationId]):[],conversationId?db.query(q.CHARGES,[userId,conversationId]):[],conversationId?db.query(q.PAYMENTS,[userId,conversationId]):[],conversationId?db.query(social.TYPING_STATE,[userId,conversationId]):[],
  ]);
- return {conversations,notifications,summary:summary[0],messages:messages.reverse(),tenancies,charges,payments,month:selected} as OperationsState;
+ const notifications=(noticeRows as Notice[]).filter(n=>n.kind!=="typing");const typing=Boolean((typingRows[0] as {typing?:boolean}|undefined)?.typing);
+ return {conversations,notifications,summary:summary[0],messages:messages.reverse(),tenancies,charges,payments,month:selected,typing} as OperationsState;
 }
 export async function reactionState(slug:string,userId?:string){if(process.env.ENABLE_RENTAL_MANAGEMENT!=="true")return {counts:[],mine:null};const db=client();const counts=await db.query(`SELECT r.kind,count(*)::int AS count FROM listing_reactions r JOIN listings l ON l.id=r.listing_id WHERE l.slug=$1 AND l.status='published' GROUP BY r.kind`,[slug]);const mine=userId?await db.query(`SELECT r.kind FROM listing_reactions r JOIN listings l ON l.id=r.listing_id WHERE l.slug=$1 AND l.status='published' AND r.user_id=$2`,[slug,userId]):[];return {counts,mine:mine[0]?.kind??null};}
