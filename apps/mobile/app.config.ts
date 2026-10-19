@@ -6,8 +6,8 @@ export default ({config}:ConfigContext):ExpoConfig => {
   const projectId=process.env.EAS_PROJECT_ID || config.extra?.eas?.projectId || HOME_TAYO_EAS_PROJECT_ID;
   const updateChannel=process.env.EAS_UPDATE_CHANNEL?.trim()||"preview";
   const mapsKey=process.env.GOOGLE_MAPS_ANDROID_API_KEY?.trim();
-  // GitHub Actions writes Firebase's Android registration file and exposes this path during push-ready APK builds.
-  const googleServicesFile=process.env.GOOGLE_SERVICES_FILE?.trim();
+  // GitHub Actions exposes GOOGLE_SERVICES_FILE; EAS file variables expose GOOGLE_SERVICES_JSON.
+  const googleServicesFile=process.env.GOOGLE_SERVICES_FILE?.trim()||process.env.GOOGLE_SERVICES_JSON?.trim();
   const ciVersionCode=Number.parseInt(process.env.ANDROID_VERSION_CODE||"",10);
   const versionCode=Number.isInteger(ciVersionCode)&&ciVersionCode>0?ciVersionCode:5;
   const appVersion=process.env.APP_VERSION?.trim()||"0.5.0";
@@ -19,7 +19,7 @@ export default ({config}:ConfigContext):ExpoConfig => {
     throw new Error("EAS_PROJECT_ID is required for the OTA-enabled HomeTayo APK.");
   }
   if(process.env.REQUIRE_PUSH_NOTIFICATIONS==="true"&&!googleServicesFile){
-    throw new Error("GOOGLE_SERVICES_FILE is required for Android push notifications.");
+    throw new Error("GOOGLE_SERVICES_FILE or GOOGLE_SERVICES_JSON is required for Android push notifications.");
   }
 
   return {
