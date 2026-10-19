@@ -27,6 +27,8 @@ jobs:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
       EXPO_PUBLIC_API_URL: https://hometayoph.vercel.app
+      NODE_OPTIONS: --max-old-space-size=4096
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID || secrets.EAS_PROJECT_ID }}
 
     steps:
       - uses: actions/checkout@v4
@@ -57,6 +59,10 @@ jobs:
         working-directory: apps/mobile
         run: npm run check
 
+      - name: Validate Android JavaScript bundle
+        working-directory: apps/mobile
+        run: npx expo export --platform android --output-dir dist-ci --clear
+
       - name: Set unique Android build version
         run: |
           echo "ANDROID_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
@@ -65,11 +71,11 @@ jobs:
 
       - name: Verify Expo resolved version
         working-directory: apps/mobile
-        run: npx expo config --type public | grep -E 'version|versionCode'
+        run: npx expo config --type public | grep -E 'version|versionCode|updates'
 
       - name: Create native Android project
         working-directory: apps/mobile
-        run: npx expo prebuild --platform android --non-interactive --clean
+        run: npx expo prebuild --platform android --clean
 
       - name: Configure Gradle memory
         working-directory: apps/mobile/android
@@ -77,16 +83,15 @@ jobs:
           sed -i '/^org.gradle.jvmargs=/d' gradle.properties
           sed -i '/^kotlin.daemon.jvmargs=/d' gradle.properties
           sed -i '/^org.gradle.workers.max=/d' gradle.properties
-          cat >> gradle.properties <<'EOF'
-          org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1536m -Dfile.encoding=UTF-8
-          kotlin.daemon.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=768m
-          org.gradle.workers.max=2
-          EOF
+          printf '%s\n' \
+            'org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1536m -Dfile.encoding=UTF-8' \
+            'kotlin.daemon.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=768m' \
+            'org.gradle.workers.max=2' >> gradle.properties
           grep -E '^(org.gradle.jvmargs|kotlin.daemon.jvmargs|org.gradle.workers.max)=' gradle.properties
 
       - name: Build standalone Android APK
         working-directory: apps/mobile/android
-        run: ./gradlew :app:assembleRelease --no-daemon --build-cache --max-workers=2
+        run: ./gradlew :app:assembleRelease --no-daemon --build-cache --max-workers=2 --stacktrace
 
       - name: Prepare branded APK
         run: cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk HomeTayo.apk
