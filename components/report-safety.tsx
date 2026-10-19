@@ -14,5 +14,5 @@ export function ReportSafety({label="Report",category="other",listingId,messageI
   try{const r=await fetch("/api/safety-reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({category,details,listingId,messageId,conversationId})}),d=await r.json();if(!r.ok)throw Error(d.message||"Could not report.");setMessage(d.message);}
   catch(e){setMessage(e instanceof Error?e.message:"Could not report.");}finally{setBusy(false);}
  }
- return <span className={compact?"report-control compact-report":"report-control"}><button type="button" className="button button-outline" onClick={()=>void report()} disabled={busy}><Flag size={15}/>{busy?"Sending…":label}</button>{message&&<small role="status">{message}</small>}</span>;
+ return <span data-conversation-id={conversationId||undefined} className={compact?"report-control compact-report":"report-control"}><button type="button" className="button button-outline" onClick={()=>void report()} disabled={busy}><Flag size={15}/>{busy?"Sending…":label}</button>{message&&<small role="status">{message}</small>}</span>;
 }
