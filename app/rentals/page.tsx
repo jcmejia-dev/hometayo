@@ -17,8 +17,10 @@ export const metadata:Metadata={title:"Explore rentals",description:"Browse curr
 type Params={city?:string|string[];type?:string|string[];maxRent?:string|string[];bedrooms?:string|string[]};
 const first=(value:string|string[]|undefined)=>typeof value==="string"?value.slice(0,80):"";
 export default async function Rentals({searchParams}:{searchParams:Promise<Params>}){
- const raw=await searchParams,filters=parseRentalFilters(raw);const [result,user]=await Promise.all([browsePublishedListings(filters),currentUser()]);
- if(user?.role==="landlord")redirect("/owner");
+ const raw=await searchParams,user=await currentUser();
+ if(!user)redirect(`/sign-in?next=${encodeURIComponent("/rentals")}`);
+ if(user.role==="landlord")redirect("/owner");
+ const filters=parseRentalFilters(raw),result=await browsePublishedListings(filters);
  const type=first(raw.type),budget=first(raw.maxRent),bedrooms=first(raw.bedrooms),allowedTypes=["all","house","apartment","boarding_house","bedspace"],allowedBudgets=["","3000","5000","8000","12000","20000"],allowedRooms=["","1","2","3","4"];
  return <div className="container interior-page">
   <div className="breadcrumb"><Link href="/">Home</Link><ArrowRight size={14}/> Explore rentals</div>
@@ -33,6 +35,6 @@ export default async function Rentals({searchParams}:{searchParams:Promise<Param
     <div className="rental-card-photo rental-feed-photo">{safePhotoUrls(listing.photoUrls)[0]?<Image src={safePhotoUrls(listing.photoUrls)[0]} alt={listing.title} width={900} height={600} unoptimized style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<><House size={40} strokeWidth={1.25}/><span>No owner photos yet</span></>}</div></Link>
     {process.env.ENABLE_RENTAL_MANAGEMENT==="true"&&<div className="rental-feed-actions"><RentalSocial slug={listing.slug}/></div>}
    </article>)}
-  </div></section>:<section className="empty-state" aria-labelledby="rental-empty-title"><span className="empty-icon"><SearchX size={37}/></span><span className="launch-pill"><ShieldCheck size={14}/> Owner-published rentals</span><h2 id="rental-empty-title">{result.state==="not_configured"?"We're preparing the first listings.":result.state==="error"?"Search is temporarily unavailable.":"No rentals match yet."}</h2><p>{result.state==="not_configured"?"HomeTayo doesn't have published rentals yet.":result.state==="error"?"We couldn't reach the rental database right now. Please try again later.":"Try changing your filters or return later when more owners publish rental listings."}</p><div className="empty-actions"><a href="#rental-search" className="button button-primary">Adjust your search <ArrowRight size={18}/></a>{user?.role==="renter"&&<Link href="/inbox" className="button button-outline">My messages</Link>}</div></section>}
+  </div></section>:<section className="empty-state" aria-labelledby="rental-empty-title"><span className="empty-icon"><SearchX size={37}/></span><span className="launch-pill"><ShieldCheck size={14}/> Owner-published rentals</span><h2 id="rental-empty-title">{result.state==="not_configured"?"We're preparing the first listings.":result.state==="error"?"Search is temporarily unavailable.":"No rentals match yet."}</h2><p>{result.state==="not_configured"?"HomeTayo doesn't have published rentals yet.":result.state==="error"?"We couldn't reach the rental database right now. Please try again later.":"Try changing your filters or return later when more owners publish rental listings."}</p><div className="empty-actions"><a href="#rental-search" className="button button-primary">Adjust your search <ArrowRight size={18}/></a><Link href="/inbox" className="button button-outline">My messages</Link></div></section>}
  </div>;
 }
