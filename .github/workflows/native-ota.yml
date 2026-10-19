@@ -21,7 +21,7 @@ jobs:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
       EXPO_PUBLIC_API_URL: 'https://hometayoph.vercel.app'
-      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+      EAS_PROJECT_ID: '55714287-6e36-4377-8807-460f5027bd7c'
       EAS_UPDATE_CHANNEL: 'production'
       REQUIRE_EAS_UPDATES: 'true'
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -38,14 +38,11 @@ jobs:
       - name: Verify OTA credentials
         shell: bash
         run: |
-          if [ -z "$EAS_PROJECT_ID" ]; then
-            echo "EAS_PROJECT_ID is missing."
-            exit 1
-          fi
           if [ -z "$EXPO_TOKEN" ]; then
             echo "EXPO_TOKEN is missing. Add it as the GitHub Actions secret EXPO_TOKEN."
             exit 1
           fi
+          echo "Publishing HomeTayo OTA to project ${EAS_PROJECT_ID} on ${EAS_UPDATE_CHANNEL}."
 
       - name: Install dependencies
         working-directory: apps/mobile
