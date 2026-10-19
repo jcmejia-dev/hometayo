@@ -32,6 +32,9 @@ export const TYPING_STATE=`SELECT EXISTS(
  AND n.event_key LIKE 'typing:%' AND n.body='__typing__' AND n.created_at>now()-interval '5 seconds'
 ) AS typing`;
 
+export const NOTICES_SOCIAL=`SELECT id,conversation_id AS "conversationId",kind,body,read_at AS "readAt",created_at AS "createdAt"
+ FROM rental_notifications WHERE user_id=$1 AND event_key NOT LIKE 'typing:%' ORDER BY created_at DESC LIMIT 100`;
+
 export const CONVERSATIONS_SOCIAL=`SELECT c.id,c.listing_id AS "listingId",l.title,l.slug,c.owner_id=$1 AS "isOwner",
  CASE WHEN c.owner_id=$1 THEN COALESCE(r.preferred_name,r.display_name,'Renter') ELSE COALESCE(o.preferred_name,o.display_name,'Owner') END AS "otherName",
  CASE WHEN c.owner_id=$1 THEN r.profile_photo ELSE o.profile_photo END AS "otherPhoto",
