@@ -17,20 +17,43 @@ export const MESSAGE_REACT=`INSERT INTO message_reactions(message_id,user_id,emo
 export const MESSAGE_UNREACT=`DELETE FROM message_reactions mr USING rental_messages m,rental_conversations c
  WHERE mr.message_id=m.id AND m.conversation_id=c.id AND mr.message_id=$2::uuid AND mr.user_id=$1 AND $1 IN(c.owner_id,c.renter_id) RETURNING mr.message_id AS id`;
 
-// Typing presence reuses the existing notification table without introducing a new
-// notification kind. The synthetic row is excluded from normal notification reads.
-export const TYPING=`WITH c AS (
+// Canonical Neon-backed typing presence.
+export const TYPING=`INSERT INTO message_typing_presence(conversation_id,user_id,updated_at)
+ SELECT c.id,$1,now() FROM rental_conversations c
+ WHERE c.id=$2::uuid AND $1 IN(c.owner_id,c.renter_id)
+ ON CONFLICT(conversation_id,user_id) DO UPDATE SET updated_at=now()
+ RETURNING conversation_id AS id`;
+export const TYPING_STATE=`SELECT EXISTS(
+ SELECT 1 FROM message_typing_presence p JOIN rental_conversations c ON c.id=p.conversation_id
+ WHERE p.conversation_id=$2::uuid AND p.user_id<>$1 AND $1 IN(c.owner_id,c.renter_id)
+ AND p.updated_at>now()-interval '5 seconds'
+) AS typing`;
+
+// Compatibility fallback until migration 010 has been applied everywhere.
+export const TYPING_LEGACY=`WITH c AS (
  SELECT * FROM rental_conversations WHERE id=$2::uuid AND $1 IN(owner_id,renter_id)
 ), t AS (
  INSERT INTO rental_notifications(user_id,conversation_id,kind,body,event_key)
  SELECT CASE WHEN c.owner_id=$1 THEN c.renter_id ELSE c.owner_id END,c.id,'message','__typing__','typing:'||c.id::text||':'||$1
  FROM c ON CONFLICT(event_key) DO UPDATE SET created_at=now(),read_at=NULL RETURNING id
 ) SELECT id FROM t`;
-
-export const TYPING_STATE=`SELECT EXISTS(
+export const TYPING_STATE_LEGACY=`SELECT EXISTS(
  SELECT 1 FROM rental_notifications n WHERE n.user_id=$1 AND n.conversation_id=$2::uuid
  AND n.event_key LIKE 'typing:%' AND n.body='__typing__' AND n.created_at>now()-interval '5 seconds'
 ) AS typing`;
+
+export const READ_NOTICE_V2=`WITH n AS (
+ UPDATE rental_notifications SET read_at=COALESCE(read_at,now()) WHERE user_id=$1 AND id=$2::uuid
+ RETURNING id,event_key,read_at
+), m AS (
+ UPDATE rental_messages rm SET seen_at=COALESCE(rm.seen_at,n.read_at)
+ FROM n WHERE n.event_key='message:'||rm.id::text AND rm.sender_id<>$1
+ RETURNING rm.id
+) SELECT id FROM n`;
+
+export const MARK_DELIVERED=`UPDATE rental_messages rm SET delivered_at=COALESCE(rm.delivered_at,now())
+ FROM rental_notifications n
+ WHERE n.user_id=$1 AND n.event_key='message:'||rm.id::text AND rm.sender_id<>$1 AND rm.delivered_at IS NULL`;
 
 export const NOTICES_SOCIAL=`SELECT id,conversation_id AS "conversationId",kind,body,read_at AS "readAt",created_at AS "createdAt"
  FROM rental_notifications WHERE user_id=$1 AND event_key NOT LIKE 'typing:%' ORDER BY created_at DESC LIMIT 100`;
@@ -46,12 +69,11 @@ export const CONVERSATIONS_SOCIAL=`SELECT c.id,c.listing_id AS "listingId",l.tit
  WHERE $1 IN(c.owner_id,c.renter_id) ORDER BY COALESCE(lm.created_at,c.created_at) DESC LIMIT 200`;
 
 export const THREAD_MESSAGES_SOCIAL=`SELECT m.id,m.body,m.sender_id AS "senderId",m.sender_id=$1 AS mine,m.created_at AS "createdAt",
- m.reply_to_id AS "replyToId",parent.body AS "replyBody",m.media_type AS "mediaType",delivery.created_at AS "deliveredAt",delivery.read_at AS "seenAt",
+ m.reply_to_id AS "replyToId",parent.body AS "replyBody",m.media_type AS "mediaType",m.delivered_at AS "deliveredAt",m.seen_at AS "seenAt",
  COALESCE((SELECT json_agg(json_build_object('emoji',rx.emoji,'count',rx.count,'mine',rx.mine) ORDER BY rx.emoji) FROM (
    SELECT mr.emoji,count(*)::int AS count,bool_or(mr.user_id=$1) AS mine FROM message_reactions mr WHERE mr.message_id=m.id GROUP BY mr.emoji
  ) rx),'[]'::json) AS reactions
  FROM rental_messages m JOIN rental_conversations c ON c.id=m.conversation_id LEFT JOIN rental_messages parent ON parent.id=m.reply_to_id
- LEFT JOIN rental_notifications delivery ON delivery.event_key='message:'||m.id::text AND delivery.conversation_id=c.id
  WHERE c.id=$2::uuid AND $1 IN(c.owner_id,c.renter_id)
  AND ($3::uuid IS NULL OR (m.created_at,m.id)<(SELECT created_at,id FROM rental_messages WHERE id=$3::uuid AND conversation_id=c.id))
  ORDER BY m.created_at DESC,m.id DESC LIMIT 100`;
