@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, House, LayoutDashboard, UserRound,MessageCircle,BookOpen } from "lucide-react";
+import { Compass, House, LayoutDashboard, UserRound, MessageCircle } from "lucide-react";
 
-function roleTabs(role:string|null){
+function roleTabs(role:string){
   if(role==="landlord")return [
     {href:"/",label:"Home",icon:House},
     {href:"/inbox",label:"Messages",icon:MessageCircle},
@@ -14,17 +14,17 @@ function roleTabs(role:string|null){
   return [
     { href: "/", label: "Home", icon: House },
     { href: "/rentals", label: "Explore", icon: Compass },
-    role?{href:"/inbox",label:"Messages",icon:MessageCircle}:{href:"/how-it-works",label:"Guide",icon:BookOpen},
+    { href: "/inbox", label: "Messages", icon: MessageCircle },
     { href: "/profile", label: "Profile", icon: UserRound },
   ];
 }
 
-/** Four primary routes are always available without a menu on small screens.
- *  The existing top menu still exposes guides, safety and the privacy policy.
+/** App-style navigation is reserved for authenticated renters and owners.
+ *  Guests get a normal marketing website header/footer instead.
  */
 export function MobileBottomNav({role=null}:{role?:string|null}) {
   const pathname = usePathname();
-  if (pathname === "/administratorsite" || pathname.startsWith("/administratorsite/") || (!role&&pathname==="/")||["/sign-in", "/sign-up", "/account/start", "/download"].includes(pathname)) return null;
+  if (!role || pathname === "/administratorsite" || pathname.startsWith("/administratorsite/") || ["/sign-in", "/sign-up", "/account/start", "/download"].includes(pathname)) return null;
   return (
     <nav className="app-bottom-nav" aria-label="App navigation">
       {roleTabs(role).map(({ href, label, icon: Icon }) => {
