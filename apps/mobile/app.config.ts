@@ -6,6 +6,7 @@ export default ({config}:ConfigContext):ExpoConfig => {
   const projectId=process.env.EAS_PROJECT_ID || config.extra?.eas?.projectId || HOME_TAYO_EAS_PROJECT_ID;
   const updateChannel=process.env.EAS_UPDATE_CHANNEL?.trim()||"preview";
   const mapsKey=process.env.GOOGLE_MAPS_ANDROID_API_KEY?.trim();
+  // GitHub Actions writes Firebase's Android registration file and exposes this path during push-ready APK builds.
   const googleServicesFile=process.env.GOOGLE_SERVICES_FILE?.trim();
   const ciVersionCode=Number.parseInt(process.env.ANDROID_VERSION_CODE||"",10);
   const versionCode=Number.isInteger(ciVersionCode)&&ciVersionCode>0?ciVersionCode:5;
