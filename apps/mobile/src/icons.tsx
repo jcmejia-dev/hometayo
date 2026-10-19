@@ -10,6 +10,7 @@ import ArrowLeft from "lucide-react-native/icons/arrow-left";
 import Eye from "lucide-react-native/icons/eye";
 import EyeOff from "lucide-react-native/icons/eye-off";
 import Mail from "lucide-react-native/icons/mail";
+import MessageCircle from "lucide-react-native/icons/message-circle";
 import LockKeyhole from "lucide-react-native/icons/lock-keyhole";
 import Check from "lucide-react-native/icons/check";
 import ChevronRight from "lucide-react-native/icons/chevron-right";
@@ -22,7 +23,7 @@ import Bath from "lucide-react-native/icons/bath";
 import Wifi from "lucide-react-native/icons/wifi";
 import KeyRound from "lucide-react-native/icons/key-round";
 import {usePalette} from "./theme";
-const icons={home:Home,search:Search,building:Building2,user:UserRound,pin:MapPin,shield:ShieldCheck,arrow:ArrowRight,back:ArrowLeft,eye:Eye,"eye-off":EyeOff,mail:Mail,lock:LockKeyhole,check:Check,chevron:ChevronRight,filters:SlidersHorizontal,location:Navigation,refresh:RefreshCw,logout:LogOut,bed:BedDouble,bath:Bath,wifi:Wifi,key:KeyRound};
+const icons={home:Home,search:Search,building:Building2,user:UserRound,pin:MapPin,shield:ShieldCheck,arrow:ArrowRight,back:ArrowLeft,eye:Eye,"eye-off":EyeOff,mail:Mail,message:MessageCircle,lock:LockKeyhole,check:Check,chevron:ChevronRight,filters:SlidersHorizontal,location:Navigation,refresh:RefreshCw,logout:LogOut,bed:BedDouble,bath:Bath,wifi:Wifi,key:KeyRound};
 export type IconName=keyof typeof icons;
 export function Icon({name,size=22,color}:{name:IconName;size?:number;color?:string}){
   const colors=usePalette();
