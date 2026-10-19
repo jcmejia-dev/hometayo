@@ -1,7 +1,9 @@
 import type { ExpoConfig, ConfigContext } from "expo/config";
 
+const HOME_TAYO_EAS_PROJECT_ID="55714287-6e36-4377-8807-460f5027bd7c";
+
 export default ({config}:ConfigContext):ExpoConfig => {
-  const projectId=process.env.EAS_PROJECT_ID || config.extra?.eas?.projectId;
+  const projectId=process.env.EAS_PROJECT_ID || config.extra?.eas?.projectId || HOME_TAYO_EAS_PROJECT_ID;
   const updateChannel=process.env.EAS_UPDATE_CHANNEL?.trim()||"production";
   const mapsKey=process.env.GOOGLE_MAPS_ANDROID_API_KEY?.trim();
   const ciVersionCode=Number.parseInt(process.env.ANDROID_VERSION_CODE||"",10);
@@ -43,19 +45,17 @@ export default ({config}:ConfigContext):ExpoConfig => {
       ["react-native-maps",{androidGoogleMapsApiKey:mapsKey||""}],
     ],
     runtimeVersion:{policy:"appVersion"},
-    ...(projectId?{
-      updates:{
-        url:"https://u.expo.dev/"+projectId,
-        checkAutomatically:"NEVER" as const,
-        requestHeaders:{"expo-channel-name":updateChannel},
-      },
-    }:{}),
+    updates:{
+      url:"https://u.expo.dev/"+projectId,
+      checkAutomatically:"NEVER" as const,
+      requestHeaders:{"expo-channel-name":updateChannel},
+    },
     extra:{
       ...config.extra,
       note:"HomeTayo native renter/owner parity with social rental feed, management and safety reporting.",
       mapsConfigured:Boolean(mapsKey),
       updateChannel,
-      ...(projectId?{eas:{projectId}}:{}),
+      eas:{projectId},
     },
   };
 };
