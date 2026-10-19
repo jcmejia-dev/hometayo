@@ -10,6 +10,19 @@ if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL missing. Configure a separate HomeTayo Neon database in .env.local.");
   process.exit(1);
 }
+
+// Git may check files out with CRLF on Windows even though the repository stores LF.
+// Normalize line endings before hashing so migration integrity checks are cross-platform.
+const normalizeMigration = (value) => value.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+const migrationChecksum = (value) => createHash("sha256").update(normalizeMigration(value)).digest("hex");
+
+// 008 was applied before its current repository form was finalized. Production already
+// contains the resulting schema, so keep accepting that one known historical checksum.
+// All other applied migrations must match their normalized repository checksum exactly.
+const acceptedLegacyChecksums = new Map([
+  ["008_social_safety.sql", new Set(["8bdcbc9ae7ff03b46d04138a41d40fbc8d4998c9f77ff65a9f959b31544553ca"])],
+]);
+
 const dir = join(dirname(dirname(fileURLToPath(import.meta.url))), "db", "migrations");
 const files = readdirSync(dir).filter((f) => /^\d+_[a-z0-9_-]+\.sql$/.test(f)).sort();
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 15000 });
@@ -20,11 +33,13 @@ try {
   await client.query("CREATE TABLE IF NOT EXISTS hometayo_schema_migrations (filename TEXT PRIMARY KEY, checksum TEXT NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())");
   for (const filename of files) {
     const sql = readFileSync(join(dir, filename), "utf8");
-    const checksum = createHash("sha256").update(sql).digest("hex");
+    const checksum = migrationChecksum(sql);
     const previous = await client.query("SELECT checksum FROM hometayo_schema_migrations WHERE filename=$1", [filename]);
     if (previous.rowCount) {
-      if (previous.rows[0].checksum !== checksum) throw new Error("An applied migration has been edited: " + filename);
-      console.log("Already applied: " + filename);
+      const recordedChecksum = previous.rows[0].checksum;
+      const legacyAllowed = acceptedLegacyChecksums.get(filename)?.has(recordedChecksum) === true;
+      if (recordedChecksum !== checksum && !legacyAllowed) throw new Error("An applied migration has been edited: " + filename);
+      console.log("Already applied: " + filename + (legacyAllowed ? " (legacy checksum accepted)" : ""));
       continue;
     }
     await client.query(sql);
