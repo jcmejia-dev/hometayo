@@ -23,6 +23,7 @@ jobs:
       EXPO_PUBLIC_API_URL: 'https://hometayoph.vercel.app'
       EAS_PROJECT_ID: '55714287-6e36-4377-8807-460f5027bd7c'
       EAS_UPDATE_CHANNEL: 'preview'
+      APP_VERSION: '0.5.0'
       REQUIRE_EAS_UPDATES: 'true'
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
@@ -42,7 +43,7 @@ jobs:
             echo "EXPO_TOKEN is missing. Add it as the GitHub Actions secret EXPO_TOKEN."
             exit 1
           fi
-          echo "Publishing HomeTayo OTA to project ${EAS_PROJECT_ID} on ${EAS_UPDATE_CHANNEL}."
+          echo "Publishing HomeTayo ${APP_VERSION} OTA to project ${EAS_PROJECT_ID} on ${EAS_UPDATE_CHANNEL}."
 
       - name: Install dependencies
         working-directory: apps/mobile
@@ -56,7 +57,7 @@ jobs:
         working-directory: apps/mobile
         run: |
           npx expo config --type public > /tmp/expo-config.txt
-          grep -E '0.4.0|runtimeVersion|u.expo.dev|expo-channel-name|preview' /tmp/expo-config.txt
+          grep -E '0.5.0|runtimeVersion|u.expo.dev|expo-channel-name|preview' /tmp/expo-config.txt
 
       - name: Publish Android OTA update
         working-directory: apps/mobile
