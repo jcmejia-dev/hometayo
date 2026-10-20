@@ -15,16 +15,14 @@ Notifications.setNotificationHandler({
 
 export async function registerPushNotifications(){
   if(Platform.OS==="android"){
-    await Notifications.setNotificationChannelAsync("messages",{
-      name:"Messages",
-      description:"New HomeTayo rental messages",
-      importance:Notifications.AndroidImportance.MAX,
-      sound:"default",
-      vibrationPattern:[0,250,160,250],
-      lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,
-      enableVibrate:true,
-      showBadge:true,
-    });
+    await Promise.all([
+      Notifications.setNotificationChannelAsync("messages",{
+        name:"Messages",description:"New HomeTayo rental messages",importance:Notifications.AndroidImportance.MAX,sound:"default",vibrationPattern:[0,250,160,250],lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,enableVibrate:true,showBadge:true,
+      }),
+      Notifications.setNotificationChannelAsync("rentals",{
+        name:"Rental updates",description:"Rent, tenancy, maintenance and document updates",importance:Notifications.AndroidImportance.MAX,sound:"default",vibrationPattern:[0,250,160,250],lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,enableVibrate:true,showBadge:true,
+      }),
+    ]);
   }
   let permissions=await Notifications.getPermissionsAsync();
   if(permissions.status!=="granted")permissions=await Notifications.requestPermissionsAsync();
@@ -36,10 +34,12 @@ export async function registerPushNotifications(){
   return true;
 }
 
-export function listenForNotificationResponses(openConversation:(conversationId:string)=>void){
+export function listenForNotificationResponses(openConversation:(conversationId:string)=>void,openRental?:(conversationId?:string)=>void){
   const handle=(response:Notifications.NotificationResponse|null)=>{
-    const id=response?.notification.request.content.data?.conversationId;
-    if(typeof id==="string"&&id)openConversation(id);
+    const data=response?.notification.request.content.data;
+    const id=typeof data?.conversationId==="string"&&data.conversationId?data.conversationId:undefined;
+    if(data?.screen==="rental"||data?.type==="rental"){openRental?.(id);return;}
+    if(id)openConversation(id);
   };
   void Notifications.getLastNotificationResponseAsync().then(handle).catch(()=>{});
   const subscription=Notifications.addNotificationResponseReceivedListener(handle);
