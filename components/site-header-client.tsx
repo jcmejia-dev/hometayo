@@ -49,6 +49,7 @@ export function SiteHeaderClient({
               <>
                 <Link href={isLandlord ? "/owner" : "/"}>My dashboard</Link>
                 {!isLandlord && <Link href="/rentals">Explore rentals</Link>}
+                {rentalManagementEnabled && <Link href="/rental-center">Rental Center</Link>}
                 <Link href="/how-it-works">How it works</Link>
                 <Link href="/safety">Rental safety</Link>
                 <Link href="/profile">My profile</Link>
@@ -79,6 +80,7 @@ export function SiteHeaderClient({
                 <>
                   <Link href={isLandlord ? "/owner" : "/"}>My dashboard</Link>
                   {!isLandlord && <Link href="/rentals">Explore rentals</Link>}
+                  {rentalManagementEnabled && <Link href="/rental-center">Rental Center</Link>}
                   <Link href="/how-it-works">How it works</Link>
                   <Link href="/safety">Rental safety</Link>
                   {isLandlord && <Link href="/owner">List your property</Link>}
