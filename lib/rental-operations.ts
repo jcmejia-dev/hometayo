@@ -5,7 +5,8 @@ import * as q from "./rental-operation-sql";
 import * as social from "./rental-social-sql";
 import {uuidInput} from "./rental-unit-input";
 import type {Conversation,OperationsState,Notice} from "./rental-operation-types";
-import {sendConversationPush} from "./push-notifications";
+import {dispatchPendingRentalPushes,sendConversationPush} from "./push-notifications";
+import {emptyLifecycleState,isLifecycleOperation,lifecycleState,performLifecycleOperation} from "./rental-lifecycle";
 
 function client(){if(process.env.ENABLE_RENTAL_MANAGEMENT!=="true"||!process.env.DATABASE_URL)throw Error("Rental management is awaiting setup.");return neon(process.env.DATABASE_URL);}
 function validGifUrl(value:string){try{const url=new URL(value);return url.protocol==="https:"&&!url.username&&!url.password;}catch{return false;}}
@@ -28,11 +29,13 @@ export function operationQuery(userId:string,v:RentalOperation):{sql:string;args
   case "voidCharge":return {sql:q.VOID_CHARGE,args:[userId,v.chargeId,v.reason]};
   case "remind":return {sql:q.REMIND,args:[userId,v.chargeId]};
   case "react":return {sql:v.kind==="none"?q.UNREACT:q.REACT,args:v.kind==="none"?[userId,v.slug]:[userId,v.slug,v.kind]};
+  default:throw Error("This rental action uses the lifecycle service.");
  }
 }
 
 export async function performOperation(userId:string,body:unknown){
  const v=rentalOperation.parse(body);if(v.action==="message"&&v.mediaType==="gif"&&!validGifUrl(v.body))throw Error("Use a valid HTTPS GIF URL.");
+ if(isLifecycleOperation(v))return performLifecycleOperation(userId,v);
  const query=operationQuery(userId,v),db=client();let rows:Record<string,unknown>[];
  try{rows=await db.query(query.sql,query.args) as Record<string,unknown>[];}
  catch(error){
@@ -49,6 +52,7 @@ export async function performOperation(userId:string,body:unknown){
    FROM listings l JOIN owner_profiles o ON o.id=l.owner_id JOIN users u ON u.id=$1 WHERE l.slug=$2 AND o.user_id<>$1
    ON CONFLICT(event_key) DO UPDATE SET body=excluded.body,read_at=NULL,created_at=now(),listing_id=excluded.listing_id`,[userId,v.slug,v.kind]);}catch{/* Reaction itself remains saved while migration 008 is rolling out. */}
  }
+ if(rows.length&&["invite","accept","decline","end","charge","payment","void","voidCharge","remind"].includes(v.action))await dispatchPendingRentalPushes();
  if(!rows.length&&!["message","typing","messageReact","payment","charge","remind","read","react"].includes(v.action))throw Error("Action unavailable. Check access and current status.");
  return {id:rows[0]?.id as string|undefined,message:rows.length?"Saved.":"Already recorded, unavailable, or no change needed."};
 }
@@ -72,11 +76,17 @@ export async function operationsState(userId:string,conversationId?:string,month
   try{messages=await db.query(social.THREAD_MESSAGES_SOCIAL,[userId,conversationId,before||null]);}catch{messages=await db.query(q.THREAD_MESSAGES_PAGE,[userId,conversationId,before||null]);}
   try{typingRows=await db.query(social.TYPING_STATE,[userId,conversationId]);}catch{typingRows=await db.query(social.TYPING_STATE_LEGACY,[userId,conversationId]);}
  }else messages=[];
- const [noticeRows,summary,tenancies,charges,payments]=await Promise.all([
-  db.query(social.NOTICES_SOCIAL,[userId]),db.query(q.SUMMARY,[userId,selected]),conversationId?db.query(q.TENANCIES,[userId,conversationId]):[],conversationId?db.query(q.CHARGES,[userId,conversationId]):[],conversationId?db.query(q.PAYMENTS,[userId,conversationId]):[],
+ let lifecycle:null|Awaited<ReturnType<typeof lifecycleState>>=null;
+ if(conversationId)try{lifecycle=await lifecycleState(userId,conversationId);}catch{/* Migration 011 may still be rolling out; legacy tenancy/ledger stays available. */}
+ const [noticeRows,summary,legacyTenancies,legacyCharges,payments]=await Promise.all([
+  db.query(social.NOTICES_SOCIAL,[userId]),db.query(q.SUMMARY,[userId,selected]),conversationId&&!lifecycle?db.query(q.TENANCIES,[userId,conversationId]):[],conversationId&&!lifecycle?db.query(q.CHARGES,[userId,conversationId]):[],conversationId?db.query(q.PAYMENTS,[userId,conversationId]):[],
  ]);
  const notifications=noticeRows as Notice[];const typing=Boolean((typingRows[0] as {typing?:boolean}|undefined)?.typing);
- return {conversations,notifications,summary:summary[0],messages:messages.reverse(),tenancies,charges,payments,month:selected,typing} as OperationsState;
+ return {
+  conversations,notifications,summary:summary[0],messages:messages.reverse(),
+  tenancies:lifecycle?.tenancies??legacyTenancies,charges:lifecycle?.charges??legacyCharges,payments,
+  ...(lifecycle??emptyLifecycleState),month:selected,typing,
+ } as OperationsState;
 }
 
 export async function reactionState(slug:string,userId?:string){if(process.env.ENABLE_RENTAL_MANAGEMENT!=="true")return {counts:[],mine:null};const db=client();const counts=await db.query(`SELECT r.kind,count(*)::int AS count FROM listing_reactions r JOIN listings l ON l.id=r.listing_id WHERE l.slug=$1 AND l.status='published' GROUP BY r.kind`,[slug]);const mine=userId?await db.query(`SELECT r.kind FROM listing_reactions r JOIN listings l ON l.id=r.listing_id WHERE l.slug=$1 AND l.status='published' AND r.user_id=$2`,[slug,userId]):[];return {counts,mine:mine[0]?.kind??null};}
