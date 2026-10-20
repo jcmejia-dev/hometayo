@@ -3,6 +3,7 @@ import {neon} from "@neondatabase/serverless";
 import {rentalOperation,type RentalOperation} from "./rental-operation-input";
 import * as q from "./rental-operation-sql";
 import * as social from "./rental-social-sql";
+import {END_TENANCY_V2} from "./rental-lifecycle-compat";
 import {uuidInput} from "./rental-unit-input";
 import type {Conversation,OperationsState,Notice} from "./rental-operation-types";
 import {dispatchPendingRentalPushes,sendConversationPush} from "./push-notifications";
@@ -22,7 +23,7 @@ export function operationQuery(userId:string,v:RentalOperation):{sql:string;args
   case "invite":return {sql:q.INVITE,args:[userId,v.conversationId,v.unitId,v.monthlyRent,v.startsOn]};
   case "accept":return {sql:q.ACCEPT,args:[userId,v.tenancyId]};
   case "decline":return {sql:q.DECLINE,args:[userId,v.tenancyId]};
-  case "end":return {sql:q.END_TENANCY,args:[userId,v.tenancyId,v.endedOn]};
+  case "end":return {sql:END_TENANCY_V2,args:[userId,v.tenancyId,v.endedOn]};
   case "charge":return {sql:q.CHARGE,args:[userId,v.tenancyId,v.dueOn,v.description,v.amount]};
   case "payment":return {sql:q.PAYMENT,args:[userId,v.chargeId,v.eventId,v.amount,v.paidOn,v.note]};
   case "void":return {sql:q.VOID_PAYMENT,args:[userId,v.paymentId,v.reason]};
