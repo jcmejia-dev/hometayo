@@ -1,10 +1,10 @@
 .layoutFix :global(.rental-workspace) {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) !important;
   grid-template-areas:
     "heading"
     "status"
-    "chat";
+    "chat" !important;
   gap: 12px;
   min-width: 0;
 }
@@ -22,101 +22,10 @@
 
 .layoutFix :global(.chat-workspace) {
   grid-area: chat;
+  width: 100%;
   min-width: 0;
 }
 
 .layoutFix :global(.workspace-owner-overview) {
-  min-width: 0;
-}
-
-@media (min-width: 1180px) {
-  .layoutFix :global(.rental-workspace:has(.workspace-owner-overview)) {
-    grid-template-columns: minmax(0, 1fr) 320px;
-    grid-template-areas:
-      "heading overview"
-      "status overview"
-      "chat overview";
-    column-gap: 16px;
-    align-items: start;
-  }
-
-  .layoutFix :global(.workspace-owner-overview) {
-    grid-area: overview;
-    position: sticky;
-    top: 88px;
-    align-self: start;
-    width: 100%;
-    max-height: min(760px, calc(100dvh - 108px));
-    margin: 0 !important;
-    overflow: auto;
-    border: 1px solid color-mix(in srgb, var(--green) 11%, var(--line));
-    border-radius: 20px !important;
-    background: #fbfcf9;
-    box-shadow: 0 18px 48px color-mix(in srgb, var(--green) 7%, transparent) !important;
-    scrollbar-width: thin;
-  }
-
-  .layoutFix :global(.workspace-owner-overview > summary) {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    padding: 17px 16px;
-    border-bottom: 1px solid color-mix(in srgb, var(--green) 10%, var(--line));
-    background: rgba(251, 252, 249, 0.97);
-    backdrop-filter: blur(10px);
-  }
-
-  .layoutFix :global(.workspace-owner-overview .workspace-overview) {
-    padding: 15px;
-  }
-
-  .layoutFix :global(.workspace-owner-overview .workspace-heading) {
-    display: block;
-    margin-bottom: 13px;
-  }
-
-  .layoutFix :global(.workspace-owner-overview .workspace-heading h2) {
-    margin: 3px 0 12px;
-    font-size: 19px;
-    line-height: 1.2;
-  }
-
-  .layoutFix :global(.workspace-owner-overview .workspace-heading label) {
-    display: grid;
-    gap: 6px;
-    width: 100%;
-  }
-
-  .layoutFix :global(.workspace-owner-overview .workspace-heading input) {
-    width: 100%;
-  }
-
-  .layoutFix :global(.workspace-owner-overview .workspace-stats) {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .layoutFix :global(.workspace-owner-overview .workspace-stats .info-card) {
-    min-width: 0;
-    padding: 12px 13px;
-  }
-
-  .layoutFix :global(.workspace-owner-overview .workspace-stats .info-card strong) {
-    overflow-wrap: anywhere;
-    font-size: 16px;
-  }
-
-  .layoutFix :global(.workspace-owner-overview .workspace-hint) {
-    margin: 12px 0 0;
-    font-size: 12px;
-    line-height: 1.55;
-  }
-}
-
-@media (max-width: 1179px) {
-  .layoutFix :global(.workspace-owner-overview) {
-    grid-row: auto;
-    margin: 0 !important;
-  }
+  display: none !important;
 }
