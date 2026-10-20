@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, House, LayoutDashboard, UserRound, MessageCircle } from "lucide-react";
+import { Compass, House, LayoutDashboard, UserRound, MessageCircle, KeyRound } from "lucide-react";
 
 function roleTabs(role:string){
   if(role==="landlord")return [
     {href:"/",label:"Home",icon:House},
+    {href:"/rental-center",label:"Rental",icon:KeyRound},
     {href:"/inbox",label:"Messages",icon:MessageCircle},
-    {href:"/owner",label:"My listings",icon:LayoutDashboard},
+    {href:"/owner",label:"Listings",icon:LayoutDashboard},
     {href:"/profile",label:"Profile",icon:UserRound},
   ];
   return [
     { href: "/", label: "Home", icon: House },
     { href: "/rentals", label: "Explore", icon: Compass },
+    { href: "/rental-center", label: "My rental", icon: KeyRound },
     { href: "/inbox", label: "Messages", icon: MessageCircle },
     { href: "/profile", label: "Profile", icon: UserRound },
   ];
