@@ -8,7 +8,7 @@ import {MESSAGE_V2,MESSAGE_REACT,THREAD_MESSAGES_SOCIAL} from "../../lib/rental-
 test("social safety migration supports replies reactions reports and account moderation",async()=>{
  const db=new PGlite();
  try{
-  for(const file of ["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql","005_rental_units.sql","006_rental_operations.sql","007_profile_photo.sql","008_social_safety.sql"]){
+  for(const file of ["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql","005_rental_units.sql","006_rental_operations.sql","007_profile_photo.sql","008_social_safety.sql","009_platform_announcements.sql","010_realtime_messaging_push.sql","011_rental_lifecycle.sql","012_rental_lifecycle_trigger_fix.sql"]){
    await db.exec(readFileSync(new URL(`../../db/migrations/${file}`,import.meta.url),"utf8"));
   }
   await db.exec("INSERT INTO users(id,email,display_name,role) VALUES('owner','owner@test.invalid','Owner','landlord'),('renter','renter@test.invalid','Renter','renter'); INSERT INTO owner_profiles(user_id,public_name) VALUES('owner','Owner');");
