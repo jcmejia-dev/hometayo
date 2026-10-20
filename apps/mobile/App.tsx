@@ -12,29 +12,30 @@ import {restoreAccount,watchSessionExpired,type Account} from "./src/session";
 import {AccountPanel} from "./src/account-panel";
 import {NativeRentalSocial} from "./src/rental-workspace";
 import {MessengerWorkspace} from "./src/messenger-workspace";
+import {RentalCenter} from "./src/rental-center";
 import {RentalFeed} from "./src/rental-feed";
 import {fetchRentalDetail,propertyLabel,rentLabel,type RentalDetail} from "./src/api";
 import {useReducedMotion,useSceneTransition} from "./src/motion";
 import {api} from "./src/session";
 import {listenForNotificationResponses,registerPushNotifications} from "./src/push-notifications";
 
-type Tab="home"|"explore"|"messages"|"owner"|"profile";
+type Tab="home"|"explore"|"messages"|"rental"|"owner"|"profile";
 const INTRO_KEY="hometayo.native.intro.v1";
-const renterTabs:Array<{id:Tab;label:string;symbol:IconName}>=[{id:"home",label:"Home",symbol:"home"},{id:"explore",label:"Rentals",symbol:"search"},{id:"messages",label:"Messages",symbol:"message"},{id:"profile",label:"Account",symbol:"user"}];
-const ownerTabs:Array<{id:Tab;label:string;symbol:IconName}>=[{id:"owner",label:"Dashboard",symbol:"building"},{id:"messages",label:"Messages",symbol:"message"},{id:"profile",label:"Profile",symbol:"user"}];
+const renterTabs:Array<{id:Tab;label:string;symbol:IconName}>=[{id:"home",label:"Home",symbol:"home"},{id:"explore",label:"Rentals",symbol:"search"},{id:"rental",label:"My rental",symbol:"key"},{id:"messages",label:"Messages",symbol:"message"},{id:"profile",label:"Account",symbol:"user"}];
+const ownerTabs:Array<{id:Tab;label:string;symbol:IconName}>=[{id:"owner",label:"Dashboard",symbol:"building"},{id:"rental",label:"Rental",symbol:"key"},{id:"messages",label:"Messages",symbol:"message"},{id:"profile",label:"Profile",symbol:"user"}];
 
 function Brand(){return <View style={s.brand}><BrandMark/><Text style={s.brandWord}>Home<Text style={{color:colors.gold}}>Tayo</Text></Text></View>;}
 function BigButton({label,onPress,secondary=false}:{label:string;onPress:()=>void;secondary?:boolean}){const c=usePalette();return <Pressable onPress={onPress} style={[s.bigButton,{backgroundColor:secondary?c.white:c.green,borderColor:c.border}]}><Text style={{color:secondary?c.green:"white",fontWeight:"900"}}>{label}</Text><Icon name="arrow" color={secondary?c.green:"white"}/></Pressable>;}
 
 function NativeApp(){
  const c=usePalette(),{theme}=useTheme();
- const [ready,setReady]=useState(false),[account,setAccount]=useState<Account|null>(null),[welcomeOpen,setWelcomeOpen]=useState(true),[intro,setIntro]=useState<number|null>(null),[tab,setTab]=useState<Tab>("home"),[city,setCity]=useState("Koronadal City"),[selectedSlug,setSelectedSlug]=useState<string|null>(null),[selected,setSelected]=useState<RentalDetail|null>(null),[detailBusy,setDetailBusy]=useState(false),[inboxConversation,setInboxConversation]=useState<string|undefined>();
+ const [ready,setReady]=useState(false),[account,setAccount]=useState<Account|null>(null),[welcomeOpen,setWelcomeOpen]=useState(true),[intro,setIntro]=useState<number|null>(null),[tab,setTab]=useState<Tab>("home"),[city,setCity]=useState("Koronadal City"),[selectedSlug,setSelectedSlug]=useState<string|null>(null),[selected,setSelected]=useState<RentalDetail|null>(null),[detailBusy,setDetailBusy]=useState(false),[inboxConversation,setInboxConversation]=useState<string|undefined>(),[rentalConversation,setRentalConversation]=useState<string|undefined>();
  const reduced=useReducedMotion(),transition=useSceneTransition(tab+":"+(selectedSlug||""),reduced);
  const tabs=useMemo(()=>account?.role==="landlord"?ownerTabs:renterTabs,[account?.role]);
  useEffect(()=>watchSessionExpired(()=>{setAccount(null);setWelcomeOpen(true);setTab("home");}),[]);
  useEffect(()=>{let alive=true;Promise.all([AsyncStorage.getItem(INTRO_KEY),restoreAccount().catch(()=>null)]).then(([value,saved])=>{if(!alive)return;setAccount(saved);if(saved){setWelcomeOpen(false);setTab(saved.role==="landlord"?"owner":"home");}setIntro(value==="done"?null:0);setReady(true);}).catch(()=>{if(alive){setIntro(0);setReady(true);}});return()=>{alive=false;};},[]);
  useEffect(()=>{if(!account)return;void registerPushNotifications().catch(()=>{});},[account?.id]);
- useEffect(()=>listenForNotificationResponses(conversationId=>{setInboxConversation(conversationId);setSelectedSlug(null);setWelcomeOpen(false);setTab("messages");}),[]);
+ useEffect(()=>listenForNotificationResponses(conversationId=>{setInboxConversation(conversationId);setSelectedSlug(null);setWelcomeOpen(false);setTab("messages");},conversationId=>{setRentalConversation(conversationId);setSelectedSlug(null);setWelcomeOpen(false);setTab("rental");}),[]);
  useEffect(()=>{if(!account||account.role==="landlord")return;let live=true;api("/api/mobile/profile").then(v=>{if(live&&v.profile?.homeCity)setCity(v.profile.homeCity);}).catch(()=>{});return()=>{live=false;};},[account]);
  useEffect(()=>{if(!selectedSlug){setSelected(null);return;}let live=true;const ctrl=new AbortController();setDetailBusy(true);fetchRentalDetail(selectedSlug,ctrl.signal).then(v=>{if(live)setSelected(v);}).catch(()=>{if(live)setSelectedSlug(null);}).finally(()=>{if(live)setDetailBusy(false);});return()=>{live=false;ctrl.abort();};},[selectedSlug]);
  useEffect(()=>{const sub=BackHandler.addEventListener("hardwareBackPress",()=>{if(selectedSlug){setSelectedSlug(null);return true;}if(account?.role==="landlord"&&tab!=="owner"){setTab("owner");return true;}if(account?.role!=="landlord"&&tab!=="home"){setTab("home");return true;}return false;});return()=>sub.remove();},[selectedSlug,tab,account?.role]);
@@ -56,13 +57,14 @@ function NativeApp(){
   </>:null}
  </ScrollView>:
  tab==="explore"?<RentalFeed city={city} onSelect={setSelectedSlug} onInquiry={id=>{setInboxConversation(id);setTab("messages");}}/>:
+ tab==="rental"?(account?<RentalCenter owner={account.role==="landlord"} initialConversation={rentalConversation}/>:<AccountPanel account={null} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>):
  tab==="messages"?(account?<MessengerWorkspace owner={account.role==="landlord"} initialConversation={inboxConversation}/>:<AccountPanel account={null} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/> ):
  tab==="owner"?<AccountPanel account={account} owner onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>:
  tab==="profile"?<AccountPanel account={account} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>:
  <ScrollView contentContainerStyle={s.homeBody}>
   <Text style={[s.eyebrow,{color:c.sage}]}>RENTER WORKSPACE</Text><Text style={[s.hero,{color:c.green}]}>Make room for <Text style={{color:c.sage}}>your next chapter.</Text></Text><Text style={{color:c.muted,lineHeight:22}}>Browse local rental posts, talk to owners, and keep your rental details together.</Text>
   <View style={[s.heroCard,{backgroundColor:c.soft}]}><View style={{flex:1}}><Text style={[s.section,{color:c.green}]}>Rental feed</Text><Text style={{color:c.muted,lineHeight:19}}>See current listings, owner profiles, photos, reactions, and availability.</Text></View><Icon name="building" size={46}/></View>
-  <BigButton label="Explore rentals" onPress={()=>setTab("explore")}/>{account&&<BigButton secondary label="Open messages" onPress={()=>setTab("messages")}/>}<View style={[s.safety,{backgroundColor:c.white,borderColor:c.border}]}><Icon name="shield"/><View style={{flex:1}}><Text style={{color:c.green,fontWeight:"900"}}>Rental safety</Text><Text style={{color:c.muted,lineHeight:18}}>Report suspicious owners or inappropriate messages directly to HomeTayo administration.</Text></View></View>
+  <BigButton label="Explore rentals" onPress={()=>setTab("explore")}/>{account&&<><BigButton secondary label="Open my rental" onPress={()=>setTab("rental")}/><BigButton secondary label="Open messages" onPress={()=>setTab("messages")}/></>}<View style={[s.safety,{backgroundColor:c.white,borderColor:c.border}]}><Icon name="shield"/><View style={{flex:1}}><Text style={{color:c.green,fontWeight:"900"}}>Rental safety</Text><Text style={{color:c.muted,lineHeight:18}}>Report suspicious owners or inappropriate messages directly to HomeTayo administration.</Text></View></View>
  </ScrollView>}
  </Animated.View><View style={[s.tabBar,{backgroundColor:c.white,borderColor:c.border}]}>{tabs.map(t=>{const active=tab===t.id;return <Pressable key={t.id} onPress={()=>transition.change(()=>{setSelectedSlug(null);setTab(t.id);},true)} style={s.tab}><View style={[s.tabIcon,active&&{backgroundColor:c.soft}]}><Icon name={t.symbol} size={21} color={active?c.green:c.muted}/></View><Text style={{color:active?c.green:c.muted,fontSize:10,fontWeight:active?"900":"700"}}>{t.label}</Text></Pressable>;})}</View></SafeAreaView>;
 }
