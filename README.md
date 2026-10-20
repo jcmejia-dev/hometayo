@@ -1,89 +1,153 @@
 # HomeTayo
 
-**Hanap bahay. Dito tayo.** A mobile-first Philippine rental discovery platform, starting with Koronadal City.
+**Hanap bahay. Dito tayo.**
 
-> **Development preview:** Job 2 adds an optional Neon-backed, read-only view of admin-approved real listings. Database connection and migrations require separate user setup. Job 3 adds Google OAuth and landlord submission/moderation when private credentials are configured; photo uploads, listing edits, payments, rental requests and notifications are not yet available. The application is not deployed.
+HomeTayo is a mobile-first Philippine rental marketplace built to make local property discovery, owner listings, renter accounts, and rental workflows easier to manage across web and Android.
 
-## Authentication: Sign in or Create account
+## Try HomeTayo
 
-- Separate responsive `/sign-in` and `/sign-up` experiences, with accessible email/password labels and preserved Google OAuth.
-- Email signup is **disabled by default** until a verified transactional email sender, explicit `ENABLE_EMAIL_SIGNUP=true`, and Neon migration `003_email_accounts.sql` have been configured.
-- [Read the setup, security constraints, and password recovery guide](docs/EMAIL_AUTH_DEPLOYMENT.md). Do not publicize email/password authentication until this setup and audit are complete.
+| Platform | Link |
+| --- | --- |
+| 🌐 **Web App** | **https://hometayoph.vercel.app/** |
+| 📱 **Android APK** | **https://github.com/jcmejia-dev/hometayo/releases/download/android-latest/HomeTayo.apk** |
+| 📦 **Latest Android Release** | https://github.com/jcmejia-dev/hometayo/releases/tag/android-latest |
 
-## HomeTayo brand icon
+> **Android note:** The APK is distributed directly through GitHub Releases. Android may ask you to allow installation from your browser or file manager because this is not a Play Store release.
 
-- The app name stays **HomeTayo**. The *HomePin* house-and-location-pin symbol is the visual mark, not a rename.
-- The same forest-green / ivory / gold vector appears as the site header/footer mark and the scalable SVG favicon.
-- 192px and 512px PWA PNG icon routes, a maskable 512px version and Apple touch icon are generated with Next.js ImageResponse. They require no external image hosting.
-- Icons are referenced in the PWA manifest and metadata. Users with an already-installed version may need to refresh/reinstall if their OS caches the previous launcher icon.
+## What I built
 
-## Homepage design (UI refresh)
-- Replaced decorative house artwork with a **clearly labeled illustrative interface** and demo rental cards. No demo properties are linked or published as real inventory.
-- Search dropdowns now use accessible Radix UI Select menus with keyboard/touch support and preserve the original URL query semantics.
-- The homepage discovery panel displays **only real published listings from Neon**. Without approved listings or a configured database, it shows an honest empty state and navigation options. There are no demo rental cards.
+HomeTayo is designed as a practical rental platform for the Philippine market, starting with Koronadal City. The project combines a responsive Next.js web application, PostgreSQL-backed application data, authentication and account flows, owner/admin workflows, PWA capabilities, and an Android distribution build.
 
-## Job 4 profile and admin operations
+### Core areas
 
-- Google-authenticated Profile & Settings (`/profile`) stores renter preferences.
-- Admin operations (`/admin`) displays actual account/listing counts, moderation queue and a scoped event log.
-- **Required**: Apply `002_profiles_admin_activity.sql` after updating your existing dedicated HomeTayo Neon DB. This upgrade is not run automatically on GitHub or Vercel.
-- [Migration and verification guide](docs/PROFILE_ADMIN_SETUP.md). The activity timeline tracks listing operations, **not** page views or private renter behavior.
+- Mobile-first property discovery and rental browsing
+- Renter and property-owner account experiences
+- Owner property submission workflows
+- Admin listing review and moderation
+- Profile and renter-preference management
+- Shareable search/filter URLs
+- PostgreSQL-backed application data through Neon
+- Google OAuth and email/password authentication infrastructure
+- PWA manifest, icons, and mobile-oriented UX
+- Android APK distribution through GitHub Releases
+- Automated lint, TypeScript, build, and browser-testing workflows
 
 ## Technology
-- Next.js App Router, React, TypeScript, Tailwind CSS
-- Installable-PWA foundations: web manifest and vector app icon; service worker, raster icons and offline/update behavior will be implemented and device-tested later
-- Playwright Test E2E smoke tests and optional Playwright CLI inspection
-- Job 2: Neon PostgreSQL + Drizzle read-only public listings and explicit SQL migration runner (requires DATABASE_URL)
-- Job 3 (optional setup): Google OAuth, owner submission dashboard, role-protected review queue
-- Planned later: photo uploads, property edits, account deletion, alerts
 
-## Renter and owner instructions
+- **Next.js App Router**
+- **React**
+- **TypeScript**
+- **Tailwind CSS**
+- **Neon PostgreSQL**
+- **Drizzle / SQL migrations**
+- **Google OAuth**
+- **Progressive Web App foundations**
+- **Playwright**
+- **GitHub Actions**
+- **Vercel**
 
-The public **[How HomeTayo works](/how-it-works)** page provides role-specific step-by-step guidance. Owner dashboard, rental search and property submission screens include contextual guide links. Guides describe only features that already exist and distinguish planned capabilities.
+## Live deployments
 
-## Local quick start (Node 20.9+ recommended, Node 24 tested by developer tool setup)
+### Web app
 
-~~~powershell
-git pull origin main
+The public HomeTayo web application is available at:
+
+**https://hometayoph.vercel.app/**
+
+This is the fastest way for recruiters and reviewers to explore the current interface without installing anything.
+
+### Android app
+
+The latest public Android preview is published through GitHub Releases:
+
+**[Download HomeTayo.apk](https://github.com/jcmejia-dev/hometayo/releases/download/android-latest/HomeTayo.apk)**
+
+Release channel: [`android-latest`](https://github.com/jcmejia-dev/hometayo/releases/tag/android-latest)
+
+The Android package is a preview build intended for portfolio and testing use rather than Play Store distribution.
+
+## Product flow
+
+HomeTayo is built around the actual rental journey rather than being only a property-card UI:
+
+1. Renters discover available properties.
+2. Owners manage and submit rental listings.
+3. Listings pass through controlled moderation before publication.
+4. User profiles and preferences support a more personalized rental experience.
+5. Web/PWA and Android access let the same product experience reach desktop and mobile users.
+
+The project is actively developed, so broader marketplace capabilities may continue to evolve.
+
+## Authentication
+
+The project contains responsive sign-in and sign-up experiences and supports Google OAuth infrastructure. Email/password deployment requires the configured transactional-email and database setup documented in:
+
+- [Email authentication deployment guide](docs/EMAIL_AUTH_DEPLOYMENT.md)
+- [Google OAuth setup](docs/GOOGLE_OAUTH_SETUP.md)
+
+Private credentials belong in environment variables and are never committed to the repository.
+
+## Data and admin operations
+
+HomeTayo uses a dedicated PostgreSQL database for application data. Admin tooling includes listing moderation and operational views, while profile functionality stores renter-facing preferences.
+
+Setup and migration documentation:
+
+- [Neon development setup](docs/NEON_SETUP.md)
+- [Profile and admin setup](docs/PROFILE_ADMIN_SETUP.md)
+
+## HomeTayo identity
+
+The product name remains **HomeTayo**. The HomePin symbol combines a house and location-pin concept and is used across the site's visual identity, PWA assets, and mobile presentation.
+
+## Local development
+
+Node.js 20.9+ is recommended.
+
+```powershell
+git clone https://github.com/jcmejia-dev/hometayo.git
+cd hometayo
 npm install
 npm run dev
-~~~
+```
 
-Open http://localhost:3000. When testing a PR branch, check it out by name first rather than blindly pulling main:
+Open:
 
-~~~powershell
-git fetch origin
-git switch feat/job-3-google-auth-owner-mvp
-npm install
-npm run dev
-~~~
+```text
+http://localhost:3000
+```
 
-## Verify
-~~~powershell
+Environment-dependent features such as authentication and database-backed listings require the corresponding local environment variables and migrations.
+
+## Verification
+
+Useful project checks include:
+
+```powershell
 npm run typecheck
 npm run lint
 npm run build
 npx playwright install chromium
 npm run test:e2e
-~~~
+```
 
-**Verified in GitHub Actions (PR #4, 2026-10-12):** ESLint, TypeScript checks, production build and Playwright Chromium desktop/mobile smoke tests passed. Local Windows runtime, Android PWA installability, offline support and device-specific behavior remain **unverified**. Playwright CLI was installed on the developer's Windows machine separately.
-
-## Google OAuth and landlord submissions
-
-Follow [Google OAuth local setup](docs/GOOGLE_OAUTH_SETUP.md) to enable private sign-in and submit genuine rentals for admin review. The app continues showing prelaunch screens when credentials are absent. No live OAuth has been verified in CI.
-
-## Neon setup\n\nFollow [dedicated HomeTayo Neon development setup](docs/NEON_SETUP.md). Do not run migrations against Lakbay or a production database.\n\n## Scope and safety
-- Filters navigate to shareable URL query parameters.
-- No fake sample homes are shown as live listings. Only approved records are displayed when the user configures their own HomeTayo database.
-- Rental requests remain a preview, but authenticated owners can submit genuine listings for admin review when Google OAuth and Neon are configured.
-- Use a non-commercial prototype hosting arrangement; commercial operation requires hosting and legal review.
-- Keep sensitive credentials in ignored .env.local; never send or commit them.
+The repository uses automated checks to catch TypeScript, lint, build, and browser-regression issues as the product evolves.
 
 ## Project documentation
+
 - [Product blueprint](docs/PRODUCT_BLUEPRINT.md)
-- [Agent instructions](AGENTS.md)
 - [Development tooling](docs/DEV_TOOLING.md)
 - [Tool connections](docs/TOOL_CONNECTIONS.md)
+- [Agent instructions](AGENTS.md)
 
-Create pull requests for each milestone and report tested/not-tested status explicitly.
+## Links
+
+- **Source code:** https://github.com/jcmejia-dev/hometayo
+- **Web app:** https://hometayoph.vercel.app/
+- **Android APK:** https://github.com/jcmejia-dev/hometayo/releases/download/android-latest/HomeTayo.apk
+- **Android release page:** https://github.com/jcmejia-dev/hometayo/releases/tag/android-latest
+- **Developer portfolio:** https://jcmejia.vercel.app/
+
+---
+
+Built and maintained by **Jamie Cristian A. Mejia**.
