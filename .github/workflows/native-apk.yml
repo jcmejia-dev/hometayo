@@ -5,6 +5,8 @@ on:
   push:
     branches: [main]
     paths:
+      - 'apps/mobile/App.tsx'
+      - 'apps/mobile/src/**'
       - 'apps/mobile/app.config.ts'
       - 'apps/mobile/app.json'
       - 'apps/mobile/eas.json'
@@ -15,6 +17,8 @@ on:
       - '.github/workflows/native-apk.yml'
   pull_request:
     paths:
+      - 'apps/mobile/App.tsx'
+      - 'apps/mobile/src/**'
       - 'apps/mobile/app.config.ts'
       - 'apps/mobile/app.json'
       - 'apps/mobile/eas.json'
