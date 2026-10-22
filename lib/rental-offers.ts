@@ -42,13 +42,17 @@ const COUNTER_OFFER=`WITH current AS MATERIALIZED (
   AND NOT EXISTS(SELECT 1 FROM rental_reservations r WHERE r.conversation_id=c.id AND r.status IN ('awaiting_payment','proof_submitted','reserved'))
   AND NOT EXISTS(SELECT 1 FROM rental_requests rr WHERE rr.conversation_id=c.id AND rr.status='pending')
  FOR UPDATE OF o
-), closed AS (
- UPDATE rental_offers o SET status='countered',responded_at=now() FROM current WHERE o.id=current.id RETURNING o.id
+), archived AS (
+ INSERT INTO rental_offers(conversation_id,unit_id,parent_offer_id,proposed_by,status,monthly_rent_centavos,security_deposit_centavos,reservation_amount_centavos,reservation_credit,reservation_hours,lease_starts_on,move_in_on,lease_ends_on,note,responded_at,created_at)
+ SELECT conversation_id,unit_id,parent_offer_id,proposed_by,'countered',monthly_rent_centavos,security_deposit_centavos,reservation_amount_centavos,reservation_credit,reservation_hours,lease_starts_on,move_in_on,lease_ends_on,note,now(),created_at
+ FROM current RETURNING id,conversation_id
 ), next_offer AS (
- INSERT INTO rental_offers(conversation_id,unit_id,parent_offer_id,proposed_by,monthly_rent_centavos,security_deposit_centavos,reservation_amount_centavos,reservation_credit,reservation_hours,lease_starts_on,move_in_on,lease_ends_on,note)
- SELECT conversation_id,unit_id,id,$1,$3,$4,$5,$7,$6,$8::date,$9::date,NULLIF($10::text,'')::date,$11 FROM current RETURNING *
+ UPDATE rental_offers o SET parent_offer_id=archived.id,proposed_by=$1,status='pending',monthly_rent_centavos=$3,security_deposit_centavos=$4,reservation_amount_centavos=$5,
+  reservation_credit=$7,reservation_hours=$6,lease_starts_on=$8::date,move_in_on=$9::date,lease_ends_on=NULLIF($10::text,'')::date,note=$11,
+  accepted_by=NULL,accepted_at=NULL,responded_at=NULL,request_id=NULL,reservation_id=NULL,created_at=now()
+ FROM current,archived WHERE o.id=current.id AND archived.conversation_id=current.conversation_id RETURNING o.*
 ), n AS (INSERT INTO rental_notifications(user_id,conversation_id,kind,body,event_key)
- SELECT CASE WHEN current.owner_id=$1 THEN current.renter_id ELSE current.owner_id END,current.conversation_id,'offer','A new counteroffer is ready for your review.','offer-counter:'||next_offer.id
+ SELECT CASE WHEN current.owner_id=$1 THEN current.renter_id ELSE current.owner_id END,current.conversation_id,'offer','A new counteroffer is ready for your review.','offer-counter:'||next_offer.id||':'||extract(epoch from next_offer.created_at)::bigint
  FROM next_offer JOIN current ON current.conversation_id=next_offer.conversation_id)
  SELECT id FROM next_offer`;
 
