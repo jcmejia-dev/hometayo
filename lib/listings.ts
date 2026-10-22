@@ -64,7 +64,7 @@ export function safePublicContact(kind:string,value:string|null):string|null{
 
 export async function getLatestPublishedListings(limit=2):Promise<BrowseResult>{
  const db=getDatabase();if(!db)return {state:"not_configured",listings:[]};
- const marketplace=await marketplaceSchemaReady();
- try{const rows=await db.select(publicFields(marketplace)).from(listings).where(eq(listings.status,"published")).orderBy(desc(listings.publishedAt),desc(listings.createdAt)).limit(Math.min(Math.max(limit,1),4));return {state:"ready",listings:rows};}
+ const marketplace=await marketplaceSchemaReady();const conditions:SQL[]=[eq(listings.status,"published")];if(marketplace)conditions.push(sql<boolean>`listings.listing_purpose='rent'`);
+ try{const rows=await db.select(publicFields(marketplace)).from(listings).where(and(...conditions)).orderBy(desc(listings.publishedAt),desc(listings.createdAt)).limit(Math.min(Math.max(limit,1),4));return {state:"ready",listings:rows};}
  catch(error){console.error("HomeTayo featured listing lookup failed",error instanceof Error?error.name:"UnknownError");return {state:"error",listings:[]};}
 }
