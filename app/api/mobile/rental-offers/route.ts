@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {nativeAccount} from "@/lib/native-auth";
-import {performRentalOfferAction,rentalOfferState} from "@/lib/rental-offers";
+import {performRentalOfferAction,rentalOfferState} from "@/lib/rental-offer-service";
 import {uuidInput} from "@/lib/rental-unit-input";
 
 export const dynamic="force-dynamic";
