@@ -13,7 +13,7 @@ export type AvatarConfig={
 };
 
 export const avatarOptions={
- skin:["#FBE0CF","#F3C6A8","#E8B894","#D99A70","#C9825A","#A96649","#7A4937","#513027"],
+ skin:["#FBE0CF","#F7D7C4","#F3C6A8","#E8B894","#D99A70","#C9825A","#A96649","#9A5B3E","#7A4937","#5D372A","#513027"],
  faceShape:["oval","round","soft-square","heart"],
  hair:["crop","waves","bun","spikes","curly","bob","fade","braids","ponytail","buzz"],
  hairColor:["#171717","#33251F","#51352A","#70422C","#8B4A2B","#B56C34","#D19A4A","#7D7270","#5B3B7D"],
