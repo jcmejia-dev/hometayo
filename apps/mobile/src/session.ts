@@ -51,6 +51,7 @@ async function uploadFile(path:string,uri:string,mime:string,_name:string){
 }
 export async function uploadPhoto(uri:string,mime:string,name:string){return uploadFile("/api/mobile/owner-photo-upload",uri,mime,name);}
 export async function uploadRentalFile(uri:string,mime:string,name:string){return uploadFile("/api/mobile/rental-file-upload",uri,mime,name);}
+export async function uploadProfilePhoto(uri:string,mime:string,name:string){return uploadFile("/api/mobile/profile-photo",uri,mime,name);}
 export async function accountAction(body:unknown) {
   const data=await api("/api/mobile/auth",body);
   if(typeof data.token==="string")await SecureStore.setItemAsync(KEY,data.token,{keychainAccessible:SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY});

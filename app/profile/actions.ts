@@ -1,12 +1,45 @@
 "use server";
+
 import {and,eq} from "drizzle-orm";
-import {neon} from "@neondatabase/serverless";
 import {revalidatePath} from "next/cache";
 import {redirect} from "next/navigation";
-import {profileSettingsSchema,avatarConfigSchema} from "@/lib/profile-settings";
+import {profileSettingsSchema} from "@/lib/profile-settings";
 import {users} from "@/db/schema";
 import {getDatabase} from "@/lib/db";
 import {requireAccount} from "@/lib/session-user";
+import {saveAccountAvatar,useAvatarAsProfilePicture} from "@/lib/avatar-profile";
+
 function field(form:FormData,key:string):string{const value=form.get(key);return typeof value==="string"?value:"";}
-async function saveAvatar(userId:string,raw:string){if(!raw||!process.env.DATABASE_URL)return;let parsedJson:unknown;try{parsedJson=JSON.parse(raw);}catch{throw new Error("Please check your avatar choices and try again.");}const parsed=avatarConfigSchema.safeParse(parsedJson);if(!parsed.success)throw new Error("Please check your avatar choices and try again.");const sql=neon(process.env.DATABASE_URL);const ready=await sql`SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='users' AND column_name='avatar_config') AS ready`;if(ready[0]?.ready)await sql`UPDATE users SET avatar_config=CAST(${JSON.stringify(parsed.data)} AS jsonb),updated_at=now() WHERE id=${userId}`;}
-export async function updateProfile(form:FormData){const account=await requireAccount();const rawAvatar=field(form,"avatarConfig");let avatar:unknown=undefined;if(rawAvatar){try{avatar=JSON.parse(rawAvatar);}catch{throw new Error("Please check your avatar choices and try again.");}}const parsed=profileSettingsSchema.safeParse({preferredName:field(form,"preferredName"),homeCity:field(form,"homeCity"),preferredPropertyType:field(form,"preferredPropertyType"),preferredBudgetPesos:field(form,"preferredBudgetPesos"),avatarConfig:avatar});if(!parsed.success)throw new Error("Please check your profile settings and try again.");const values=parsed.data;const db=getDatabase();if(!db)throw new Error("Database is not configured.");await db.update(users).set({preferredName:values.preferredName||null,...(account.role==="landlord"?{}:{homeCity:values.homeCity||null,preferredPropertyType:values.preferredPropertyType||null,preferredBudgetPesos:values.preferredBudgetPesos===""?null:values.preferredBudgetPesos}),updatedAt:new Date()}).where(and(eq(users.id,account.id),eq(users.email,account.email)));await saveAvatar(account.id,rawAvatar);revalidatePath("/profile");revalidatePath("/owner");revalidatePath("/inbox");redirect("/profile?saved=1");}
+
+export async function updateProfile(form:FormData){
+ const account=await requireAccount();
+ const rawAvatar=field(form,"avatarConfig");
+ let avatar:unknown=undefined;
+ if(rawAvatar){try{avatar=JSON.parse(rawAvatar);}catch{throw new Error("Please check your avatar choices and try again.");}}
+ const parsed=profileSettingsSchema.safeParse({
+  preferredName:field(form,"preferredName"),
+  homeCity:field(form,"homeCity"),
+  preferredPropertyType:field(form,"preferredPropertyType"),
+  preferredBudgetPesos:field(form,"preferredBudgetPesos"),
+  avatarConfig:avatar,
+ });
+ if(!parsed.success)throw new Error("Please check your profile settings and try again.");
+ const values=parsed.data;
+ const db=getDatabase();
+ if(!db)throw new Error("Database is not configured.");
+ await db.update(users).set({
+  preferredName:values.preferredName||null,
+  ...(account.role==="landlord"?{}:{
+   homeCity:values.homeCity||null,
+   preferredPropertyType:values.preferredPropertyType||null,
+   preferredBudgetPesos:values.preferredBudgetPesos===""?null:values.preferredBudgetPesos,
+  }),
+  updatedAt:new Date(),
+ }).where(and(eq(users.id,account.id),eq(users.email,account.email)));
+ if(rawAvatar)await saveAccountAvatar(account.id,rawAvatar);
+ await useAvatarAsProfilePicture(account.id,field(form,"profileImageMode")==="avatar");
+ revalidatePath("/profile");
+ revalidatePath("/owner");
+ revalidatePath("/inbox");
+ redirect("/profile?saved=1");
+}
