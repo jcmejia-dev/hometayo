@@ -103,7 +103,7 @@ const DECLINE_OFFER=`WITH target AS MATERIALIZED (
  SELECT o.*,c.owner_id,c.renter_id FROM rental_offers o JOIN rental_conversations c ON c.id=o.conversation_id
  WHERE o.id=$2::uuid AND o.status='pending' AND $1 IN(c.owner_id,c.renter_id) AND o.proposed_by<>$1 FOR UPDATE OF o
 ), done AS (
- UPDATE rental_offers o SET status='declined',responded_at=now(),note=CASE WHEN $3='' THEN o.note ELSE trim(concat_ws(E'\n',o.note,'Decline note: '||$3)) END
+ UPDATE rental_offers o SET status='declined',responded_at=now()
  FROM target WHERE o.id=target.id RETURNING o.*
 ), n AS (INSERT INTO rental_notifications(user_id,conversation_id,kind,body,event_key)
  SELECT target.proposed_by,target.conversation_id,'offer','Your rental offer was declined.'||CASE WHEN $3='' THEN '' ELSE ' '||$3 END,'offer-declined:'||done.id
