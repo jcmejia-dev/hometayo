@@ -1,3 +1,4 @@
+import {File,UploadType} from "expo-file-system";
 import * as SecureStore from "expo-secure-store";
 export type Account={id:string;email:string;displayName:string|null;role:string};
 const KEY="hometayo.native.session";
@@ -27,14 +28,25 @@ export async function api(path:string,body?:unknown,method?:"PATCH") {
     throw error;
   }finally{clearTimeout(timeout);}
 }
-async function uploadFile(path:string,uri:string,mime:string,name:string){
+async function uploadFile(path:string,uri:string,mime:string,_name:string){
   const saved=await token();if(!saved)throw Error("Please sign in.");
-  const form=new FormData();
-  form.append("file",{uri,type:mime,name} as never);
-  const response=await fetch(origin.origin+path,{method:"POST",headers:{Accept:"application/json",Authorization:"Bearer "+saved},body:form});
-  const data=await response.json().catch(()=>null);
-  if(response.status===401){await SecureStore.deleteItemAsync(KEY);onExpired?.();}
-  if(!response.ok)throw Error(data?.message||"File upload failed.");
+  const file=new File(uri);
+  let result:{body:string;status:number;headers:Record<string,string>};
+  try{
+    result=await file.upload(origin.origin+path,{
+      httpMethod:"POST",
+      uploadType:UploadType.MULTIPART,
+      fieldName:"file",
+      mimeType:mime||file.type||"application/octet-stream",
+      headers:{Accept:"application/json",Authorization:"Bearer "+saved},
+    });
+  }catch(error){
+    throw Error(error instanceof Error&&error.message?`File upload failed: ${error.message}`:"File upload failed. Choose the file again and retry.");
+  }
+  let data:any=null;try{data=JSON.parse(result.body);}catch{/* server may return an empty/non-JSON error body */}
+  if(result.status===401){await SecureStore.deleteItemAsync(KEY);onExpired?.();}
+  if(result.status<200||result.status>=300)throw Error(data?.message||"File upload failed.");
+  if(!data||typeof data.url!=="string")throw Error("Upload completed but HomeTayo returned an invalid file response.");
   return data as {url:string};
 }
 export async function uploadPhoto(uri:string,mime:string,name:string){return uploadFile("/api/mobile/owner-photo-upload",uri,mime,name);}
