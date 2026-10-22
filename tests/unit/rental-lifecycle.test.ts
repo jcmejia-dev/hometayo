@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {PGlite} from "@electric-sql/pglite";
 import {rentalOperation} from "../../lib/rental-operation-input.ts";
 
-const migrations=["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql","005_rental_units.sql","006_rental_operations.sql","007_profile_photo.sql","008_social_safety.sql","009_platform_announcements.sql","010_realtime_messaging_push.sql","011_rental_lifecycle.sql","012_rental_lifecycle_trigger_fix.sql"];
+const migrations=["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql","005_rental_units.sql","006_rental_operations.sql","007_profile_photo.sql","008_social_safety.sql","009_platform_announcements.sql","010_realtime_messaging_push.sql","011_rental_lifecycle.sql","012_rental_lifecycle_trigger_fix.sql","013_marketplace_listing_purpose.sql"];
 
 test("new lifecycle input validates request, maintenance, document and review actions",()=>{
  const conversationId="00000000-0000-4000-8000-000000000010",unitId="00000000-0000-4000-8000-000000000020",tenancyId="00000000-0000-4000-8000-000000000030";
@@ -43,5 +43,21 @@ test("unit capacity blocks overbooking and occupancy follows tenancy status",asy
   assert.equal((await db.query<{status:string}>(`SELECT status FROM rental_units WHERE id=$1::uuid`,[unit])).rows[0].status,"available");
   await db.query(`INSERT INTO rental_tenancies(conversation_id,unit_id,status,monthly_rent_centavos,starts_on,move_in_on) VALUES($1::uuid,$2::uuid,'active',600000,'2026-12-02','2026-12-02')`,[c2,unit]);
   assert.equal((await db.query<{status:string}>(`SELECT status FROM rental_units WHERE id=$1::uuid`,[unit])).rows[0].status,"occupied");
+ }finally{await db.close();}
+});
+
+test("marketplace migration keeps old listings as rentals and supports sale prices",async()=>{
+ const db=new PGlite();
+ try{
+  for(const file of migrations)await db.exec(readFileSync(new URL(`../../db/migrations/${file}`,import.meta.url),"utf8"));
+  await db.exec("INSERT INTO users(id,email,display_name,role) VALUES('owner','market@test.invalid','Owner','landlord'); INSERT INTO owner_profiles(user_id,public_name) VALUES('owner','Owner');");
+  const owner=(await db.query<{id:string}>("SELECT id FROM owner_profiles WHERE user_id='owner'")).rows[0].id;
+  await db.query(`INSERT INTO listings(owner_id,slug,title,description,property_type,status,city,barangay,monthly_rent_centavos,published_at,last_confirmed_at) VALUES($1::uuid,'old-rental','Old rental','Existing rental remains rental','house','published','Test','Test',500000,now(),now())`,[owner]);
+  const old=(await db.query<{listing_purpose:string;sale_price_centavos:number|null}>("SELECT listing_purpose,sale_price_centavos FROM listings WHERE slug='old-rental'")).rows[0];
+  assert.equal(old.listing_purpose,"rent");assert.equal(old.sale_price_centavos,null);
+  await db.query(`INSERT INTO listings(owner_id,slug,title,description,property_type,listing_purpose,sale_price_centavos,status,city,barangay,monthly_rent_centavos,published_at,last_confirmed_at) VALUES($1::uuid,'sale-home','Sale home','Property offered for purchase','house','sale',250000000,'published','Test','Test',0,now(),now())`,[owner]);
+  const sale=(await db.query<{listing_purpose:string;sale_price_centavos:number}>("SELECT listing_purpose,sale_price_centavos FROM listings WHERE slug='sale-home'")).rows[0];
+  assert.equal(sale.listing_purpose,"sale");assert.equal(Number(sale.sale_price_centavos),250000000);
+  await assert.rejects(db.query(`INSERT INTO listings(owner_id,slug,title,description,property_type,listing_purpose,status,city,barangay,monthly_rent_centavos,published_at,last_confirmed_at) VALUES($1::uuid,'bad-sale','Bad sale','Missing sale price','house','sale','published','Test','Test',0,now(),now())`,[owner]));
  }finally{await db.close();}
 });
