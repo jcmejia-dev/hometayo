@@ -60,9 +60,9 @@ function NativeApp(){
   </>:null}
  </ScrollView>:
  tab==="explore"?<RentalFeed city={city} onSelect={setSelectedSlug} onInquiry={id=>{setInboxConversation(id);setTab("messages");}}/>:
- tab==="rental"?(account?<RentalCenter owner={account.role==="landlord"} initialConversation={rentalConversation}/>:<AccountPanel account={null} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>):
+ tab==="rental"?(account?<RentalCenter owner={account.role==="landlord"} initialConversation={rentalConversation} onMessages={id=>{setInboxConversation(id);setTab("messages");}}/>:<AccountPanel account={null} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>):
  tab==="messages"?(account?<MessengerWorkspace owner={account.role==="landlord"} initialConversation={inboxConversation}/>:<AccountPanel account={null} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/> ):
- tab==="owner"&&account?.role==="landlord"?<OwnerStudio account={account} onMessages={()=>setTab("messages")} onRental={()=>setTab("rental")}/>:
+ tab==="owner"&&account?.role==="landlord"?<OwnerStudio account={account}/>:
  tab==="profile"?<AccountPanel account={account} owner={false} onAccountChange={setAccount} onLogin={()=>setWelcomeOpen(true)}/>:
  <ScrollView contentContainerStyle={s.homeBody}>
   <Text style={[s.eyebrow,{color:c.sage}]}>RENTER WORKSPACE</Text><Text style={[s.hero,{color:c.green}]}>Find a place <Text style={{color:c.sage}}>worth calling home.</Text></Text><Text style={{color:c.muted,lineHeight:22}}>Scroll through local property posts, discover homes for rent or sale, and message owners directly.</Text>
