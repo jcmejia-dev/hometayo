@@ -6,6 +6,7 @@ import {api} from "./session";
 import {Icon} from "./icons";
 import {VerifiedBadge} from "./verified-badge";
 import {Avatar as ProfileAvatar,normalizeAvatar} from "./avatar";
+import {ChatRentalOffer} from "./chat-rental-offer";
 import type {Conversation,OperationsState,RentalMessage} from "../../../lib/rental-operation-types";
 
 const mutationId=()=>"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.floor(Math.random()*16);return(c==="x"?r:(r&3)|8).toString(16);});
@@ -79,6 +80,7 @@ export function MessengerWorkspace({owner,initialConversation=""}:{owner:boolean
    {loadedConversation!==selected?<View style={s.emptyThread}><View style={[s.emptyIcon,{backgroundColor:c.soft}]}><Icon name="message" size={28}/></View><Text style={[s.emptyTitle,{color:c.green}]}>Loading messages…</Text><Text style={[s.emptyText,{color:c.muted}]}>Opening this conversation.</Text></View>:<>
     {!data?.messages.length&&!data?.typing&&<View style={s.emptyThread}><IdentityAvatar uri={thread?.otherPhoto} avatarConfig={thread?.otherAvatar} size={70}/><Text style={[s.emptyTitle,{color:c.green}]}>{thread?.otherName||"Start chatting"}</Text><Text style={[s.emptyText,{color:c.muted}]}>{thread?.title||"Send a message to start the conversation."}</Text></View>}
     {data?.messages.map(m=>{const receipt=m.mine&&m.id===lastMineId?(m.seenAt?"Seen":m.deliveredAt?"Delivered":"Sent"):"";return <View key={m.id} style={[s.messageGroup,{alignItems:m.mine?"flex-end":"flex-start"}]}><View style={[s.bubble,{backgroundColor:m.mine?c.green:c.soft,borderBottomRightRadius:m.mine?6:20,borderBottomLeftRadius:m.mine?20:6}]}>{m.replyBody&&<Text numberOfLines={2} style={{color:m.mine?"#DDEBE4":c.muted,fontSize:11,borderLeftWidth:2,borderLeftColor:m.mine?"#DDEBE4":c.sage,paddingLeft:7,marginBottom:4}}>↪ {m.replyBody}</Text>}{m.mediaType==="gif"?<Image source={{uri:m.body}} style={s.gif}/>:<Text style={{color:m.mine?"white":c.green,fontSize:15,lineHeight:20}}>{m.body}</Text>}</View><View style={s.messageMeta}><Text style={{color:c.muted,fontSize:9.5}}>{messageTime(m.createdAt)}</Text>{receipt?<Text style={{color:m.seenAt?c.green:c.muted,fontSize:9.5,fontWeight:"800"}}>· {receipt}</Text>:null}{!!m.reactions?.length&&m.reactions.map(r=><Pressable key={r.emoji} onPress={()=>void save({action:"messageReact",messageId:m.id,emoji:r.mine?"none":r.emoji})}><Text style={[s.reactionPill,{backgroundColor:c.white,borderColor:c.border}]}>{r.emoji} {r.count}</Text></Pressable>)}</View><View style={s.messageActions}><MiniAction label="Reply" onPress={()=>setReply(m)}/>{!m.mine&&<MiniAction label="Report" danger onPress={()=>Alert.alert("Report message?","This message will be sent to HomeTayo administration.",[{text:"Cancel",style:"cancel"},{text:"Report",style:"destructive",onPress:()=>void report({category:"inappropriate_message",messageId:m.id})}])}/>}</View></View>;})}
+    <ChatRentalOffer conversationId={selected} owner={owner} onChanged={()=>void load()}/>
     {data?.typing&&<TypingBubble frame={typingFrame}/>} 
    </>}
   </ScrollView>
