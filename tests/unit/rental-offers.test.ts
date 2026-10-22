@@ -29,7 +29,7 @@ describe("rental offer negotiation",()=>{
   assert.match(acceptService,/INSERT INTO rental_reservations/);
   assert.match(acceptService,/INSERT INTO rental_tenancies/);
   assert.match(acceptService,/CASE WHEN deal\.reservation_amount_centavos>0 THEN 'awaiting_payment' ELSE 'converted'/);
-  assert.match(acceptService,/FROM linked_offer/);
+  assert.match(acceptService,/FROM accepted_offer/);
  });
  it("supports accept, counter, decline and withdraw on web and Android",()=>{
   for(const source of [web,native]){
