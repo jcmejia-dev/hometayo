@@ -1,10 +1,14 @@
 "use client";
 
-import {useEffect} from "react";
+import {useEffect,useState} from "react";
+import {createPortal} from "react-dom";
+import {ChatRentalOffer} from "@/components/chat-rental-offer";
 
 type TypingState={typing?:boolean};
 
 export function InboxLiveEnhancements({owner}:{owner:boolean}){
+ const [offerTarget,setOfferTarget]=useState<HTMLElement|null>(null);
+ const [offerConversation,setOfferConversation]=useState("");
  useEffect(()=>{
   let frame=0,lastTypingSent=0,lastConversation="",polling=false;
 
@@ -71,6 +75,15 @@ export function InboxLiveEnhancements({owner}:{owner:boolean}){
    heading.insertAdjacentElement("afterend",alert);
   };
 
+  const ensureOfferDock=()=>{
+   const id=conversationId(),composer=document.querySelector<HTMLElement>(".composer-shell");
+   if(!id||!composer){setOfferConversation(current=>current?"":current);setOfferTarget(current=>current?null:current);document.querySelector("#chat-rental-offer-root")?.remove();return;}
+   let root=document.querySelector<HTMLElement>("#chat-rental-offer-root");
+   if(!root||!root.isConnected){root=document.createElement("div");root.id="chat-rental-offer-root";composer.insertAdjacentElement("beforebegin",root);}
+   setOfferConversation(current=>current===id?current:id);
+   setOfferTarget(current=>current===root?current:root);
+  };
+
   const decorate=()=>{
    document.querySelectorAll<HTMLElement>(".message-bubble").forEach((bubble)=>{
     const mine=bubble.classList.contains("message-mine");
@@ -92,6 +105,7 @@ export function InboxLiveEnhancements({owner}:{owner:boolean}){
    const field=document.querySelector<HTMLTextAreaElement>("#message-body");
    if(field&&!field.dataset.typingBound){field.dataset.typingBound="1";field.addEventListener("input",signalTyping);}
    surfacePendingTenancyInvite();
+   ensureOfferDock();
   };
 
   const scheduleDecorate=()=>{
@@ -108,10 +122,11 @@ export function InboxLiveEnhancements({owner}:{owner:boolean}){
   return()=>{
    observer?.disconnect();window.clearInterval(timer);removeTypingBubble();
    document.querySelector(".tenancy-invite-alert")?.remove();
+   document.querySelector("#chat-rental-offer-root")?.remove();
    const field=document.querySelector<HTMLTextAreaElement>("#message-body");field?.removeEventListener("input",signalTyping);
    if(frame)window.cancelAnimationFrame(frame);
   };
  },[owner]);
 
- return null;
+ return offerTarget&&offerConversation?createPortal(<ChatRentalOffer owner={owner} conversationId={offerConversation}/>,offerTarget):null;
 }
