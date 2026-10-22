@@ -128,5 +128,5 @@ export function InboxLiveEnhancements({owner}:{owner:boolean}){
   };
  },[owner]);
 
- return offerTarget&&offerConversation?createPortal(<ChatRentalOffer owner={owner} conversationId={offerConversation}/>,offerTarget):null;
+ return offerTarget&&offerConversation?createPortal(<ChatRentalOffer key={offerConversation} owner={owner} conversationId={offerConversation}/>,offerTarget):null;
 }
