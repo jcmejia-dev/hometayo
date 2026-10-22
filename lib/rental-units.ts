@@ -1,6 +1,6 @@
 import "server-only";
 import { neon } from "@neondatabase/serverless";
-import { CREATE_UNIT, UPDATE_UNIT, OWNED_UNITS, PUBLIC_UNITS } from "./rental-unit-sql";
+import { CREATE_UNIT, ENSURE_INITIAL_UNITS, UPDATE_UNIT, OWNED_UNITS, PUBLIC_UNITS } from "./rental-unit-sql";
 import { unitInput, uuidInput, type RentalUnit } from "./rental-unit-input";
 
 function client() {
@@ -8,7 +8,13 @@ function client() {
   return neon(process.env.DATABASE_URL);
 }
 export async function ownedUnits(listingId: string, userId: string): Promise<RentalUnit[]> {
-  return await client().query(OWNED_UNITS, [uuidInput.parse(listingId), userId]) as RentalUnit[];
+  const id=uuidInput.parse(listingId),db=client();
+  let rows=await db.query(OWNED_UNITS,[id,userId]) as RentalUnit[];
+  if(!rows.length){
+    await db.query(ENSURE_INITIAL_UNITS,[id,userId]);
+    rows=await db.query(OWNED_UNITS,[id,userId]) as RentalUnit[];
+  }
+  return rows;
 }
 export async function publicUnits(listingId: string): Promise<RentalUnit[]> {
   if (process.env.ENABLE_RENTAL_MANAGEMENT !== "true") return [];
