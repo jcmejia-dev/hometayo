@@ -5,7 +5,7 @@ import { browseMapRentals } from "@/lib/geo-listings";
 
 export const dynamic = "force-dynamic";
 
-/** Public read-only JSON API for web/native rental discovery. */
+/** Public read-only JSON API for web/native property discovery. */
 export async function GET(request: Request) {
   const url = new URL(request.url);
   if(url.searchParams.get("map")==="1") {
@@ -15,6 +15,7 @@ export async function GET(request: Request) {
   const filters = parseRentalFilters({
     city:url.searchParams.get("city") || undefined,
     type:url.searchParams.get("type") || undefined,
+    purpose:url.searchParams.get("purpose") || undefined,
     maxRent:url.searchParams.get("maxRent") || undefined,
     bedrooms:url.searchParams.get("bedrooms") || undefined,
   });
@@ -32,6 +33,8 @@ export async function GET(request: Request) {
       title:listing.title,
       description:listing.description,
       propertyType:listing.propertyType,
+      listingPurpose:listing.listingPurpose,
+      salePriceCentavos:listing.salePriceCentavos,
       city:listing.city,
       barangay:listing.barangay,
       monthlyRentCentavos:listing.monthlyRentCentavos,
@@ -43,7 +46,7 @@ export async function GET(request: Request) {
       ownerPhoto:listing.ownerPhoto,
       ownerVerified:true,
       photoUrl:listing.photoUrls[0] ?? null,
-      unitCounts:listing.unitCounts,
+      unitCounts:listing.listingPurpose==="rent"?listing.unitCounts:null,
     })),
   }, {headers:{"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"}});
 }
