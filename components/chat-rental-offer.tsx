@@ -12,7 +12,7 @@ const emptyCounter:CounterDraft={monthlyRent:"",securityDeposit:"0",reservationA
 
 export function ChatRentalOffer({owner,conversationId}:{owner:boolean;conversationId:string}){
  const [ops,setOps]=useState<OperationsState|null>(null),[offerState,setOfferState]=useState<RentalOfferState>({available:true,offers:[]});
- const [open,setOpen]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState(""),[countering,setCountering]=useState(false),[draft,setDraft]=useState<CounterDraft>(emptyCounter);
+ const [open,setOpen]=useState(true),[busy,setBusy]=useState(false),[notice,setNotice]=useState(""),[countering,setCountering]=useState(false),[draft,setDraft]=useState<CounterDraft>(emptyCounter);
  const load=useCallback(async()=>{
   if(!conversationId)return;
   const [opRes,offerRes]=await Promise.all([
@@ -22,9 +22,8 @@ export function ChatRentalOffer({owner,conversationId}:{owner:boolean;conversati
   const opData=await opRes.json();if(!opRes.ok)throw Error(opData.message||"Could not load rental details.");setOps(opData);
   const offerData=await offerRes.json();setOfferState(offerRes.ok?offerData:{available:false,offers:[]});
  },[conversationId]);
- useEffect(()=>{setOpen(false);setCountering(false);setNotice("");void load().catch(e=>setNotice(e instanceof Error?e.message:"Could not load offers."));const timer=window.setInterval(()=>{if(document.visibilityState==="visible")void load().catch(()=>{});},5000);return()=>window.clearInterval(timer);},[load]);
+ useEffect(()=>{const first=window.setTimeout(()=>{void load().catch(e=>setNotice(e instanceof Error?e.message:"Could not load offers."));},0);const timer=window.setInterval(()=>{if(document.visibilityState==="visible")void load().catch(()=>{});},5000);return()=>{window.clearTimeout(first);window.clearInterval(timer);};},[load]);
  const offers=offerState.offers,active=offers.find(o=>o.status==="pending");
- useEffect(()=>{if(active&&!active.mine)setOpen(true);},[active?.id,active?.mine]);
  const units=ops?.availableUnits.filter(u=>u.availableSpots>0)||[];
  const committed=Boolean(ops?.tenancies.some(t=>["invited","reserved","active","ending"].includes(t.status))||ops?.reservations.some(r=>["awaiting_payment","proof_submitted","reserved"].includes(r.status))||ops?.requests.some(r=>r.status==="pending"));
  const latest=offers[0];
