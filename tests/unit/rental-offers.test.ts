@@ -7,7 +7,9 @@ const migration=fs.readFileSync("db/migrations/016_rental_offer_negotiation.sql"
 const service=fs.readFileSync("lib/rental-offers.ts","utf8");
 const acceptService=fs.readFileSync("lib/rental-offer-service.ts","utf8");
 const web=fs.readFileSync("components/rental-negotiation.tsx","utf8");
-const native=fs.readFileSync("apps/mobile/src/rental-negotiation.tsx","utf8");
+const native=fs.readFileSync("apps/mobile/src/chat-rental-offer.tsx","utf8");
+const messenger=fs.readFileSync("apps/mobile/src/messenger-workspace.tsx","utf8");
+const rentalCenterShell=fs.readFileSync("apps/mobile/src/rental-center-shell.tsx","utf8");
 const migrations=["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql","005_rental_units.sql","006_rental_operations.sql","007_profile_photo.sql","008_social_safety.sql","009_platform_announcements.sql","010_realtime_messaging_push.sql","011_rental_lifecycle.sql","012_rental_lifecycle_trigger_fix.sql","013_marketplace_listing_purpose.sql","014_reservations_payment_proofs.sql","015_profile_avatar.sql","016_rental_offer_negotiation.sql"];
 
 function query(source:string,name:string){
@@ -38,6 +40,11 @@ describe("rental offer negotiation",()=>{
    assert.match(source,/declineOffer/);
    assert.match(source,/withdrawOffer/);
   }
+ });
+ it("keeps Android negotiation inside the chat thread instead of Rental Center",()=>{
+  assert.match(messenger,/import \{ChatRentalOffer\} from "\.\/chat-rental-offer"/);
+  assert.match(messenger,/<ChatRentalOffer conversationId=\{selected\}/);
+  assert.doesNotMatch(rentalCenterShell,/RentalNegotiation|offers|Offers/);
  });
  it("executes renter offer, owner counter and renter acceptance into a reservation",async()=>{
   const db=new PGlite();
