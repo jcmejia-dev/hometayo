@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {PGlite} from "@electric-sql/pglite";
 import {rentalOperation} from "../../lib/rental-operation-input.ts";
 
-const migrations=["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql","005_rental_units.sql","006_rental_operations.sql","007_profile_photo.sql","008_social_safety.sql","009_platform_announcements.sql","010_realtime_messaging_push.sql","011_rental_lifecycle.sql","012_rental_lifecycle_trigger_fix.sql","013_marketplace_listing_purpose.sql","014_reservations_payment_proofs.sql"];
+const migrations=["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql","005_rental_units.sql","006_rental_operations.sql","007_profile_photo.sql","008_social_safety.sql","009_platform_announcements.sql","010_realtime_messaging_push.sql","011_rental_lifecycle.sql","012_rental_lifecycle_trigger_fix.sql","013_marketplace_listing_purpose.sql","014_reservations_payment_proofs.sql","015_profile_avatar.sql","016_rental_offer_negotiation.sql"];
 
 test("new lifecycle input validates request, transaction, maintenance, document and review actions",()=>{
  const conversationId="00000000-0000-4000-8000-000000000010",unitId="00000000-0000-4000-8000-000000000020",tenancyId="00000000-0000-4000-8000-000000000030",reservationId="00000000-0000-4000-8000-000000000040",chargeId="00000000-0000-4000-8000-000000000050";
