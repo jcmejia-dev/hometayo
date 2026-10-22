@@ -20,7 +20,7 @@ export default async function Rentals({searchParams}:{searchParams:Promise<Param
  const raw=await searchParams,user=await currentUser();
  if(!user)redirect(`/sign-in?next=${encodeURIComponent("/rentals")}`);
  if(user.role==="landlord")redirect("/owner");
- const filters=parseRentalFilters(raw),result=await browsePublishedListings(filters);
+ const filters=parseRentalFilters({...raw,purpose:"rent"}),result=await browsePublishedListings(filters);
  const type=first(raw.type),budget=first(raw.maxRent),bedrooms=first(raw.bedrooms),allowedTypes=["all","house","apartment","boarding_house","bedspace"],allowedBudgets=["","3000","5000","8000","12000","20000"],allowedRooms=["","1","2","3","4"];
  return <div className="container interior-page">
   <div className="breadcrumb"><Link href="/">Home</Link><ArrowRight size={14}/> Explore rentals</div>
