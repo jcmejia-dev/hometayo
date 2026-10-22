@@ -1,0 +1,59 @@
+"use client";
+import {useCallback,useEffect,useMemo,useState} from "react";
+import type {OperationsState} from "@/lib/rental-operation-types";
+import type {RentalOffer,RentalOfferState} from "@/lib/rental-offer-types";
+import styles from "./rental-negotiation.module.css";
+
+const pesos=(n:number|string)=>new Intl.NumberFormat("en-PH",{style:"currency",currency:"PHP"}).format(Number(n)/100);
+const today=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Manila",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+
+type CounterDraft={monthlyRent:string;securityDeposit:string;reservationAmount:string;reservationHours:string;reservationCredit:"none"|"first_rent"|"deposit";leaseStartsOn:string;moveInOn:string;leaseEndsOn:string;note:string};
+const blankCounter:CounterDraft={monthlyRent:"",securityDeposit:"0",reservationAmount:"0",reservationHours:"48",reservationCredit:"none",leaseStartsOn:"",moveInOn:"",leaseEndsOn:"",note:""};
+
+export function RentalNegotiation({owner}:{owner:boolean}){
+ const [ops,setOps]=useState<OperationsState|null>(null),[selected,setSelected]=useState(""),[offerState,setOfferState]=useState<RentalOfferState>({available:true,offers:[]});
+ const [notice,setNotice]=useState(""),[busy,setBusy]=useState(false),[countering,setCountering]=useState(false),[draft,setDraft]=useState<CounterDraft>(blankCounter);
+ const load=useCallback(async(id=selected)=>{
+  const opsUrl=`/api/rental-operations${id?`?conversationId=${encodeURIComponent(id)}`:""}`;
+  const opRes=await fetch(opsUrl,{cache:"no-store"}),opData=await opRes.json();if(!opRes.ok)throw Error(opData.message||"Could not load rental details.");setOps(opData);
+  const next=id||opData.conversations?.[0]?.id||"";if(!id&&next)setSelected(next);
+  if(next){const offerRes=await fetch(`/api/rental-offers?conversationId=${encodeURIComponent(next)}`,{cache:"no-store"}),offers=await offerRes.json();if(offerRes.ok)setOfferState(offers);else setOfferState({available:false,offers:[]});}
+ },[selected]);
+ useEffect(()=>{void load().catch(e=>setNotice(e.message));},[load]);
+ async function act(body:Record<string,unknown>){if(busy)return false;setBusy(true);setNotice("");try{const r=await fetch("/api/rental-offers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}),data=await r.json();if(!r.ok)throw Error(data.message||"Could not update this offer.");setNotice(data.message||"Saved.");setCountering(false);await load(selected);return true;}catch(e){setNotice(e instanceof Error?e.message:"Could not update this offer.");return false;}finally{setBusy(false);}}
+ const conversation=ops?.conversations.find(c=>c.id===selected),offers=offerState.offers,active=offers.find(o=>o.status==="pending"),units=ops?.availableUnits.filter(u=>u.availableSpots>0)||[];
+ const committed=Boolean(ops?.tenancies.some(t=>["invited","reserved","active","ending"].includes(t.status))||ops?.reservations.some(r=>["awaiting_payment","proof_submitted","reserved"].includes(r.status))||ops?.requests.some(r=>r.status==="pending"));
+ const unit=useMemo(()=>active?ops?.availableUnits.find(u=>u.id===active.unitId):undefined,[active,ops?.availableUnits]);
+ function openCounter(offer:RentalOffer){setDraft({monthlyRent:String(offer.monthlyRentCentavos/100),securityDeposit:String(offer.securityDepositCentavos/100),reservationAmount:String(offer.reservationAmountCentavos/100),reservationHours:String(offer.reservationHours),reservationCredit:offer.reservationCredit,leaseStartsOn:offer.leaseStartsOn,moveInOn:offer.moveInOn,leaseEndsOn:offer.leaseEndsOn||"",note:""});setCountering(true);}
+ if(!ops)return <section className={styles.shell}><p>{notice||"Loading offer negotiation…"}</p></section>;
+ return <section className={styles.shell}>
+  <div className={styles.head}><div><p className="section-kicker">NEGOTIATION DESK</p><h2>Agree on the rental before anyone pays.</h2><p>Renters can make an offer. Owners can accept, decline, or counter. Every revision stays in the history, and only an accepted offer moves into reservation.</p></div><label>Conversation<select value={selected} onChange={e=>{setSelected(e.target.value);setCountering(false);}}><option value="">Choose a rental</option>{ops.conversations.map(c=><option key={c.id} value={c.id}>{c.title} · {c.otherName}</option>)}</select></label></div>
+  {!!notice&&<div className={styles.notice} role="status">{notice}</div>}
+  {!conversation?<div className={styles.empty}>Start a conversation about a rental first.</div>:!offerState.available?<div className={styles.empty}>Offer negotiation is being enabled for this HomeTayo environment.</div>:<div className={styles.grid}>
+   <div className={styles.main}>
+    {active?<article className={styles.offerCard}>
+     <div className={styles.offerTop}><div><span className={styles.badge}>{active.mine?"YOUR OFFER":"YOUR TURN"}</span><h3>{active.proposedByRole==="owner"?"Owner counteroffer":"Renter offer"}</h3><p>{active.unitLabel} · asking {pesos(active.askingRentCentavos)}/month</p></div><strong className={styles.offerPrice}>{pesos(active.monthlyRentCentavos)}<small>/month</small></strong></div>
+     <div className={styles.terms}><Term label="Security deposit" value={pesos(active.securityDepositCentavos)}/><Term label="Reservation" value={active.reservationAmountCentavos?pesos(active.reservationAmountCentavos):"None"}/><Term label="Lease starts" value={active.leaseStartsOn}/><Term label="Move-in" value={active.moveInOn}/><Term label="Lease ends" value={active.leaseEndsOn||"Open-ended"}/><Term label="Reservation window" value={`${active.reservationHours} hours`}/></div>
+     {active.note&&<p className={styles.note}>“{active.note}”</p>}
+     {active.mine?<div className={styles.waiting}><span>Waiting for {owner?"the renter":"the owner"} to respond.</span><button disabled={busy} className={styles.secondary} onClick={()=>void act({action:"withdrawOffer",offerId:active.id})}>Withdraw offer</button></div>:<div className={styles.actions}><button disabled={busy} className={styles.primary} onClick={()=>void act({action:"acceptOffer",offerId:active.id})}>Accept offer</button><button disabled={busy} className={styles.secondary} onClick={()=>openCounter(active)}>Counter</button><button disabled={busy} className={styles.danger} onClick={()=>{const reason=window.prompt("Optional reason for declining","")||"";void act({action:"declineOffer",offerId:active.id,reason});}}>Decline</button></div>}
+     {countering&&!active.mine&&<CounterForm draft={draft} setDraft={setDraft} busy={busy} onCancel={()=>setCountering(false)} onSubmit={()=>void act({action:"counterOffer",offerId:active.id,...draft,reservationHours:Number(draft.reservationHours)||48})}/>} 
+    </article>:!owner&&!committed?<MakeOfferForm units={units} busy={busy} onSubmit={body=>void act(body)}/>:<article className={styles.offerCard}><h3>{committed?"Rental terms already committed":"Waiting for a renter offer"}</h3><p>{committed?"This conversation has already moved into request, reservation, or tenancy. Negotiation stays in the history below.":"The renter can propose a monthly rent and move-in date here. You can then accept, counter, or decline."}</p></article>}
+   </div>
+   <aside className={styles.history}><h3>Offer history</h3>{!offers.length?<p>No offers yet.</p>:offers.map((o,index)=><div className={styles.historyItem} key={o.id}><div className={styles.historyLine}><strong>#{offers.length-index} · {o.proposedByRole==="owner"?"Owner":"Renter"}</strong><span data-status={o.status}>{o.status}</span></div><div className={styles.historyPrice}>{pesos(o.monthlyRentCentavos)}/month</div><p>{o.unitLabel} · move-in {o.moveInOn}</p>{o.note&&<p className={styles.historyNote}>{o.note}</p>}</div>)}</aside>
+  </div>}
+ </section>;
+}
+
+function Term({label,value}:{label:string;value:string}){return <div><span>{label}</span><strong>{value}</strong></div>}
+
+function MakeOfferForm({units,busy,onSubmit}:{units:OperationsState["availableUnits"];busy:boolean;onSubmit:(body:Record<string,unknown>)=>void}){
+ const [unitId,setUnitId]=useState(""),[monthlyRent,setMonthlyRent]=useState(""),[moveInOn,setMoveInOn]=useState(""),[note,setNote]=useState("");
+ const unit=units.find(u=>u.id===unitId);
+ useEffect(()=>{if(unit&&!monthlyRent)setMonthlyRent(String(unit.monthlyRentCentavos/100));},[unit,monthlyRent]);
+ return <article className={styles.offerCard}><span className={styles.badge}>RENTER</span><h3>Make an offer</h3><p>Propose the monthly rent you’re comfortable with. This does not reserve the room until both sides agree.</p><div className={styles.form}><label>Room / unit<select value={unitId} onChange={e=>{setUnitId(e.target.value);const u=units.find(x=>x.id===e.target.value);if(u)setMonthlyRent(String(u.monthlyRentCentavos/100));}}><option value="">Choose a unit</option>{units.map(u=><option key={u.id} value={u.id}>{u.label} · asking {pesos(u.monthlyRentCentavos)}</option>)}</select></label><label>Your monthly offer (₱)<input value={monthlyRent} onChange={e=>setMonthlyRent(e.target.value)} type="number" min="1" step="0.01"/></label><label>Preferred move-in<input value={moveInOn} onChange={e=>setMoveInOn(e.target.value)} type="date" min={today()}/></label><label>Message to owner<textarea value={note} onChange={e=>setNote(e.target.value)} maxLength={500} placeholder="Why this offer works for you, preferred terms, etc."/></label><button disabled={busy||!unitId||!monthlyRent||!moveInOn} className={styles.primary} onClick={()=>onSubmit({action:"makeOffer",conversationId:unit?undefined:undefined,unitId,monthlyRent,moveInOn,note})}>Send offer</button></div></article>;
+}
+
+function CounterForm({draft,setDraft,busy,onCancel,onSubmit}:{draft:CounterDraft;setDraft:(v:CounterDraft)=>void;busy:boolean;onCancel:()=>void;onSubmit:()=>void}){
+ const set=(key:keyof CounterDraft,value:string)=>setDraft({...draft,[key]:value});
+ return <div className={styles.counter}><div><span className={styles.badge}>COUNTEROFFER</span><h4>Change the terms</h4></div><div className={styles.formGrid}><label>Monthly rent (₱)<input type="number" min="1" step="0.01" value={draft.monthlyRent} onChange={e=>set("monthlyRent",e.target.value)}/></label><label>Security deposit (₱)<input type="number" min="0" step="0.01" value={draft.securityDeposit} onChange={e=>set("securityDeposit",e.target.value)}/></label><label>Reservation payment (₱)<input type="number" min="0" step="0.01" value={draft.reservationAmount} onChange={e=>set("reservationAmount",e.target.value)}/></label><label>Payment window (hours)<input type="number" min="1" max="168" value={draft.reservationHours} onChange={e=>set("reservationHours",e.target.value)}/></label><label>Lease starts<input type="date" value={draft.leaseStartsOn} onChange={e=>set("leaseStartsOn",e.target.value)}/></label><label>Move-in<input type="date" value={draft.moveInOn} onChange={e=>set("moveInOn",e.target.value)}/></label><label>Lease ends (optional)<input type="date" value={draft.leaseEndsOn} onChange={e=>set("leaseEndsOn",e.target.value)}/></label><label>Reservation credit<select value={draft.reservationCredit} onChange={e=>setDraft({...draft,reservationCredit:e.target.value as CounterDraft["reservationCredit"]})}><option value="none">Separate reservation fee</option><option value="first_rent">Credit to first rent</option><option value="deposit">Credit to deposit</option></select></label></div><label>Counteroffer note<textarea value={draft.note} onChange={e=>set("note",e.target.value)} maxLength={500}/></label><div className={styles.actions}><button disabled={busy||!draft.monthlyRent||!draft.leaseStartsOn||!draft.moveInOn} className={styles.primary} onClick={onSubmit}>Send counteroffer</button><button disabled={busy} className={styles.secondary} onClick={onCancel}>Cancel</button></div></div>;
+}
