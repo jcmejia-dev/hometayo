@@ -5,12 +5,13 @@ import {PGlite} from "@electric-sql/pglite";
 
 const migration=fs.readFileSync("db/migrations/016_rental_offer_negotiation.sql","utf8");
 const service=fs.readFileSync("lib/rental-offers.ts","utf8");
+const acceptService=fs.readFileSync("lib/rental-offer-service.ts","utf8");
 const web=fs.readFileSync("components/rental-negotiation.tsx","utf8");
 const native=fs.readFileSync("apps/mobile/src/rental-negotiation.tsx","utf8");
 const migrations=["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql","005_rental_units.sql","006_rental_operations.sql","007_profile_photo.sql","008_social_safety.sql","009_platform_announcements.sql","010_realtime_messaging_push.sql","011_rental_lifecycle.sql","012_rental_lifecycle_trigger_fix.sql","013_marketplace_listing_purpose.sql","014_reservations_payment_proofs.sql","015_profile_avatar.sql","016_rental_offer_negotiation.sql"];
 
-function query(name:string){
- const match=service.match(new RegExp(`const ${name}=\\\`([\\s\\S]*?)\\\`;`));
+function query(source:string,name:string){
+ const match=source.match(new RegExp(`(?:const|export const) ${name}=\\\`([\\s\\S]*?)\\\`;`));
  assert.ok(match?.[1],`Missing ${name} SQL`);
  return match[1];
 }
@@ -20,13 +21,15 @@ describe("rental offer negotiation",()=>{
   assert.match(migration,/CREATE TABLE rental_offers/);
   assert.match(migration,/WHERE status='pending'/);
   assert.match(migration,/parent_offer_id/);
-  assert.match(service,/status='countered'/);
+  assert.match(service,/'countered'/);
+  assert.match(service,/UPDATE rental_offers o SET parent_offer_id=archived\.id/);
  });
  it("turns accepted terms into the existing reservation workflow",()=>{
-  assert.match(service,/INSERT INTO rental_requests/);
-  assert.match(service,/INSERT INTO rental_reservations/);
-  assert.match(service,/INSERT INTO rental_tenancies/);
-  assert.match(service,/CASE WHEN deal\.reservation_amount_centavos>0 THEN 'awaiting_payment' ELSE 'converted'/);
+  assert.match(acceptService,/INSERT INTO rental_requests/);
+  assert.match(acceptService,/INSERT INTO rental_reservations/);
+  assert.match(acceptService,/INSERT INTO rental_tenancies/);
+  assert.match(acceptService,/CASE WHEN deal\.reservation_amount_centavos>0 THEN 'awaiting_payment' ELSE 'converted'/);
+  assert.match(acceptService,/FROM linked_offer/);
  });
  it("supports accept, counter, decline and withdraw on web and Android",()=>{
   for(const source of [web,native]){
@@ -52,11 +55,11 @@ describe("rental offer negotiation",()=>{
    const unit=(await db.query<{id:string}>(`INSERT INTO rental_units(listing_id,label,status,monthly_rent_centavos,capacity) VALUES($1::uuid,'Room 1','available',600000,1) RETURNING id`,[listing])).rows[0].id;
    const conversation=(await db.query<{id:string}>(`INSERT INTO rental_conversations(listing_id,owner_id,renter_id) VALUES($1::uuid,'owner','renter') RETURNING id`,[listing])).rows[0].id;
 
-   const first=(await db.query<{id:string}>(query("MAKE_OFFER"),['renter',conversation,unit,550000,'2026-11-15','I can move in mid-month.'])).rows[0];
+   const first=(await db.query<{id:string}>(query(service,"MAKE_OFFER"),['renter',conversation,unit,550000,'2026-11-15','I can move in mid-month.'])).rows[0];
    assert.ok(first?.id);
-   const counter=(await db.query<{id:string}>(query("COUNTER_OFFER"),['owner',first.id,575000,575000,100000,48,'first_rent','2026-11-15','2026-11-15','', 'Meet me halfway at 5,750.'])).rows[0];
+   const counter=(await db.query<{id:string}>(query(service,"COUNTER_OFFER"),['owner',first.id,575000,575000,100000,48,'first_rent','2026-11-15','2026-11-15','', 'Meet me halfway at 5,750.'])).rows[0];
    assert.ok(counter?.id);
-   const accepted=(await db.query<{id:string}>(query("ACCEPT_OFFER"),['renter',counter.id])).rows[0];
+   const accepted=(await db.query<{id:string}>(query(acceptService,"ACCEPT_OFFER_V2"),['renter',counter.id])).rows[0];
    assert.equal(accepted.id,counter.id);
 
    const offer=(await db.query<{status:string;request_id:string;reservation_id:string}>(`SELECT status,request_id,reservation_id FROM rental_offers WHERE id=$1::uuid`,[counter.id])).rows[0];
@@ -67,6 +70,8 @@ describe("rental offer negotiation",()=>{
    assert.equal(reservation.status,"awaiting_payment");assert.equal(Number(reservation.amount_centavos),100000);assert.equal(Number(reservation.monthly_rent_centavos),575000);
    const room=(await db.query<{status:string}>(`SELECT status FROM rental_units WHERE id=$1::uuid`,[unit])).rows[0];
    assert.equal(room.status,"reserved");
+   const archived=(await db.query<{status:string;monthly_rent_centavos:number}>(`SELECT status,monthly_rent_centavos FROM rental_offers WHERE conversation_id=$1::uuid AND id<>$2::uuid ORDER BY created_at DESC LIMIT 1`,[conversation,counter.id])).rows[0];
+   assert.equal(archived.status,"countered");assert.equal(Number(archived.monthly_rent_centavos),550000);
   }finally{await db.close();}
  });
 });
