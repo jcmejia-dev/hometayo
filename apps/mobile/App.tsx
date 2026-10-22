@@ -13,7 +13,7 @@ import {AccountPanel} from "./src/account-panel";
 import {OwnerStudio} from "./src/owner-studio";
 import {NativeRentalSocial} from "./src/rental-workspace";
 import {MessengerWorkspace} from "./src/messenger-workspace";
-import {RentalCenter} from "./src/rental-center";
+import {RentalCenter} from "./src/rental-center-shell";
 import {RentalFeed} from "./src/rental-feed";
 import {fetchRentalDetail,priceLabel,propertyLabel,type RentalDetail} from "./src/api";
 import {useReducedMotion,useSceneTransition} from "./src/motion";
