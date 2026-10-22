@@ -7,6 +7,7 @@ import type { RentalFilters } from "@/lib/search-filters";
 export type PublicListing = Pick<typeof listings.$inferSelect,
   "id" | "slug" | "title" | "propertyType" | "city" | "barangay"
   | "monthlyRentCentavos" | "bedrooms" | "bathrooms" | "rentalMode" | "lastConfirmedAt"> & {
+    listingPurpose:"rent"|"sale";salePriceCentavos:number|null;
     latitude?:number|null;longitude?:number|null;description:string;photoUrls:string[];
     unitCounts:{total:number;available:number}|null;ownerName:string;ownerPhoto:string|null;
   };
@@ -16,6 +17,8 @@ export type BrowseResult =
 const publicFields = {
   id: listings.id, slug: listings.slug, title: listings.title,
   propertyType: listings.propertyType, city: listings.city, barangay: listings.barangay,
+  listingPurpose:sql<"rent"|"sale">`listings.listing_purpose`,
+  salePriceCentavos:sql<number|null>`CASE WHEN listings.sale_price_centavos IS NULL THEN NULL ELSE listings.sale_price_centavos::float8 END`,
   monthlyRentCentavos: listings.monthlyRentCentavos,
   bedrooms: listings.bedrooms, bathrooms: listings.bathrooms, rentalMode: listings.rentalMode,
   lastConfirmedAt: listings.lastConfirmedAt,
@@ -32,9 +35,10 @@ export async function browsePublishedListings(filters: RentalFilters): Promise<B
   const db = getDatabase();if (!db) return { state: "not_configured", listings: [] };
   const conditions: SQL[] = [eq(listings.status, "published"), ilike(listings.city, filters.city)];
   if (filters.type) conditions.push(eq(listings.propertyType, filters.type));
-  if (filters.maxRentCentavos !== undefined) conditions.push(lte(listings.monthlyRentCentavos, filters.maxRentCentavos));
+  if(filters.purpose)conditions.push(sql<boolean>`listings.listing_purpose=${filters.purpose}`);
+  if (filters.maxRentCentavos !== undefined) conditions.push(sql<boolean>`listings.listing_purpose='rent'`,lte(listings.monthlyRentCentavos, filters.maxRentCentavos));
   if (filters.minBedrooms !== undefined) conditions.push(gte(listings.bedrooms, filters.minBedrooms));
-  try {const rows=await db.select(publicFields).from(listings).where(and(...conditions)).orderBy(desc(listings.publishedAt),desc(listings.createdAt)).limit(24);return {state:"ready",listings:rows};}
+  try {const rows=await db.select(publicFields).from(listings).where(and(...conditions)).orderBy(desc(listings.publishedAt),desc(listings.createdAt)).limit(40);return {state:"ready",listings:rows};}
   catch(error){console.error("HomeTayo listing search failed",error instanceof Error?error.name:"UnknownError");return {state:"error",listings:[]};}
 }
 
