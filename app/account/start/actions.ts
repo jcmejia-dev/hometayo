@@ -6,7 +6,7 @@ import {redirect} from "next/navigation";
 import {users} from "@/db/schema";
 import {getDatabase} from "@/lib/db";
 import {requireAccount} from "@/lib/session-user";
-import {saveAccountAvatar,useAvatarAsProfilePicture} from "@/lib/avatar-profile";
+import {saveAccountAvatar,selectAvatarAsProfilePicture} from "@/lib/avatar-profile";
 
 function field(form:FormData,key:string):string{const value=form.get(key);return typeof value==="string"?value:"";}
 
@@ -21,7 +21,7 @@ export async function chooseAccountExperience(form:FormData){
  await db.update(users).set({role:audience==="owner"?"landlord":"renter",preferredName,updatedAt:new Date()}).where(and(eq(users.id,account.id),inArray(users.role,["renter","landlord"])));
  const rawAvatar=field(form,"avatarConfig");
  if(rawAvatar)await saveAccountAvatar(account.id,rawAvatar);
- await useAvatarAsProfilePicture(account.id,field(form,"profileImageMode")==="avatar");
+ await selectAvatarAsProfilePicture(account.id,field(form,"profileImageMode")==="avatar");
  revalidatePath("/profile");
  revalidatePath("/owner");
  revalidatePath("/inbox");
