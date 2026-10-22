@@ -61,6 +61,7 @@ export const NOTICES_SOCIAL=`SELECT id,conversation_id AS "conversationId",kind,
 export const CONVERSATIONS_SOCIAL=`SELECT c.id,c.listing_id AS "listingId",l.title,l.slug,c.owner_id=$1 AS "isOwner",
  CASE WHEN c.owner_id=$1 THEN COALESCE(r.preferred_name,r.display_name,'Renter') ELSE COALESCE(o.preferred_name,o.display_name,'Owner') END AS "otherName",
  CASE WHEN c.owner_id=$1 THEN r.profile_photo ELSE o.profile_photo END AS "otherPhoto",
+ CASE WHEN c.owner_id=$1 THEN to_jsonb(r)->'avatar_config' ELSE to_jsonb(o)->'avatar_config' END AS "otherAvatar",
  CASE WHEN c.owner_id=$1 THEN c.renter_id ELSE c.owner_id END AS "otherUserId",
  (c.owner_id<>$1) AS "otherVerified",
  lm.body AS "lastMessage",lm.created_at AS "lastMessageAt",lm.sender_id=$1 AS "lastMessageMine",lm.media_type AS "lastMediaType"
