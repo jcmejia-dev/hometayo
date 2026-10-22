@@ -19,7 +19,7 @@ export function RentalNegotiation({owner}:{owner:boolean}){
   const next=id||opData.conversations?.[0]?.id||"";if(!id&&next)setSelected(next);
   if(next){const offerRes=await fetch(`/api/rental-offers?conversationId=${encodeURIComponent(next)}`,{cache:"no-store"}),offers=await offerRes.json();if(offerRes.ok)setOfferState(offers);else setOfferState({available:false,offers:[]});}
  },[selected]);
- useEffect(()=>{void load().catch(e=>setNotice(e.message));},[load]);
+ useEffect(()=>{const timer=window.setTimeout(()=>{void load().catch(e=>setNotice(e.message));},0);return()=>window.clearTimeout(timer);},[load]);
  async function act(body:Record<string,unknown>){if(busy)return false;setBusy(true);setNotice("");try{const r=await fetch("/api/rental-offers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}),data=await r.json();if(!r.ok)throw Error(data.message||"Could not update this offer.");setNotice(data.message||"Saved.");setCountering(false);await load(selected);return true;}catch(e){setNotice(e instanceof Error?e.message:"Could not update this offer.");return false;}finally{setBusy(false);}}
  const conversation=ops?.conversations.find(c=>c.id===selected),offers=offerState.offers,active=offers.find(o=>o.status==="pending"),units=ops?.availableUnits.filter(u=>u.availableSpots>0)||[];
  const committed=Boolean(ops?.tenancies.some(t=>["invited","reserved","active","ending"].includes(t.status))||ops?.reservations.some(r=>["awaiting_payment","proof_submitted","reserved"].includes(r.status))||ops?.requests.some(r=>r.status==="pending"));
@@ -47,8 +47,6 @@ function Term({label,value}:{label:string;value:string}){return <div><span>{labe
 
 function MakeOfferForm({conversationId,units,busy,onSubmit}:{conversationId:string;units:OperationsState["availableUnits"];busy:boolean;onSubmit:(body:Record<string,unknown>)=>void}){
  const [unitId,setUnitId]=useState(""),[monthlyRent,setMonthlyRent]=useState(""),[moveInOn,setMoveInOn]=useState(""),[note,setNote]=useState("");
- const unit=units.find(u=>u.id===unitId);
- useEffect(()=>{if(unit&&!monthlyRent)setMonthlyRent(String(unit.monthlyRentCentavos/100));},[unit,monthlyRent]);
  return <article className={styles.offerCard}><span className={styles.badge}>RENTER</span><h3>Make an offer</h3><p>Propose the monthly rent you’re comfortable with. This does not reserve the room until both sides agree.</p><div className={styles.form}><label>Room / unit<select value={unitId} onChange={e=>{setUnitId(e.target.value);const u=units.find(x=>x.id===e.target.value);if(u)setMonthlyRent(String(u.monthlyRentCentavos/100));}}><option value="">Choose a unit</option>{units.map(u=><option key={u.id} value={u.id}>{u.label} · asking {pesos(u.monthlyRentCentavos)}</option>)}</select></label><label>Your monthly offer (₱)<input value={monthlyRent} onChange={e=>setMonthlyRent(e.target.value)} type="number" min="1" step="0.01"/></label><label>Preferred move-in<input value={moveInOn} onChange={e=>setMoveInOn(e.target.value)} type="date" min={today()}/></label><label>Message to owner<textarea value={note} onChange={e=>setNote(e.target.value)} maxLength={500} placeholder="Why this offer works for you, preferred terms, etc."/></label><button disabled={busy||!unitId||!monthlyRent||!moveInOn} className={styles.primary} onClick={()=>onSubmit({action:"makeOffer",conversationId,unitId,monthlyRent,moveInOn,note})}>Send offer</button></div></article>;
 }
 
