@@ -11,12 +11,12 @@ import ts from "typescript";
 test("owner publication sets required timestamps and cannot publish another owner's or moderated rental",async()=>{
  const db=new PGlite();
  try{
-  for(const name of ["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql"])await db.exec(readFileSync(new URL(`../../db/migrations/${name}`,import.meta.url),"utf8"));
+  for(const name of ["001_core.sql","002_profiles_admin_activity.sql","003_email_accounts.sql","004_native_sessions_locations.sql","013_marketplace_listing_purpose.sql"])await db.exec(readFileSync(new URL(`../../db/migrations/${name}`,import.meta.url),"utf8"));
   await db.exec("INSERT INTO users(id,email,role) VALUES('owner','owner@example.test','landlord'),('other','other@example.test','landlord');INSERT INTO owner_profiles(user_id,public_name) VALUES('owner','Test owner');");
   const source=readFileSync(new URL("../../app/api/mobile/listings/route.ts",import.meta.url),"utf8");
   const match=source.match(/db\.query\(`(WITH created AS \([\s\S]*?)`,\[id,slug/);assert.ok(match);
   const id="00000000-0000-4000-8000-000000000001";
-  await db.query(match[1],[id,"local-test","Local test apartment","Synthetic local fixture only","apartment","whole_unit","Test City","Test area",7,125,800000,1,1,1,"partial","none",null,"owner","Test Province"]);
+  await db.query(match[1],[id,"local-test","Local test apartment","Synthetic local fixture only","apartment","rent",null,"whole_unit","Test City","Test area",7,125,800000,1,1,1,"partial","none",null,"owner","Test Province"]);
   const status=async()=> (await db.query<{status:string;published_at:unknown;last_confirmed_at:unknown}>("SELECT status,published_at,last_confirmed_at FROM listings WHERE id=$1",[id])).rows[0];
   assert.equal((await status()).status,"published");assert.ok((await status()).published_at);assert.ok((await status()).last_confirmed_at);
   await db.query(UPDATE_OWNER_PIN,[7.1,125.1,"owner",id]);assert.equal((await status()).status,"published");
