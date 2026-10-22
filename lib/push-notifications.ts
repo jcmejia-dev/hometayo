@@ -41,7 +41,7 @@ export async function sendConversationPush(senderId:string,conversationId:string
 }
 
 const lifecycleTitle=(kind:string)=>({
- rental_request:"Rental request",tenancy:"Tenancy update",payment:"Payment update",reminder:"Rent reminder",
+ rental_request:"Rental request",reservation:"Reservation update",payment_proof:"Payment verification",tenancy:"Tenancy update",payment:"Payment update",reminder:"Rent reminder",
  maintenance:"Maintenance update",document:"Rental document",review:"Rental review",
 }[kind]||"HomeTayo rental update");
 
