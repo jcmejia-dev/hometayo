@@ -70,7 +70,7 @@ test("signed-in guides show only the account's role while guests can choose both
 test("owner profiles omit renter search preferences and Find a place shortcut",async()=>{
  for(const role of ["renter","landlord"]){
   const profile={homeCity:"Test city",preferredName:"Test",createdAt:new Date("2026-01-01"),preferredPropertyType:"house",preferredBudgetPesos:5000};
-  const page=load("../../app/profile/page.tsx",{...common,"@/lib/session-user":{currentUser:async()=>({id:"local",role})},"@/auth":{authIsConfigured:()=>true},"@/components/theme-settings":{ThemeSettings:()=>null},"@/components/profile-photo":{ProfilePhoto:()=>null},"./actions":{updateProfile:()=>{}},"@/db/schema":{users:{}},"@/lib/db":{getDatabase:()=>({select:()=>({from:()=>({where:()=>({limit:async()=>[profile]})})})})}}).default;
+  const page=load("../../app/profile/page.tsx",{...common,"@/lib/session-user":{currentUser:async()=>({id:"local",email:"local@example.com",role})},"@/auth":{authIsConfigured:()=>true},"@/components/theme-settings":{ThemeSettings:()=>null},"@/components/profile-picture-editor":{ProfilePictureEditor:()=>null},"@/lib/avatar-profile":{loadAccountAvatar:async()=>({skin:"#E8B894",hair:"waves",hairColor:"#171717",outfit:"#1F6F50",background:"#DFF4E8",expression:"smile"})},"./actions":{updateProfile:()=>{}},"@/db/schema":{users:{}},"@/lib/db":{getDatabase:()=>({select:()=>({from:()=>({where:()=>({limit:async()=>[profile]})})})})}}).default;
   const html=renderToStaticMarkup(await page({searchParams:Promise.resolve({})}) as never);
   assert.equal(html.includes("Find a place"),role==="renter");assert.equal(html.includes("Preferred location"),role==="renter");
  }
