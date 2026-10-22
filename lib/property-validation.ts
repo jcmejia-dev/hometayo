@@ -49,5 +49,5 @@ export function validateContact(kind: PropertyInput["ownerContactKind"], value: 
 export function generateSlug(title: string, suffix: string): string {
   const base = title.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 75).replace(/-$/g, "");
-  return (base || "property") + "-" + suffix.toLowerCase().replace(/[^a-f0-9]/g, "").slice(0, 12);
+  return (base || "rental") + "-" + suffix.toLowerCase().replace(/[^a-f0-9]/g, "").slice(0, 12);
 }
