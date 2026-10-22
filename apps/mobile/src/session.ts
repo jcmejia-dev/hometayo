@@ -27,16 +27,18 @@ export async function api(path:string,body?:unknown,method?:"PATCH") {
     throw error;
   }finally{clearTimeout(timeout);}
 }
-export async function uploadPhoto(uri:string,mime:string,name:string){
+async function uploadFile(path:string,uri:string,mime:string,name:string){
   const saved=await token();if(!saved)throw Error("Please sign in.");
   const form=new FormData();
   form.append("file",{uri,type:mime,name} as never);
-  const response=await fetch(origin.origin+"/api/mobile/owner-photo-upload",{method:"POST",headers:{Accept:"application/json",Authorization:"Bearer "+saved},body:form});
+  const response=await fetch(origin.origin+path,{method:"POST",headers:{Accept:"application/json",Authorization:"Bearer "+saved},body:form});
   const data=await response.json().catch(()=>null);
   if(response.status===401){await SecureStore.deleteItemAsync(KEY);onExpired?.();}
-  if(!response.ok)throw Error(data?.message||"Photo upload failed.");
+  if(!response.ok)throw Error(data?.message||"File upload failed.");
   return data as {url:string};
 }
+export async function uploadPhoto(uri:string,mime:string,name:string){return uploadFile("/api/mobile/owner-photo-upload",uri,mime,name);}
+export async function uploadRentalFile(uri:string,mime:string,name:string){return uploadFile("/api/mobile/rental-file-upload",uri,mime,name);}
 export async function accountAction(body:unknown) {
   const data=await api("/api/mobile/auth",body);
   if(typeof data.token==="string")await SecureStore.setItemAsync(KEY,data.token,{keychainAccessible:SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY});
