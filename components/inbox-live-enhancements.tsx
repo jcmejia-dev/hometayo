@@ -51,6 +51,26 @@ export function InboxLiveEnhancements({owner}:{owner:boolean}){
    void fetch("/api/rental-operations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"typing",conversationId:id})}).catch(()=>{});
   };
 
+  const surfacePendingTenancyInvite=()=>{
+   const existing=document.querySelector<HTMLElement>(".tenancy-invite-alert");
+   if(owner){existing?.remove();return;}
+   const panels=Array.from(document.querySelectorAll<HTMLDetailsElement>(".chat-tool-panel"));
+   const tenancyPanel=panels.find(panel=>panel.querySelector("summary")?.textContent?.includes("Tenancy & occupancy"));
+   const invited=tenancyPanel?Array.from(tenancyPanel.querySelectorAll<HTMLElement>(".workspace-tenancy strong")).some(node=>/\binvited\b/i.test(node.textContent||"")):false;
+   if(!tenancyPanel||!invited){existing?.remove();return;}
+   tenancyPanel.open=true;
+   if(existing)return;
+   const heading=document.querySelector<HTMLElement>(".chat-conversation-heading");
+   if(!heading)return;
+   const alert=document.createElement("button");
+   alert.type="button";
+   alert.className="tenancy-invite-alert";
+   alert.textContent="🏠 Rental invitation waiting — Review invitation";
+   Object.assign(alert.style,{width:"calc(100% - 28px)",margin:"10px 14px 0",padding:"12px 14px",border:"1px solid #c8d8cd",borderRadius:"12px",background:"#eef7f0",color:"#143b2b",fontWeight:"700",textAlign:"left",cursor:"pointer"});
+   alert.addEventListener("click",()=>{tenancyPanel.open=true;tenancyPanel.scrollIntoView({behavior:"smooth",block:"nearest"});const accept=Array.from(tenancyPanel.querySelectorAll<HTMLButtonElement>("button")).find(button=>button.textContent?.includes("Accept tenancy"));accept?.focus();});
+   heading.insertAdjacentElement("afterend",alert);
+  };
+
   const decorate=()=>{
    document.querySelectorAll<HTMLElement>(".message-bubble").forEach((bubble)=>{
     const mine=bubble.classList.contains("message-mine");
@@ -71,6 +91,7 @@ export function InboxLiveEnhancements({owner}:{owner:boolean}){
 
    const field=document.querySelector<HTMLTextAreaElement>("#message-body");
    if(field&&!field.dataset.typingBound){field.dataset.typingBound="1";field.addEventListener("input",signalTyping);}
+   surfacePendingTenancyInvite();
   };
 
   const scheduleDecorate=()=>{
@@ -86,6 +107,7 @@ export function InboxLiveEnhancements({owner}:{owner:boolean}){
 
   return()=>{
    observer?.disconnect();window.clearInterval(timer);removeTypingBubble();
+   document.querySelector(".tenancy-invite-alert")?.remove();
    const field=document.querySelector<HTMLTextAreaElement>("#message-body");field?.removeEventListener("input",signalTyping);
    if(frame)window.cancelAnimationFrame(frame);
   };
