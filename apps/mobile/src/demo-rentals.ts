@@ -15,6 +15,7 @@ const samples: Array<[string,DemoRental["propertyType"],number,number,number,num
 ];
 export const demoRentals:DemoRental[]=samples.map(([name,propertyType,rent,bedrooms,bathrooms,offset,inclusions],index)=>({
   slug:"demo-"+name.toLowerCase().replaceAll(" ","-"),title:name+" (demo)",propertyType,
+  listingPurpose:"rent",salePriceCentavos:null,
   city:"Koronadal City",barangay:"Demo neighbourhood",province:"South Cotabato",
   monthlyRentCentavos:rent*100,bedrooms,bathrooms,rentalMode:"monthly",lastConfirmedAt:null,
   description:"Fictional rental for testing HomeTayo. This is not an actual property or an offer to rent. Utilities not listed as included are paid separately.",
