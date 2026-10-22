@@ -11,34 +11,153 @@ const today=()=>new Date().toISOString().slice(0,10);
 type CounterDraft={monthlyRent:string;securityDeposit:string;reservationAmount:string;reservationHours:string;reservationCredit:"none"|"first_rent"|"deposit";leaseStartsOn:string;moveInOn:string;leaseEndsOn:string;note:string};
 const emptyDraft:CounterDraft={monthlyRent:"",securityDeposit:"0",reservationAmount:"0",reservationHours:"48",reservationCredit:"none",leaseStartsOn:"",moveInOn:"",leaseEndsOn:"",note:""};
 
-function Action({label,onPress,secondary=false,danger=false,disabled=false}:{label:string;onPress:()=>void;secondary?:boolean;danger?:boolean;disabled?:boolean}){const c=usePalette();return <Pressable disabled={disabled} onPress={onPress} style={[s.action,{backgroundColor:danger?"#FFF0EE":secondary?c.white:c.green,borderColor:danger?"#F0BBB5":secondary?c.border:c.green,opacity:disabled?.45:1}]}><Text style={{color:danger?"#B43A31":secondary?c.green:"white",fontSize:11,fontWeight:"900"}}>{label}</Text></Pressable>}
-function Field({label,value,onChange,placeholder="",keyboardType="default",multiline=false}:{label:string;value:string;onChange:(v:string)=>void;placeholder?:string;keyboardType?:"default"|"numeric";multiline?:boolean}){const c=usePalette();return <View style={s.field}><Text style={[s.label,{color:c.green}]}>{label}</Text><TextInput value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={c.muted} keyboardType={keyboardType} multiline={multiline} style={[s.input,multiline&&s.textarea,{color:c.green,borderColor:c.border,backgroundColor:c.white}]}/></View>}
+type ActionProps={label:string;onPress:()=>void;secondary?:boolean;danger?:boolean;disabled?:boolean};
+function Action({label,onPress,secondary=false,danger=false,disabled=false}:ActionProps){
+ const c=usePalette();
+ return <Pressable disabled={disabled} onPress={onPress} style={[s.action,{backgroundColor:danger?"#FFF0EE":secondary?c.white:c.green,borderColor:danger?"#F0BBB5":secondary?c.border:c.green,opacity:disabled?0.45:1}]}>
+  <Text style={{color:danger?"#B43A31":secondary?c.green:"white",fontSize:11,fontWeight:"900"}}>{label}</Text>
+ </Pressable>;
+}
+
+type FieldProps={label:string;value:string;onChange:(v:string)=>void;placeholder?:string;keyboardType?:"default"|"numeric";multiline?:boolean};
+function Field({label,value,onChange,placeholder="",keyboardType="default",multiline=false}:FieldProps){
+ const c=usePalette();
+ return <View style={s.field}>
+  <Text style={[s.label,{color:c.green}]}>{label}</Text>
+  <TextInput value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={c.muted} keyboardType={keyboardType} multiline={multiline} style={[s.input,multiline&&s.textarea,{color:c.green,borderColor:c.border,backgroundColor:c.white}]}/>
+ </View>;
+}
 function Pill({value}:{value:string}){const c=usePalette();return <View style={[s.pill,{backgroundColor:c.soft}]}><Text style={{color:c.green,fontSize:9,fontWeight:"900",textTransform:"uppercase"}}>{value.replaceAll("_"," ")}</Text></View>}
 
 export function RentalNegotiation({owner,initialConversation=""}:{owner:boolean;initialConversation?:string}){
  const c=usePalette();
- const [ops,setOps]=useState<OperationsState|null>(null),[selected,setSelected]=useState(initialConversation),[offerState,setOfferState]=useState<RentalOfferState>({available:true,offers:[]}),[notice,setNotice]=useState(""),[busy,setBusy]=useState(false),[countering,setCountering]=useState(false),[draft,setDraft]=useState<CounterDraft>(emptyDraft);
- const [unitId,setUnitId]=useState(""),[amount,setAmount]=useState(""),[moveIn,setMoveIn]=useState(""),[note,setNote]=useState("");
- const load=useCallback(async(id=selected)=>{const op=await api(`/api/mobile/rental-operations${id?`?conversationId=${encodeURIComponent(id)}`:""}`);setOps(op);const next=id||op.conversations?.[0]?.id||"";if(!id&&next)setSelected(next);if(next){try{setOfferState(await api(`/api/mobile/rental-offers?conversationId=${encodeURIComponent(next)}`));}catch{setOfferState({available:false,offers:[]});}}},[selected]);
+ const [ops,setOps]=useState<OperationsState|null>(null);
+ const [selected,setSelected]=useState(initialConversation);
+ const [offerState,setOfferState]=useState<RentalOfferState>({available:true,offers:[]});
+ const [notice,setNotice]=useState("");
+ const [busy,setBusy]=useState(false);
+ const [countering,setCountering]=useState(false);
+ const [draft,setDraft]=useState<CounterDraft>(emptyDraft);
+ const [unitId,setUnitId]=useState("");
+ const [amount,setAmount]=useState("");
+ const [moveIn,setMoveIn]=useState("");
+ const [note,setNote]=useState("");
+
+ const load=useCallback(async(id=selected)=>{
+  const op=await api(`/api/mobile/rental-operations${id?`?conversationId=${encodeURIComponent(id)}`:""}`);
+  setOps(op);
+  const next=id||op.conversations?.[0]?.id||"";
+  if(!id&&next)setSelected(next);
+  if(next){
+   try{setOfferState(await api(`/api/mobile/rental-offers?conversationId=${encodeURIComponent(next)}`));}
+   catch{setOfferState({available:false,offers:[]});}
+  }
+ },[selected]);
+
  useEffect(()=>{if(initialConversation)setSelected(initialConversation);},[initialConversation]);
- useEffect(()=>{void load().catch(e=>setNotice(e instanceof Error?e.message:"Could not load offers."));const timer=setInterval(()=>{if(AppState.currentState==="active")void load().catch(()=>{});},15000);return()=>clearInterval(timer);},[load]);
- async function act(body:Record<string,unknown>){if(busy)return false;setBusy(true);setNotice("");try{const result=await api("/api/mobile/rental-offers",body);setNotice(String(result.message||"Saved."));setCountering(false);await load(selected);return true;}catch(e){setNotice(e instanceof Error?e.message:"Could not update this offer.");return false;}finally{setBusy(false);}}
- const conversation=ops?.conversations.find(x=>x.id===selected),offers=offerState.offers,active=offers.find(o=>o.status==="pending"),units=ops?.availableUnits.filter(u=>u.availableSpots>0)||[];
+ useEffect(()=>{
+  void load().catch(e=>setNotice(e instanceof Error?e.message:"Could not load offers."));
+  const timer=setInterval(()=>{if(AppState.currentState==="active")void load().catch(()=>{});},15000);
+  return()=>clearInterval(timer);
+ },[load]);
+
+ async function act(body:Record<string,unknown>){
+  if(busy)return false;
+  setBusy(true);setNotice("");
+  try{
+   const result=await api("/api/mobile/rental-offers",body);
+   setNotice(String(result.message||"Saved."));setCountering(false);await load(selected);return true;
+  }catch(e){setNotice(e instanceof Error?e.message:"Could not update this offer.");return false;}
+  finally{setBusy(false);}
+ }
+
+ const conversation=ops?.conversations.find(x=>x.id===selected);
+ const offers=offerState.offers;
+ const active=offers.find(o=>o.status==="pending");
+ const units=ops?.availableUnits.filter(u=>u.availableSpots>0)||[];
  const committed=Boolean(ops?.tenancies.some(t=>["invited","reserved","active","ending"].includes(t.status))||ops?.reservations.some(r=>["awaiting_payment","proof_submitted","reserved"].includes(r.status))||ops?.requests.some(r=>r.status==="pending"));
- function openCounter(o:RentalOffer){setDraft({monthlyRent:String(o.monthlyRentCentavos/100),securityDeposit:String(o.securityDepositCentavos/100),reservationAmount:String(o.reservationAmountCentavos/100),reservationHours:String(o.reservationHours),reservationCredit:o.reservationCredit,leaseStartsOn:o.leaseStartsOn,moveInOn:o.moveInOn,leaseEndsOn:o.leaseEndsOn||"",note:""});setCountering(true);}
+
+ function openCounter(o:RentalOffer){
+  setDraft({monthlyRent:String(o.monthlyRentCentavos/100),securityDeposit:String(o.securityDepositCentavos/100),reservationAmount:String(o.reservationAmountCentavos/100),reservationHours:String(o.reservationHours),reservationCredit:o.reservationCredit,leaseStartsOn:o.leaseStartsOn,moveInOn:o.moveInOn,leaseEndsOn:o.leaseEndsOn||"",note:""});
+  setCountering(true);
+ }
+
  if(!ops)return <View style={s.loading}><Text style={{color:c.muted}}>{notice||"Loading offers…"}</Text></View>;
+
  return <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.body}>
-  <Text style={[s.eyebrow,{color:c.sage}]}>NEGOTIATION DESK</Text><Text style={[s.title,{color:c.green}]}>Agree before you pay.</Text><Text style={[s.intro,{color:c.muted}]}>Make offers and counteroffers on rent and move-in terms. An offer never reserves a room until both sides accept.</Text>
-  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.threads}>{ops.conversations.map(x=><Pressable key={x.id} onPress={()=>{setSelected(x.id);setCountering(false);}} style={[s.thread,{borderColor:x.id===selected?c.green:c.border,backgroundColor:x.id===selected?c.soft:c.white}]}><Text numberOfLines={1} style={{color:c.green,fontWeight:"900"}}>{x.title}</Text><Text numberOfLines={1} style={{color:c.muted,fontSize:10}}>{x.otherName}</Text></Pressable>)}</ScrollView>
+  <Text style={[s.eyebrow,{color:c.sage}]}>NEGOTIATION DESK</Text>
+  <Text style={[s.title,{color:c.green}]}>Agree before you pay.</Text>
+  <Text style={[s.intro,{color:c.muted}]}>Make offers and counteroffers on rent and move-in terms. An offer never reserves a room until both sides accept.</Text>
+
+  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.threads}>
+   {ops.conversations.map(x=><Pressable key={x.id} onPress={()=>{setSelected(x.id);setCountering(false);}} style={[s.thread,{borderColor:x.id===selected?c.green:c.border,backgroundColor:x.id===selected?c.soft:c.white}]}>
+    <Text numberOfLines={1} style={{color:c.green,fontWeight:"900"}}>{x.title}</Text>
+    <Text numberOfLines={1} style={{color:c.muted,fontSize:10}}>{x.otherName}</Text>
+   </Pressable>)}
+  </ScrollView>
+
   {!!notice&&<Text style={[s.notice,{color:c.green,backgroundColor:c.soft}]}>{notice}</Text>}
-  {!conversation?<View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}><Text style={{color:c.muted}}>Start a rental conversation first.</Text></View>:!offerState.available?<View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}><Text style={{color:c.muted}}>Offer negotiation is being enabled for this HomeTayo version.</Text></View>:<>
-   {active?<View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}><View style={s.row}><Pill value={active.mine?"waiting":"your turn"}/><Text style={[s.cardTitle,{color:c.green}]}>{active.proposedByRole==="owner"?"Owner counteroffer":"Renter offer"}</Text></View><Text style={{color:c.muted}}>{active.unitLabel} · asking {pesos(active.askingRentCentavos)}/month</Text><Text style={[s.price,{color:c.green}]}>{pesos(active.monthlyRentCentavos)}<Text style={s.perMonth}> / month</Text></Text><View style={s.termGrid}><Term label="Deposit" value={pesos(active.securityDepositCentavos)}/><Term label="Reservation" value={active.reservationAmountCentavos?pesos(active.reservationAmountCentavos):"None"}/><Term label="Move-in" value={active.moveInOn}/><Term label="Lease ends" value={active.leaseEndsOn||"Open"}/></View>{active.note?<Text style={[s.quote,{color:c.muted}]}>“{active.note}”</Text>:null}{active.mine?<View style={s.section}><Text style={{color:c.muted}}>Waiting for {owner?"the renter":"the owner"} to respond.</Text><Action secondary disabled={busy} label="Withdraw offer" onPress={()=>void act({action:"withdrawOffer",offerId:active.id})}/></View>:<View style={s.row}><Action disabled={busy} label="Accept" onPress={()=>void act({action:"acceptOffer",offerId:active.id})}/><Action secondary disabled={busy} label="Counter" onPress={()=>openCounter(active)}/><Action danger disabled={busy} label="Decline" onPress={()=>void act({action:"declineOffer",offerId:active.id,reason:"Declined in HomeTayo"})}/></View>}{countering&&!active.mine&&<CounterEditor draft={draft} setDraft={setDraft} busy={busy} cancel={()=>setCountering(false)} submit={()=>void act({action:"counterOffer",offerId:active.id,...draft,reservationHours:Number(draft.reservationHours)||48})}/>}</View>:!owner&&!committed?<View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}><Text style={[s.cardTitle,{color:c.green}]}>Make an offer</Text><Text style={{color:c.muted,lineHeight:18}}>Choose an open unit and propose your monthly rent. The owner can accept, counter, or decline.</Text><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.unitRow}>{units.map(u=><Pressable key={u.id} onPress={()=>{setUnitId(u.id);setAmount(String(u.monthlyRentCentavos/100));}} style={[s.unit,{borderColor:unitId===u.id?c.green:c.border,backgroundColor:unitId===u.id?c.soft:c.white}]}><Text style={{color:c.green,fontWeight:"900"}}>{u.label}</Text><Text style={{color:c.muted,fontSize:10}}>Asking {pesos(u.monthlyRentCentavos)}</Text></Pressable>)}</ScrollView><Field label="Your monthly offer (₱)" value={amount} onChange={setAmount} keyboardType="numeric"/><Field label="Preferred move-in (YYYY-MM-DD)" value={moveIn} onChange={setMoveIn} placeholder={today()}/><Field label="Message to owner" value={note} onChange={setNote} multiline/><Action disabled={busy||!unitId||!amount||!/^\d{4}-\d{2}-\d{2}$/.test(moveIn)} label="Send offer" onPress={()=>void act({action:"makeOffer",conversationId:selected,unitId,monthlyRent:amount,moveInOn:moveIn,note})}/>{!units.length&&<Text style={{color:c.muted}}>No unit has an open spot right now.</Text>}</View>:<View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}><Text style={[s.cardTitle,{color:c.green}]}>{committed?"Rental already committed":"Waiting for renter offer"}</Text><Text style={{color:c.muted}}>{committed?"The accepted/requested terms have already moved into reservation or tenancy.":"When the renter sends an offer, it will appear here for you to accept, counter, or decline."}</Text></View>}
-   <View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}><Text style={[s.cardTitle,{color:c.green}]}>Offer history</Text>{!offers.length?<Text style={{color:c.muted}}>No offers yet.</Text>:offers.map((o,index)=><View key={o.id} style={[s.historyItem,{borderColor:c.border}]}><View style={s.row}><Text style={{color:c.green,fontWeight:"900"}}>#{offers.length-index} · {o.proposedByRole==="owner"?"Owner":"Renter"}</Text><Pill value={o.status}/></View><Text style={[s.historyPrice,{color:c.green}]}>{pesos(o.monthlyRentCentavos)}/month</Text><Text style={{color:c.muted,fontSize:11}}>{o.unitLabel} · move-in {o.moveInOn}</Text>{o.note?<Text style={{color:c.muted,fontSize:11,fontStyle:"italic"}}>{o.note}</Text>:null}</View>)}</View>
-  </>}
+
+  {!conversation?
+   <View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}><Text style={{color:c.muted}}>Start a rental conversation first.</Text></View>
+   :!offerState.available?
+   <View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}><Text style={{color:c.muted}}>Offer negotiation is being enabled for this HomeTayo version.</Text></View>
+   :<>
+    {active?
+     <View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}>
+      <View style={s.row}><Pill value={active.mine?"waiting":"your turn"}/><Text style={[s.cardTitle,{color:c.green}]}>{active.proposedByRole==="owner"?"Owner counteroffer":"Renter offer"}</Text></View>
+      <Text style={{color:c.muted}}>{active.unitLabel} · asking {pesos(active.askingRentCentavos)}/month</Text>
+      <Text style={[s.price,{color:c.green}]}>{pesos(active.monthlyRentCentavos)}<Text style={s.perMonth}> / month</Text></Text>
+      <View style={s.termGrid}><Term label="Deposit" value={pesos(active.securityDepositCentavos)}/><Term label="Reservation" value={active.reservationAmountCentavos?pesos(active.reservationAmountCentavos):"None"}/><Term label="Move-in" value={active.moveInOn}/><Term label="Lease ends" value={active.leaseEndsOn||"Open"}/></View>
+      {active.note?<Text style={[s.quote,{color:c.muted}]}>“{active.note}”</Text>:null}
+      {active.mine?
+       <View style={s.section}><Text style={{color:c.muted}}>Waiting for {owner?"the renter":"the owner"} to respond.</Text><Action secondary disabled={busy} label="Withdraw offer" onPress={()=>void act({action:"withdrawOffer",offerId:active.id})}/></View>
+       :<View style={s.row}><Action disabled={busy} label="Accept" onPress={()=>void act({action:"acceptOffer",offerId:active.id})}/><Action secondary disabled={busy} label="Counter" onPress={()=>openCounter(active)}/><Action danger disabled={busy} label="Decline" onPress={()=>void act({action:"declineOffer",offerId:active.id,reason:"Declined in HomeTayo"})}/></View>}
+      {countering&&!active.mine?<CounterEditor draft={draft} setDraft={setDraft} busy={busy} cancel={()=>setCountering(false)} submit={()=>void act({action:"counterOffer",offerId:active.id,...draft,reservationHours:Number(draft.reservationHours)||48})}/>:null}
+     </View>
+     :!owner&&!committed?
+     <View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}>
+      <Text style={[s.cardTitle,{color:c.green}]}>Make an offer</Text>
+      <Text style={{color:c.muted,lineHeight:18}}>Choose an open unit and propose your monthly rent. The owner can accept, counter, or decline.</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.unitRow}>
+       {units.map(u=><Pressable key={u.id} onPress={()=>{setUnitId(u.id);setAmount(String(u.monthlyRentCentavos/100));}} style={[s.unit,{borderColor:unitId===u.id?c.green:c.border,backgroundColor:unitId===u.id?c.soft:c.white}]}><Text style={{color:c.green,fontWeight:"900"}}>{u.label}</Text><Text style={{color:c.muted,fontSize:10}}>Asking {pesos(u.monthlyRentCentavos)}</Text></Pressable>)}
+      </ScrollView>
+      <Field label="Your monthly offer (₱)" value={amount} onChange={setAmount} keyboardType="numeric"/>
+      <Field label="Preferred move-in (YYYY-MM-DD)" value={moveIn} onChange={setMoveIn} placeholder={today()}/>
+      <Field label="Message to owner" value={note} onChange={setNote} multiline/>
+      <Action disabled={busy||!unitId||!amount||!/^\d{4}-\d{2}-\d{2}$/.test(moveIn)} label="Send offer" onPress={()=>void act({action:"makeOffer",conversationId:selected,unitId,monthlyRent:amount,moveInOn:moveIn,note})}/>
+      {!units.length?<Text style={{color:c.muted}}>No unit has an open spot right now.</Text>:null}
+     </View>
+     :<View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}><Text style={[s.cardTitle,{color:c.green}]}>{committed?"Rental already committed":"Waiting for renter offer"}</Text><Text style={{color:c.muted}}>{committed?"The accepted/requested terms have already moved into reservation or tenancy.":"When the renter sends an offer, it will appear here for you to accept, counter, or decline."}</Text></View>}
+
+    <View style={[s.card,{borderColor:c.border,backgroundColor:c.white}]}>
+     <Text style={[s.cardTitle,{color:c.green}]}>Offer history</Text>
+     {!offers.length?<Text style={{color:c.muted}}>No offers yet.</Text>:offers.map((o,index)=><View key={o.id} style={[s.historyItem,{borderColor:c.border}]}><View style={s.row}><Text style={{color:c.green,fontWeight:"900"}}>#{offers.length-index} · {o.proposedByRole==="owner"?"Owner":"Renter"}</Text><Pill value={o.status}/></View><Text style={[s.historyPrice,{color:c.green}]}>{pesos(o.monthlyRentCentavos)}/month</Text><Text style={{color:c.muted,fontSize:11}}>{o.unitLabel} · move-in {o.moveInOn}</Text>{o.note?<Text style={{color:c.muted,fontSize:11,fontStyle:"italic"}}>{o.note}</Text>:null}</View>)}
+    </View>
+   </>}
  </ScrollView>;
 }
 
 function Term({label,value}:{label:string;value:string}){const c=usePalette();return <View style={[s.term,{backgroundColor:c.soft}]}><Text style={{color:c.muted,fontSize:9,fontWeight:"800"}}>{label.toUpperCase()}</Text><Text style={{color:c.green,fontSize:11,fontWeight:"900"}}>{value}</Text></View>}
-function CounterEditor({draft,setDraft,busy,cancel,submit}:{draft:CounterDraft;setDraft:(v:CounterDraft)=>void;busy:boolean;cancel:()=>void;submit:()=>void}){const c=usePalette();const set=(k:keyof CounterDraft,v:string)=>setDraft({...draft,[k]:v});return <View style={[s.counter,{borderColor:c.border,backgroundColor:c.soft}]}><Text style={[s.cardTitle,{color:c.green}]}>Counteroffer terms</Text><Field label="Monthly rent (₱)" value={draft.monthlyRent} onChange={v=>set("monthlyRent",v)} keyboardType="numeric"/><Field label="Security deposit (₱)" value={draft.securityDeposit} onChange={v=>set("securityDeposit",v)} keyboardType="numeric"/><Field label="Reservation payment (₱)" value={draft.reservationAmount} onChange={v=>set("reservationAmount",v)} keyboardType="numeric"/><Field label="Reservation window (hours)" value={draft.reservationHours} onChange={v=>set("reservationHours",v)} keyboardType="numeric"/><Field label="Lease starts (YYYY-MM-DD)" value={draft.leaseStartsOn} onChange={v=>set("leaseStartsOn",v)}/><Field label="Move-in (YYYY-MM-DD)" value={draft.moveInOn} onChange={v=>set("moveInOn",v)}/><Field label="Lease ends (optional)" value={draft.leaseEndsOn} onChange={v=>set("leaseEndsOn",v)}/><Text style={[s.label,{color:c.green}]}>Reservation payment credit</Text><View style={s.row}>{([['none','Fee'],['first_rent','First rent'],['deposit','Deposit']] as const).map(([id,label])=><Pressable key={id} onPress={()=>setDraft({...draft,reservationCredit:id})} style={[s.choice,{borderColor:draft.reservationCredit===id?c.green:c.border,backgroundColor:draft.reservationCredit===id?c.white:c.soft}]}><Text style={{color:c.green,fontSize:10,fontWeight:"900"}}>{label}</Text></Pressable>)}</View><Field label="Note" value={draft.note} onChange={v=>set("note",v)} multiline/><View style={s.row}><Action disabled={busy||!draft.monthlyRent||!draft.leaseStartsOn||!draft.moveInOn} label="Send counteroffer" onPress={submit}/><Action secondary disabled={busy} label="Cancel" onPress={cancel}/></View></View>}
 
-const s=StyleSheet.create({loading:{flex:1,alignItems:"center",justifyContent:"center",padding:24},body:{padding:20,paddingBottom:46,gap:14},eyebrow:{fontSize:10,fontWeight:"900",letterSpacing:1.5},title:{fontSize:30,lineHeight:35,fontWeight:"900",letterSpacing:-.7},intro:{fontSize:12,lineHeight:19},threads:{gap:8,paddingVertical:3},thread:{width:170,borderWidth:1,borderRadius:16,padding:12,gap:3},notice:{padding:11,borderRadius:13,fontSize:11,fontWeight:"800"},card:{borderWidth:1,borderRadius:22,padding:18,gap:13},cardTitle:{fontSize:18,fontWeight:"900"},row:{flexDirection:"row",alignItems:"center",flexWrap:"wrap",gap:9},pill:{borderRadius:999,paddingHorizontal:8,paddingVertical:5},price:{fontSize:28,fontWeight:"900"},perMonth:{fontSize:11,fontWeight:"700"},termGrid:{flexDirection:"row",flexWrap:"wrap",gap:8},term:{minWidth:"46%",flexGrow:1,borderRadius:13,padding:11,gap:4},quote:{borderLeftWidth:3,borderLeftColor:"#D2A24F",paddingLeft:10,fontSize:12,lineHeight:18,fontStyle:"italic"},section:{gap:10},action:{minHeight:42,borderRadius:13,paddingHorizontal:14,borderWidth:1,alignItems:"center",justifyContent:"center"},field:{gap:6},label:{fontSize:11,fontWeight:"900"},input:{minHeight:44,borderWidth:1,borderRadius:12,paddingHorizontal:12,paddingVertical:10,fontSize:13},textarea:{minHeight:82,textAlignVertical:"top"},unitRow:{gap:8},unit:{minWidth:150,borderWidth:1,borderRadius:14,padding:11,gap:3},counter:{borderWidth:1,borderRadius:18,padding:13,gap:11},choice:{minHeight:38,borderWidth:1,borderRadius:12,paddingHorizontal:12,alignItems:"center",justifyContent:"center"},historyItem:{paddingTop:12,borderTopWidth:1,gap:5},historyPrice:{fontSize:16,fontWeight:"900"}}
+function CounterEditor({draft,setDraft,busy,cancel,submit}:{draft:CounterDraft;setDraft:(v:CounterDraft)=>void;busy:boolean;cancel:()=>void;submit:()=>void}){
+ const c=usePalette();const set=(k:keyof CounterDraft,v:string)=>setDraft({...draft,[k]:v});
+ return <View style={[s.counter,{borderColor:c.border,backgroundColor:c.soft}]}>
+  <Text style={[s.cardTitle,{color:c.green}]}>Counteroffer terms</Text>
+  <Field label="Monthly rent (₱)" value={draft.monthlyRent} onChange={v=>set("monthlyRent",v)} keyboardType="numeric"/>
+  <Field label="Security deposit (₱)" value={draft.securityDeposit} onChange={v=>set("securityDeposit",v)} keyboardType="numeric"/>
+  <Field label="Reservation payment (₱)" value={draft.reservationAmount} onChange={v=>set("reservationAmount",v)} keyboardType="numeric"/>
+  <Field label="Reservation window (hours)" value={draft.reservationHours} onChange={v=>set("reservationHours",v)} keyboardType="numeric"/>
+  <Field label="Lease starts (YYYY-MM-DD)" value={draft.leaseStartsOn} onChange={v=>set("leaseStartsOn",v)}/>
+  <Field label="Move-in (YYYY-MM-DD)" value={draft.moveInOn} onChange={v=>set("moveInOn",v)}/>
+  <Field label="Lease ends (optional)" value={draft.leaseEndsOn} onChange={v=>set("leaseEndsOn",v)}/>
+  <Text style={[s.label,{color:c.green}]}>Reservation payment credit</Text>
+  <View style={s.row}>{([['none','Fee'],['first_rent','First rent'],['deposit','Deposit']] as const).map(([id,label])=><Pressable key={id} onPress={()=>setDraft({...draft,reservationCredit:id})} style={[s.choice,{borderColor:draft.reservationCredit===id?c.green:c.border,backgroundColor:draft.reservationCredit===id?c.white:c.soft}]}><Text style={{color:c.green,fontSize:10,fontWeight:"900"}}>{label}</Text></Pressable>)}</View>
+  <Field label="Note" value={draft.note} onChange={v=>set("note",v)} multiline/>
+  <View style={s.row}><Action disabled={busy||!draft.monthlyRent||!draft.leaseStartsOn||!draft.moveInOn} label="Send counteroffer" onPress={submit}/><Action secondary disabled={busy} label="Cancel" onPress={cancel}/></View>
+ </View>;
+}
+
+const s=StyleSheet.create({
+ loading:{flex:1,alignItems:"center",justifyContent:"center",padding:24},body:{padding:20,paddingBottom:46,gap:14},eyebrow:{fontSize:10,fontWeight:"900",letterSpacing:1.5},title:{fontSize:30,lineHeight:35,fontWeight:"900",letterSpacing:-.7},intro:{fontSize:12,lineHeight:19},threads:{gap:8,paddingVertical:3},thread:{width:170,borderWidth:1,borderRadius:16,padding:12,gap:3},notice:{padding:11,borderRadius:13,fontSize:11,fontWeight:"800"},card:{borderWidth:1,borderRadius:22,padding:18,gap:13},cardTitle:{fontSize:18,fontWeight:"900"},row:{flexDirection:"row",alignItems:"center",flexWrap:"wrap",gap:9},pill:{borderRadius:999,paddingHorizontal:8,paddingVertical:5},price:{fontSize:28,fontWeight:"900"},perMonth:{fontSize:11,fontWeight:"700"},termGrid:{flexDirection:"row",flexWrap:"wrap",gap:8},term:{minWidth:"46%",flexGrow:1,borderRadius:13,padding:11,gap:4},quote:{borderLeftWidth:3,borderLeftColor:"#D2A24F",paddingLeft:10,fontSize:12,lineHeight:18,fontStyle:"italic"},section:{gap:10},action:{minHeight:42,borderRadius:13,paddingHorizontal:14,borderWidth:1,alignItems:"center",justifyContent:"center"},field:{gap:6},label:{fontSize:11,fontWeight:"900"},input:{minHeight:44,borderWidth:1,borderRadius:12,paddingHorizontal:12,paddingVertical:10,fontSize:13},textarea:{minHeight:82,textAlignVertical:"top"},unitRow:{gap:8},unit:{minWidth:150,borderWidth:1,borderRadius:14,padding:11,gap:3},counter:{borderWidth:1,borderRadius:18,padding:13,gap:11},choice:{minHeight:38,borderWidth:1,borderRadius:12,paddingHorizontal:12,alignItems:"center",justifyContent:"center"},historyItem:{paddingTop:12,borderTopWidth:1,gap:5},historyPrice:{fontSize:16,fontWeight:"900"}
+});
