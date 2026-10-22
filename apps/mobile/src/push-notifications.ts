@@ -2,6 +2,7 @@ import {Platform} from "react-native";
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import {api} from "./session";
+import {openAppUpdate} from "./app-update";
 
 Notifications.setNotificationHandler({
   handleNotification:async()=>({
@@ -22,6 +23,9 @@ export async function registerPushNotifications(){
       Notifications.setNotificationChannelAsync("rentals",{
         name:"Rental updates",description:"Rent, tenancy, maintenance and document updates",importance:Notifications.AndroidImportance.MAX,sound:"default",vibrationPattern:[0,250,160,250],lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,enableVibrate:true,showBadge:true,
       }),
+      Notifications.setNotificationChannelAsync("updates",{
+        name:"App updates",description:"New HomeTayo Android versions",importance:Notifications.AndroidImportance.HIGH,sound:"default",vibrationPattern:[0,220,150,220],lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,enableVibrate:true,showBadge:true,
+      }),
     ]);
   }
   let permissions=await Notifications.getPermissionsAsync();
@@ -37,6 +41,11 @@ export async function registerPushNotifications(){
 export function listenForNotificationResponses(openConversation:(conversationId:string)=>void,openRental?:(conversationId?:string)=>void){
   const handle=(response:Notifications.NotificationResponse|null)=>{
     const data=response?.notification.request.content.data;
+    if(data?.screen==="update"){
+      const url=typeof data.downloadUrl==="string"?data.downloadUrl:undefined;
+      void openAppUpdate(url).catch(()=>{});
+      return;
+    }
     const id=typeof data?.conversationId==="string"&&data.conversationId?data.conversationId:undefined;
     if(data?.screen==="rental"||data?.type==="rental"){openRental?.(id);return;}
     if(id)openConversation(id);
