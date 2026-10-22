@@ -10,9 +10,8 @@ function client(){
  return neon(process.env.DATABASE_URL);
 }
 
-// This version deliberately makes the final result depend on every acceptance side-effect.
-// Besides being explicit, it keeps PostgreSQL-compatible runtimes from pruning unreferenced
-// data-modifying CTEs and guarantees the accepted offer is linked to its request/reservation.
+// Acceptance locks the latest pending offer, builds the existing reservation flow,
+// then updates that offer exactly once with accepted status + linkage IDs.
 export const ACCEPT_OFFER_V2=`WITH target AS MATERIALIZED (
  SELECT o.*,c.owner_id,c.renter_id FROM rental_offers o
  JOIN rental_conversations c ON c.id=o.conversation_id
@@ -22,11 +21,8 @@ export const ACCEPT_OFFER_V2=`WITH target AS MATERIALIZED (
   AND NOT EXISTS(SELECT 1 FROM rental_reservations r WHERE r.conversation_id=c.id AND r.status IN ('awaiting_payment','proof_submitted','reserved'))
   AND NOT EXISTS(SELECT 1 FROM rental_requests rr WHERE rr.conversation_id=c.id AND rr.status='pending')
  FOR UPDATE OF o,u
-), accepted AS (
- UPDATE rental_offers o SET status='accepted',accepted_by=$1,accepted_at=now(),responded_at=now()
- FROM target WHERE o.id=target.id RETURNING o.id
 ), deal AS (
- SELECT target.* FROM target JOIN accepted ON accepted.id=target.id
+ SELECT * FROM target
 ), req AS (
  INSERT INTO rental_requests(conversation_id,unit_id,renter_id,desired_move_in_on,status,owner_note,created_at,decided_at)
  SELECT conversation_id,unit_id,renter_id,move_in_on,'approved','Agreed through HomeTayo offer negotiation',now(),now()
@@ -49,9 +45,6 @@ export const ACCEPT_OFFER_V2=`WITH target AS MATERIALIZED (
 ), linked_request AS (
  UPDATE rental_requests rr SET tenancy_id=tenancy.id
  FROM tenancy WHERE rr.id=(SELECT id FROM req) RETURNING rr.id
-), linked_offer AS (
- UPDATE rental_offers o SET request_id=req.id,reservation_id=hold.id
- FROM req,hold WHERE o.id=$2::uuid RETURNING o.id
 ), deposit_charge AS (
  INSERT INTO rent_charges(tenancy_id,due_on,description,amount_centavos,source,charge_kind)
  SELECT tenancy.id,tenancy.starts_on,'Security deposit',tenancy.security_deposit_centavos,'manual','deposit'
@@ -71,8 +64,11 @@ export const ACCEPT_OFFER_V2=`WITH target AS MATERIALIZED (
   CASE WHEN deal.reservation_amount_centavos>0 THEN 'Offer accepted. Complete the reservation payment before the hold expires.' ELSE 'Offer accepted. Your unit is now reserved.' END,
   'offer-reservation:'||deal.id FROM deal
  ON CONFLICT(event_key) DO NOTHING RETURNING id
+), accepted_offer AS (
+ UPDATE rental_offers o SET status='accepted',accepted_by=$1,accepted_at=now(),responded_at=now(),request_id=req.id,reservation_id=hold.id
+ FROM target,req,hold WHERE o.id=target.id RETURNING o.id
 )
- SELECT linked_offer.id,
+ SELECT accepted_offer.id,
   (SELECT count(*) FROM tenancy) AS tenancy_count,
   (SELECT count(*) FROM linked_hold) AS linked_hold_count,
   (SELECT count(*) FROM linked_request) AS linked_request_count,
@@ -80,7 +76,7 @@ export const ACCEPT_OFFER_V2=`WITH target AS MATERIALIZED (
   (SELECT count(*) FROM rent_charge) AS rent_charge_count,
   (SELECT count(*) FROM counterpart_notice) AS counterpart_notice_count,
   (SELECT count(*) FROM renter_notice) AS renter_notice_count
- FROM linked_offer`;
+ FROM accepted_offer`;
 
 export {rentalOfferState};
 
