@@ -66,7 +66,8 @@ export async function notifyForAppUpdate(update:AppUpdateInfo){
  await AsyncStorage.setItem(NOTIFIED_KEY,String(update.latestVersionCode)).catch(()=>{});
 }
 
-export async function openAppUpdate(downloadUrl=DOWNLOAD_URL){
- if(!downloadUrl.startsWith("https://github.com/jcmejia-dev/hometayo/"))return false;
- return Linking.openURL(downloadUrl).then(()=>true).catch(()=>false);
+export async function openAppUpdate(downloadUrl?:string){
+ const target=downloadUrl||DOWNLOAD_URL;
+ if(!target.startsWith("https://github.com/jcmejia-dev/hometayo/"))return false;
+ return Linking.openURL(target).then(()=>true).catch(()=>false);
 }
