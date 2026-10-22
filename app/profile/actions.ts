@@ -7,7 +7,7 @@ import {profileSettingsSchema} from "@/lib/profile-settings";
 import {users} from "@/db/schema";
 import {getDatabase} from "@/lib/db";
 import {requireAccount} from "@/lib/session-user";
-import {saveAccountAvatar,useAvatarAsProfilePicture} from "@/lib/avatar-profile";
+import {saveAccountAvatar,selectAvatarAsProfilePicture} from "@/lib/avatar-profile";
 
 function field(form:FormData,key:string):string{const value=form.get(key);return typeof value==="string"?value:"";}
 
@@ -37,7 +37,7 @@ export async function updateProfile(form:FormData){
   updatedAt:new Date(),
  }).where(and(eq(users.id,account.id),eq(users.email,account.email)));
  if(rawAvatar)await saveAccountAvatar(account.id,rawAvatar);
- await useAvatarAsProfilePicture(account.id,field(form,"profileImageMode")==="avatar");
+ await selectAvatarAsProfilePicture(account.id,field(form,"profileImageMode")==="avatar");
  revalidatePath("/profile");
  revalidatePath("/owner");
  revalidatePath("/inbox");
