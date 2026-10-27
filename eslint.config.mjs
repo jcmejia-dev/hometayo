@@ -12,10 +12,10 @@ export default defineConfig([
     },
   },
   {
-    files: ["components/rental-center.tsx"],
+    files: ["components/rental-center.tsx", "components/chat-rental-lifecycle.tsx", "components/chat-rental-timeline.tsx"],
     rules: {
-      // load() only commits state after awaited fetches; this rule reports the
-      // effect's indirect async loader call as a synchronous state update.
+      // These loaders only commit state after awaited fetches; the rule reports
+      // the effect's indirect async loader call as a synchronous state update.
       "react-hooks/set-state-in-effect": "off",
     },
   },
