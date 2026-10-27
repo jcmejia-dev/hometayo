@@ -97,7 +97,7 @@ describe("rental offer negotiation",()=>{
    assert.equal(Number(rentCharge.balance),475000);
    const paymentSubmission=(await db.query<{id:string}>(query(proofService,"SUBMIT_PAYMENT_PROOF_TYPED"),['renter',rentCharge.id,475000,'2026-11-15','gcash','https://example.com/rent.jpg','GCASH-RENT-1','November rent'])).rows[0];
    assert.ok(paymentSubmission?.id);
-   assert.ok((await db.query<{id:string}>(query(lifecycle,"CONFIRM_PAYMENT_PROOF"),['owner',paymentSubmission.id])).rows[0]?.id);
+   assert.ok((await db.query<{id:string}>(query(proofService,"CONFIRM_PAYMENT_PROOF_TYPED"),['owner',paymentSubmission.id])).rows[0]?.id);
    const paid=(await db.query<{paid:number}>(`SELECT COALESCE(sum(amount_centavos),0)::int AS paid FROM rent_payments WHERE charge_id=$1::uuid AND voided_at IS NULL`,[rentCharge.id])).rows[0];
    assert.equal(Number(paid.paid),575000);
 
