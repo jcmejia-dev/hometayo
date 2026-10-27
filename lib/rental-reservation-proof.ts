@@ -7,6 +7,7 @@ import {dispatchPendingRentalPushes} from "./push-notifications";
 type SubmitReservationProof=Extract<RentalOperation,{action:"submitReservationProof"}>;
 type ConfirmReservation=Extract<RentalOperation,{action:"confirmReservationPayment"}>;
 type SubmitPaymentProof=Extract<RentalOperation,{action:"submitPaymentProof"}>;
+type ConfirmPaymentProof=Extract<RentalOperation,{action:"confirmPaymentProof"}>;
 
 // PostgreSQL cannot infer an unknown proof-url parameter when it is both assigned
 // to a text column and independently tested with IS NOT NULL. Keep multipart proof
@@ -63,6 +64,28 @@ export const SUBMIT_PAYMENT_PROOF_TYPED=`WITH charge AS MATERIALIZED (
  FROM submission JOIN charge ON charge.id=submission.charge_id)
  SELECT id FROM submission`;
 
+export const CONFIRM_PAYMENT_PROOF_TYPED=`WITH submission AS MATERIALIZED (
+ SELECT s.id AS submission_id,s.charge_id,s.renter_id AS submission_renter_id,s.amount_centavos,s.paid_on,s.note,
+  c.id AS conversation_id,c.owner_id,
+  r.amount_centavos-COALESCE((SELECT sum(p.amount_centavos) FROM rent_payments p WHERE p.charge_id=r.id AND p.voided_at IS NULL),0) AS balance
+ FROM rent_payment_submissions s
+ JOIN rent_charges r ON r.id=s.charge_id
+ JOIN rental_tenancies t ON t.id=r.tenancy_id
+ JOIN rental_conversations c ON c.id=t.conversation_id
+ WHERE s.id=$2::uuid AND s.status='pending' AND c.owner_id=$1::text AND r.voided_at IS NULL
+  AND s.amount_centavos<=r.amount_centavos-COALESCE((SELECT sum(p.amount_centavos) FROM rent_payments p WHERE p.charge_id=r.id AND p.voided_at IS NULL),0)
+ FOR UPDATE OF s,r
+), payment AS (
+ INSERT INTO rent_payments(id,charge_id,amount_centavos,paid_on,note,recorded_by)
+ SELECT gen_random_uuid(),charge_id,amount_centavos,paid_on,CASE WHEN note='' THEN 'Verified renter payment' ELSE note END,$1::text FROM submission RETURNING *
+), done AS (
+ UPDATE rent_payment_submissions s SET status='confirmed',payment_id=payment.id,reviewed_by=$1::text,reviewed_at=now(),rejection_reason=NULL
+ FROM payment WHERE s.id=$2::uuid RETURNING s.*
+), n AS (INSERT INTO rental_notifications(user_id,conversation_id,kind,body,event_key)
+ SELECT submission.submission_renter_id,submission.conversation_id,'payment','Payment confirmed and added to your rent ledger.','payment-proof-confirmed:'||done.id
+ FROM done JOIN submission ON submission.submission_id=done.id)
+ SELECT id FROM done`;
+
 function client(){
  if(process.env.ENABLE_RENTAL_MANAGEMENT!=="true"||!process.env.DATABASE_URL)throw Error("Rental management is awaiting setup.");
  return neon(process.env.DATABASE_URL);
@@ -88,4 +111,11 @@ export async function submitPaymentProofTyped(userId:string,v:SubmitPaymentProof
  if(!rows.length)throw Error("Action unavailable. Check the charge balance, payment proof, and your access.");
  await dispatchPendingRentalPushes();
  return {id:rows[0].id,message:"Payment submitted for owner verification."};
+}
+
+export async function confirmPaymentProofTyped(userId:string,v:ConfirmPaymentProof){
+ const rows=await client().query(CONFIRM_PAYMENT_PROOF_TYPED,[userId,v.submissionId]) as Array<{id:string}>;
+ if(!rows.length)throw Error("Action unavailable. Check that this payment proof is still pending and within the charge balance.");
+ await dispatchPendingRentalPushes();
+ return {id:rows[0].id,message:"Payment confirmed and added to the rent ledger."};
 }
