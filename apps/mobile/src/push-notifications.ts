@@ -18,10 +18,10 @@ export async function registerPushNotifications(){
   if(Platform.OS==="android"){
     await Promise.all([
       Notifications.setNotificationChannelAsync("messages",{
-        name:"Messages",description:"New HomeTayo rental messages",importance:Notifications.AndroidImportance.MAX,sound:"default",vibrationPattern:[0,250,160,250],lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,enableVibrate:true,showBadge:true,
+        name:"Messages",description:"Messages, offers and negotiation updates",importance:Notifications.AndroidImportance.MAX,sound:"default",vibrationPattern:[0,250,160,250],lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,enableVibrate:true,showBadge:true,
       }),
       Notifications.setNotificationChannelAsync("rentals",{
-        name:"Rental updates",description:"Rent, tenancy, maintenance and document updates",importance:Notifications.AndroidImportance.MAX,sound:"default",vibrationPattern:[0,250,160,250],lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,enableVibrate:true,showBadge:true,
+        name:"Rental updates",description:"Reservation, rent, tenancy, maintenance and document updates",importance:Notifications.AndroidImportance.MAX,sound:"default",vibrationPattern:[0,250,160,250],lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,enableVibrate:true,showBadge:true,
       }),
       Notifications.setNotificationChannelAsync("updates",{
         name:"App updates",description:"New HomeTayo Android versions",importance:Notifications.AndroidImportance.HIGH,sound:"default",vibrationPattern:[0,220,150,220],lockscreenVisibility:Notifications.AndroidNotificationVisibility.PUBLIC,enableVibrate:true,showBadge:true,
@@ -47,8 +47,13 @@ export function listenForNotificationResponses(openConversation:(conversationId:
       return;
     }
     const id=typeof data?.conversationId==="string"&&data.conversationId?data.conversationId:undefined;
-    if(data?.screen==="rental"||data?.type==="rental"){openRental?.(id);return;}
-    if(id)openConversation(id);
+    // A conversation-specific rental event belongs in Messages. Check the explicit
+    // screen before the generic rental type so offer/payment pushes do not get
+    // diverted into the old Rental Center route.
+    if(data?.screen==="messages"&&id){openConversation(id);return;}
+    if(data?.screen==="rental"){openRental?.(id);return;}
+    if(id){openConversation(id);return;}
+    if(data?.type==="rental")openRental?.();
   };
   void Notifications.getLastNotificationResponseAsync().then(handle).catch(()=>{});
   const subscription=Notifications.addNotificationResponseReceivedListener(handle);

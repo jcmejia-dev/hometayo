@@ -13,6 +13,11 @@ function client(){if(process.env.ENABLE_RENTAL_MANAGEMENT!=="true"||!process.env
 function validGifUrl(value:string){try{const url=new URL(value);return url.protocol==="https:"&&!url.username&&!url.password;}catch{return false;}}
 async function markDelivered(db:ReturnType<typeof client>,userId:string){try{await db.query(social.MARK_DELIVERED,[userId]);}catch{/* Migration 010 may still be rolling out. */}}
 
+// Kept in the parser for backwards compatibility with older Android builds, but no
+// longer exposed as a second way to create a rental commitment. All new rentals
+// must agree terms through the offer flow in Messages.
+export const LEGACY_COMMITMENT_ACTIONS=new Set(["invite","accept","decline","requestRent","cancelRentRequest","approveRentRequest","declineRentRequest"] as const);
+
 export function operationQuery(userId:string,v:RentalOperation):{sql:string;args:unknown[]}{
  switch(v.action){
   case "inquire":return {sql:q.INQUIRE,args:[userId,v.slug]};
@@ -35,7 +40,9 @@ export function operationQuery(userId:string,v:RentalOperation):{sql:string;args
 }
 
 export async function performOperation(userId:string,body:unknown){
- const v=rentalOperation.parse(body);if(v.action==="message"&&v.mediaType==="gif"&&!validGifUrl(v.body))throw Error("Use a valid HTTPS GIF URL.");
+ const v=rentalOperation.parse(body);
+ if(LEGACY_COMMITMENT_ACTIONS.has(v.action as never))throw Error("Start and agree to this rental through Offer & negotiate in Messages. Existing reservations and tenancies remain manageable from the conversation.");
+ if(v.action==="message"&&v.mediaType==="gif"&&!validGifUrl(v.body))throw Error("Use a valid HTTPS GIF URL.");
  if(isLifecycleOperation(v))return performLifecycleOperation(userId,v);
  const query=operationQuery(userId,v),db=client();let rows:Record<string,unknown>[];
  try{rows=await db.query(query.sql,query.args) as Record<string,unknown>[];}
@@ -53,7 +60,7 @@ export async function performOperation(userId:string,body:unknown){
    FROM listings l JOIN owner_profiles o ON o.id=l.owner_id JOIN users u ON u.id=$1 WHERE l.slug=$2 AND o.user_id<>$1
    ON CONFLICT(event_key) DO UPDATE SET body=excluded.body,read_at=NULL,created_at=now(),listing_id=excluded.listing_id`,[userId,v.slug,v.kind]);}catch{/* Reaction itself remains saved while migration 008 is rolling out. */}
  }
- if(rows.length&&["invite","accept","decline","end","charge","payment","void","voidCharge","remind"].includes(v.action))await dispatchPendingRentalPushes();
+ if(rows.length&&["end","charge","payment","void","voidCharge","remind"].includes(v.action))await dispatchPendingRentalPushes();
  if(!rows.length&&!["message","typing","messageReact","payment","charge","remind","read","react"].includes(v.action))throw Error("Action unavailable. Check access and current status.");
  return {id:rows[0]?.id as string|undefined,message:rows.length?"Saved.":"Already recorded, unavailable, or no change needed."};
 }

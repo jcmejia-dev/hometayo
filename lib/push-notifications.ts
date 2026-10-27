@@ -41,9 +41,10 @@ export async function sendConversationPush(senderId:string,conversationId:string
 }
 
 const lifecycleTitle=(kind:string)=>({
- rental_request:"Rental request",reservation:"Reservation update",payment_proof:"Payment verification",tenancy:"Tenancy update",payment:"Payment update",reminder:"Rent reminder",
+ offer:"Rental offer",rental_request:"Rental request",reservation:"Reservation update",payment_proof:"Payment verification",tenancy:"Tenancy update",payment:"Payment update",reminder:"Rent reminder",
  maintenance:"Maintenance update",document:"Rental document",review:"Rental review",
 }[kind]||"HomeTayo rental update");
+const lifecycleSection=(kind:string)=>({offer:"offer",reservation:"reservation",payment_proof:"payments",payment:"payments",reminder:"payments",maintenance:"maintenance",document:"documents",review:"reviews",tenancy:"tenancy",rental_request:"agreement"}[kind]||"rental");
 
 export async function dispatchPendingRentalPushes(){
  try{
@@ -56,7 +57,8 @@ export async function dispatchPendingRentalPushes(){
    WHERE n.push_sent_at IS NULL AND n.kind<>'message' AND n.created_at>now()-interval '14 days'
    ORDER BY n.created_at ASC LIMIT 50`) as Array<{id:string;userId:string;conversationId:string|null;kind:string;body:string;propertyTitle:string}>;
   for(const row of rows){
-   const delivered=await sendExpo(row.userId,lifecycleTitle(row.kind),row.body,{type:"rental",screen:"rental",conversationId:row.conversationId||"",notificationId:row.id,kind:row.kind,propertyTitle:row.propertyTitle},"rentals");
+   const inConversation=Boolean(row.conversationId);
+   const delivered=await sendExpo(row.userId,lifecycleTitle(row.kind),row.body,{type:"rental",screen:inConversation?"messages":"rental",conversationId:row.conversationId||"",notificationId:row.id,kind:row.kind,section:lifecycleSection(row.kind),propertyTitle:row.propertyTitle},row.kind==="offer"?"messages":"rentals");
    if(delivered)await sql.query(`UPDATE rental_notifications SET push_sent_at=now() WHERE id=$1::uuid AND push_sent_at IS NULL`,[row.id]);
   }
  }catch{
