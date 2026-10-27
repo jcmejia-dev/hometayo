@@ -4,6 +4,7 @@ import {rentalOperation,type RentalOperation} from "./rental-operation-input";
 import * as q from "./rental-operation-sql";
 import * as social from "./rental-social-sql";
 import {END_TENANCY_V2} from "./rental-lifecycle-compat";
+import {submitReservationProofTyped} from "./rental-reservation-proof";
 import {uuidInput} from "./rental-unit-input";
 import type {Conversation,OperationsState,Notice} from "./rental-operation-types";
 import {dispatchPendingRentalPushes,sendConversationPush} from "./push-notifications";
@@ -42,6 +43,7 @@ export function operationQuery(userId:string,v:RentalOperation):{sql:string;args
 export async function performOperation(userId:string,body:unknown){
  const v=rentalOperation.parse(body);
  if(LEGACY_COMMITMENT_ACTIONS.has(v.action as never))throw Error("Start and agree to this rental through Offer & negotiate in Messages. Existing reservations and tenancies remain manageable from the conversation.");
+ if(v.action==="submitReservationProof")return submitReservationProofTyped(userId,v);
  if(v.action==="message"&&v.mediaType==="gif"&&!validGifUrl(v.body))throw Error("Use a valid HTTPS GIF URL.");
  if(isLifecycleOperation(v))return performLifecycleOperation(userId,v);
  const query=operationQuery(userId,v),db=client();let rows:Record<string,unknown>[];
