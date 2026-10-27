@@ -83,10 +83,11 @@ describe("rental offer negotiation",()=>{
 
    const submittedReservation=(await db.query<{id:string}>(query(proofService,"SUBMIT_RESERVATION_PROOF_TYPED"),['renter',offer.reservation_id,'gcash','https://example.com/reservation.jpg','GCASH-RES-1'])).rows[0];
    assert.equal(submittedReservation.id,offer.reservation_id);
-   const confirmedReservation=(await db.query<{id:string}>(query(lifecycle,"CONFIRM_RESERVATION"),['owner',offer.reservation_id])).rows[0];
+   const tenancyId="00000000-0000-4000-8000-000000000302";
+   const confirmedReservation=(await db.query<{id:string}>(query(proofService,"CONFIRM_RESERVATION_TYPED"),['owner',offer.reservation_id,tenancyId])).rows[0];
    assert.equal(confirmedReservation.id,offer.reservation_id);
    const linked=(await db.query<{status:string;tenancy_id:string}>(`SELECT status,tenancy_id FROM rental_reservations WHERE id=$1::uuid`,[offer.reservation_id])).rows[0];
-   assert.equal(linked.status,"reserved");assert.ok(linked.tenancy_id);
+   assert.equal(linked.status,"reserved");assert.equal(linked.tenancy_id,tenancyId);
 
    assert.ok((await db.query<{id:string}>(query(lifecycle,"ACTIVATE_TENANCY"),['owner',linked.tenancy_id])).rows[0]?.id);
    assert.equal((await db.query<{status:string}>(`SELECT status FROM rental_units WHERE id=$1::uuid`,[unit])).rows[0].status,"occupied");
