@@ -8,6 +8,7 @@ const service=fs.readFileSync("lib/rental-offers.ts","utf8");
 const acceptService=fs.readFileSync("lib/rental-offer-service.ts","utf8");
 const lifecycle=fs.readFileSync("lib/rental-lifecycle.ts","utf8");
 const lifecycleCompat=fs.readFileSync("lib/rental-lifecycle-compat.ts","utf8");
+const proofService=fs.readFileSync("lib/rental-reservation-proof.ts","utf8");
 const web=fs.readFileSync("components/rental-negotiation.tsx","utf8");
 const native=fs.readFileSync("apps/mobile/src/chat-rental-offer.tsx","utf8");
 const messenger=fs.readFileSync("apps/mobile/src/messenger-workspace.tsx","utf8");
@@ -64,7 +65,6 @@ describe("rental offer negotiation",()=>{
    const unit=(await db.query<{id:string}>(`INSERT INTO rental_units(listing_id,label,status,monthly_rent_centavos,capacity) VALUES($1::uuid,'Room 1','available',600000,1) RETURNING id`,[listing])).rows[0].id;
    const conversation=(await db.query<{id:string}>(`INSERT INTO rental_conversations(listing_id,owner_id,renter_id) VALUES($1::uuid,'owner','renter') RETURNING id`,[listing])).rows[0].id;
 
-   // Renter offer -> owner counter -> renter accepts.
    const first=(await db.query<{id:string}>(query(service,"MAKE_OFFER"),['renter',conversation,unit,550000,'2026-11-15','I can move in mid-month.'])).rows[0];
    assert.ok(first?.id);
    const counter=(await db.query<{id:string}>(query(service,"COUNTER_OFFER"),['owner',first.id,575000,575000,100000,48,'first_rent','2026-11-15','2026-11-15','', 'Meet me halfway at 5,750.'])).rows[0];
@@ -81,36 +81,31 @@ describe("rental offer negotiation",()=>{
    const archived=(await db.query<{status:string;monthly_rent_centavos:number}>(`SELECT status,monthly_rent_centavos FROM rental_offers WHERE conversation_id=$1::uuid AND id<>$2::uuid ORDER BY created_at DESC LIMIT 1`,[conversation,counter.id])).rows[0];
    assert.equal(archived.status,"countered");assert.equal(Number(archived.monthly_rent_centavos),550000);
 
-   // Reservation proof -> owner confirmation -> real reserved tenancy + ledger.
-   const submittedReservation=(await db.query<{id:string}>(query(lifecycle,"SUBMIT_RESERVATION_PROOF"),['renter',offer.reservation_id,'gcash','https://example.com/reservation.jpg','GCASH-RES-1'])).rows[0];
+   const submittedReservation=(await db.query<{id:string}>(query(proofService,"SUBMIT_RESERVATION_PROOF_TYPED"),['renter',offer.reservation_id,'gcash','https://example.com/reservation.jpg','GCASH-RES-1'])).rows[0];
    assert.equal(submittedReservation.id,offer.reservation_id);
    const confirmedReservation=(await db.query<{id:string}>(query(lifecycle,"CONFIRM_RESERVATION"),['owner',offer.reservation_id])).rows[0];
    assert.equal(confirmedReservation.id,offer.reservation_id);
    const linked=(await db.query<{status:string;tenancy_id:string}>(`SELECT status,tenancy_id FROM rental_reservations WHERE id=$1::uuid`,[offer.reservation_id])).rows[0];
    assert.equal(linked.status,"reserved");assert.ok(linked.tenancy_id);
 
-   // Move in -> occupied.
    assert.ok((await db.query<{id:string}>(query(lifecycle,"ACTIVATE_TENANCY"),['owner',linked.tenancy_id])).rows[0]?.id);
    assert.equal((await db.query<{status:string}>(`SELECT status FROM rental_units WHERE id=$1::uuid`,[unit])).rows[0].status,"occupied");
 
-   // Remaining first-rent balance is paid by renter proof and verified by owner.
    const rentCharge=(await db.query<{id:string;balance:number}>(`SELECT r.id,(r.amount_centavos-COALESCE(sum(p.amount_centavos) FILTER(WHERE p.voided_at IS NULL),0))::int AS balance
     FROM rent_charges r LEFT JOIN rent_payments p ON p.charge_id=r.id WHERE r.tenancy_id=$1::uuid AND r.charge_kind='rent' GROUP BY r.id LIMIT 1`,[linked.tenancy_id])).rows[0];
    assert.equal(Number(rentCharge.balance),475000);
-   const paymentSubmission=(await db.query<{id:string}>(query(lifecycle,"SUBMIT_PAYMENT_PROOF"),['renter',rentCharge.id,475000,'2026-11-15','gcash','https://example.com/rent.jpg','GCASH-RENT-1','November rent'])).rows[0];
+   const paymentSubmission=(await db.query<{id:string}>(query(proofService,"SUBMIT_PAYMENT_PROOF_TYPED"),['renter',rentCharge.id,475000,'2026-11-15','gcash','https://example.com/rent.jpg','GCASH-RENT-1','November rent'])).rows[0];
    assert.ok(paymentSubmission?.id);
    assert.ok((await db.query<{id:string}>(query(lifecycle,"CONFIRM_PAYMENT_PROOF"),['owner',paymentSubmission.id])).rows[0]?.id);
    const paid=(await db.query<{paid:number}>(`SELECT COALESCE(sum(amount_centavos),0)::int AS paid FROM rent_payments WHERE charge_id=$1::uuid AND voided_at IS NULL`,[rentCharge.id])).rows[0];
    assert.equal(Number(paid.paid),575000);
 
-   // Active-rental tools: maintenance and document records stay on this tenancy.
    const maintenance=(await db.query<{id:string}>(query(lifecycle,"MAINTENANCE_CREATE"),['renter',linked.tenancy_id,'Leaking faucet','Kitchen faucet is leaking','normal','https://example.com/leak.jpg'])).rows[0];
    assert.ok(maintenance?.id);
    assert.ok((await db.query<{id:string}>(query(lifecycle,"MAINTENANCE_STATUS"),['owner',maintenance.id,'resolved'])).rows[0]?.id);
    const document=(await db.query<{id:string}>(query(lifecycle,"DOCUMENT_ADD"),['owner',linked.tenancy_id,'lease','Signed lease','https://example.com/lease.pdf'])).rows[0];
    assert.ok(document?.id);
 
-   // Move-out releases capacity, then verified post-tenancy review becomes available.
    assert.ok((await db.query<{id:string}>(query(lifecycle,"REQUEST_MOVE_OUT"),['renter',linked.tenancy_id,'2026-12-15'])).rows[0]?.id);
    assert.ok((await db.query<{id:string}>(query(lifecycleCompat,"END_TENANCY_V2"),['owner',linked.tenancy_id,'2026-12-15'])).rows[0]?.id);
    assert.equal((await db.query<{status:string}>(`SELECT status FROM rental_units WHERE id=$1::uuid`,[unit])).rows[0].status,"available");
