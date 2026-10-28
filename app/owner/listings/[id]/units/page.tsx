@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, eq } from "drizzle-orm";
-import { listings, ownerProfiles } from "@/db/schema";
+import { and,asc,eq } from "drizzle-orm";
+import { listingImages,listings,ownerProfiles } from "@/db/schema";
 import { requireAccount } from "@/lib/session-user";
 import { getDatabase } from "@/lib/db";
 import { ownedUnits } from "@/lib/rental-units";
@@ -23,7 +23,10 @@ export default async function UnitsPage({ params,searchParams }: { params: Promi
     .where(and(eq(listings.id, id), eq(ownerProfiles.userId, user.id))).limit(1);
   if (!listing) notFound();
   if (process.env.ENABLE_RENTAL_MANAGEMENT !== "true") return <section className="container interior-page narrow-page"><h1>Room availability</h1><p>Room management is awaiting database setup.</p><Link href="/owner">Back to your properties</Link></section>;
-  const units = await ownedUnits(id, user.id);
+  const [units,photoRows] = await Promise.all([
+    ownedUnits(id, user.id),
+    db.select({url:listingImages.storageKey}).from(listingImages).where(eq(listingImages.listingId,id)).orderBy(asc(listingImages.displayOrder)),
+  ]);
   const feedback=await searchParams;
   const returnTo=`/owner/listings/${id}/units`;
   const isLive=listing.status==="published";
@@ -58,6 +61,6 @@ export default async function UnitsPage({ params,searchParams }: { params: Promi
       <label>Monthly rent (₱)<input name="monthlyRent" type="number" required min="1" max="5000000" step="0.01" defaultValue={(listing.rent / 100).toFixed(2)}/></label>
       <button className="button button-primary">Add available unit</button>
     </form>
-    <OwnerPhotoForm listingId={id}/>
+    <OwnerPhotoForm listingId={id} existingUrls={photoRows.map(row=>row.url)}/>
   </section>;
 }
