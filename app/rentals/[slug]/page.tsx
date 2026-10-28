@@ -1,6 +1,9 @@
 import Link from "next/link";
 import {notFound,redirect} from "next/navigation";
+import {asc,eq} from "drizzle-orm";
 import {ArrowLeft,BedDouble,Building2,MapPin,ShieldCheck,UserRound} from "lucide-react";
+import {listingImages} from "@/db/schema";
+import {getDatabase} from "@/lib/db";
 import {getPublishedListing} from "@/lib/listings";
 import {formatRent} from "@/lib/search-filters";
 import {publicUnits} from "@/lib/rental-units";
@@ -15,13 +18,16 @@ export default async function ListingDetail({params}:{params:Promise<{slug:strin
  const {slug}=await params,user=await currentUser();
  if(!user)redirect(`/sign-in?next=${encodeURIComponent(`/rentals/${slug}`)}`);
  const listing=await getPublishedListing(slug);if(!listing)notFound();
+ const db=getDatabase();
+ const photoRows=db?await db.select({url:listingImages.storageKey}).from(listingImages).where(eq(listingImages.listingId,listing.id)).orderBy(asc(listingImages.displayOrder)):[];
+ const photoUrls=safePhotoUrls(photoRows.map(row=>row.url));
  const category=listing.propertyType.replaceAll("_"," "),units=await publicUnits(listing.id),ownerPreview=user.role==="landlord";
  return <article className="container interior-page narrow-page">
   <Link className="back-link" href={ownerPreview?"/owner":"/rentals"}><ArrowLeft size={17}/> {ownerPreview?"Back to owner dashboard":"Back to rentals"}</Link>
   <div className="interior-heading"><p className="section-kicker">OWNER-PUBLISHED LISTING · {category.toUpperCase()}</p><h1>{listing.title}</h1><p><MapPin size={17} style={{display:"inline",verticalAlign:"middle"}}/> {listing.barangay}, {listing.city}, {listing.province}</p></div>
   <div className="info-card listing-detail">
    <div className="listing-owner-row"><span className="listing-owner-avatar">{listing.ownerPhoto?<Image src={listing.ownerPhoto} alt={`${listing.ownerName} profile`} width={52} height={52} unoptimized/>:<UserRound size={25}/>}</span><div><small>Property owner</small><strong>{listing.ownerName}</strong><span>Published this rental on HomeTayo</span></div>{user.role==="renter"&&<ReportSafety listingId={listing.id} category="scam" label="Report owner / scam" compact/>}</div>
-   {safePhotoUrls(listing.photoUrls).length?<div className="rental-photo-gallery">{safePhotoUrls(listing.photoUrls).map((url,i)=><Image key={url+i} src={url} alt={`${listing.title} · photo ${i+1}`} width={900} height={600} unoptimized style={{width:"100%",height:"auto",borderRadius:18}}/>)}</div>:<div className="detail-icon"><Building2 size={46}/><span>No owner photos provided yet</span></div>}
+   {photoUrls.length?<div className="rental-photo-gallery">{photoUrls.map((url,i)=><Image key={url+i} src={url} alt={`${listing.title} · photo ${i+1}`} width={900} height={600} unoptimized style={{width:"100%",height:"auto",borderRadius:18}}/>)}</div>:<div className="detail-icon"><Building2 size={46}/><span>No owner photos provided yet</span></div>}
    <h2>{formatRent(listing.monthlyRentCentavos)} <span className="month-label">/month</span></h2><p>{listing.description}</p>
    {process.env.ENABLE_RENTAL_MANAGEMENT==="true"&&!ownerPreview&&<RentalSocial slug={listing.slug}/>} 
    {units.length>0&&<section aria-label="Room availability"><h2>{units.filter(unit=>unit.status==="available").length} of {units.length} units available</h2><div className="unit-grid">{units.map(unit=><div className={`unit-public unit-${unit.status}`} key={unit.id}><strong>{unit.label}</strong><span>{unit.status}</span><span>{formatRent(unit.monthlyRentCentavos)} / month</span></div>)}</div></section>}
