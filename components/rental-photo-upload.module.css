@@ -41,6 +41,47 @@
   line-height: 1.6;
 }
 
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(145px,1fr));
+  gap: 12px;
+}
+
+.photoCard {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+}
+
+.photoCard img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.photoCard button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: white;
+  color: var(--green);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.photoCard button:disabled { opacity: .55; cursor: default; }
+.empty { margin: 0; color: var(--muted); font-size: 13px; }
+
 @media (max-width: 640px) {
   .picker { padding: 14px; }
+  .gallery { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
