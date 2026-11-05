@@ -79,7 +79,7 @@ async function savePhoto(uri:string){
 }
 function savedPhoto(uri:string|null|undefined){
  if(!uri)return uri||null;
- try{const file=photoFile(uri);return file?.exists?file.uri:uri;}catch{return uri;}
+ try{const file=photoFile(uri);return file?.exists?file.uri:null;}catch{return null;}
 }
 function warmPhotos(uris:(string|null|undefined)[]){
  void (async()=>{for(const uri of [...new Set(uris.filter((x):x is string=>typeof x==="string"))].slice(0,12))await savePhoto(uri);})();
@@ -88,7 +88,7 @@ function imageReadyListing(item:Rental):Rental{
  return {...item,photoUrl:savedPhoto(item.photoUrl)};
 }
 function imageReadyDetail(item:RentalDetail):RentalDetail{
- return {...imageReadyListing(item),photoUrls:item.photoUrls?.map(uri=>savedPhoto(uri)||uri)};
+ return {...imageReadyListing(item),photoUrls:item.photoUrls?.map(uri=>savedPhoto(uri)).filter((uri):uri is string=>Boolean(uri))};
 }
 async function timed<T>(operation:(signal:AbortSignal)=>Promise<T>,parent?:AbortSignal):Promise<T>{
  const controller=new AbortController();
