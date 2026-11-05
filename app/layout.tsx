@@ -9,6 +9,7 @@ import "./social-upgrades.css";
 import {NavigationMotion} from "@/components/navigation-motion";
 import {ThemeRestore} from "@/components/theme-settings";
 import {InteractionDeterrent} from "@/components/interaction-deterrent";
+import {OfflineSupport} from "@/components/offline-support";
 import {currentUser} from "@/lib/session-user";
 
 export const metadata: Metadata = {
@@ -40,7 +41,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body>
-        <ThemeRestore/><NavigationMotion/><InteractionDeterrent/>
+        <ThemeRestore/><NavigationMotion/><InteractionDeterrent/><OfflineSupport/>
         <div className="site-shell">
           <SiteHeader />
           <PlatformAnnouncement role={user?.role??null}/>
