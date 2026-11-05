@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#173d32"><title>Offline | HomeTayo</title>
+<style>
+:root{color-scheme:light;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#173d32;background:#f7f6f1}
+*{box-sizing:border-box}body{margin:0}header{background:#173d32;color:white;padding:24px max(20px,calc((100vw - 960px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-size:24px;font-weight:850;letter-spacing:-.05em}.brand span{color:#d9bd77}.status{font-size:12px;border:1px solid #ffffff5c;border-radius:100px;padding:7px 12px;white-space:nowrap}
+main{max-width:960px;margin:0 auto;padding:42px 20px 80px}h1{font-size:clamp(32px,6vw,46px);letter-spacing:-.05em;margin:8px 0 12px}p{line-height:1.55;color:#596b62;margin:0 0 16px}
+.eyebrow{font-weight:800;text-transform:uppercase;letter-spacing:.13em;font-size:11px;color:#688d7c}
+.intro{max-width:680px}.notice{margin:24px 0;padding:18px 20px;border:1px solid #dce3db;border-radius:18px;background:white}
+.notice b{display:block;margin-bottom:5px}.notice p{margin:0;font-size:13px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 30px}
+button{appearance:none;cursor:pointer;border:none;border-radius:12px;background:#173d32;color:white;font-size:14px;font-weight:800;padding:13px 18px}
+button.secondary{background:white;color:#173d32;border:1px solid #cdd7cd}
+input{width:100%;height:48px;border:1px solid #cbd9ce;border-radius:12px;padding:0 14px;font-size:15px;color:#173d32;background:white;margin:8px 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,255px),1fr));gap:14px}
+.card{border-radius:18px;background:white;border:1px solid #e1e6df;padding:18px;display:flex;flex-direction:column;gap:10px}
+.card h3{font-size:18px;margin:0}.card .price{font-size:21px;font-weight:900}.card small{font-size:12px;color:#64776a}
+.card button{margin-top:auto;align-self:flex-start}.placeholder{height:100px;border-radius:12px;background:linear-gradient(130deg,#e0e9de,#eff2e8);display:flex;align-items:center;justify-content:center;color:#769184;font-size:12px;font-weight:700}
+#details{display:none}#details[aria-hidden="false"]{display:block}#details .notice{padding:22px}footer{padding-top:28px;color:#718378;font-size:12px}
+</style>
+</head>
+<body>
+<header><div class="brand">Home<span>Tayo</span></div><div class="status">● Offline mode</div></header>
+<main>
+<div class="eyebrow">Your saved marketplace</div>
+<h1>You're offline, but you're not starting over.</h1>
+<p class="intro">HomeTayo can show public rentals saved on this device while you have no signal or mobile data. This information is for reference only and might be outdated.</p>
+<div class="actions"><button id="retry">Retry connection</button><button class="secondary" id="back">Go back</button></div>
+<div class="notice"><b>Read-only offline mode</b><p>Messages, reservations, rent payments, live availability, maps, sign-in, and account changes need an internet connection. No private account information is stored for this offline page. Clearing site data removes saved properties.</p></div>
+<div id="list">
+<h2>Previously viewed public properties</h2><p id="saved">Checking this device for saved public listings…</p>
+<input id="filter" type="search" aria-label="Search saved listings" placeholder="Search saved title, city or barangay">
+<div class="grid" id="cards"></div>
+</div>
+<section id="details" aria-hidden="true"><h2>Saved property details</h2><div class="notice" id="detail-card"></div><button class="secondary" id="return">Back to saved properties</button></section>
+<footer>HomeTayo • Offline snapshots are not proof that a property is still available.</footer>
+</main>
+<script>
+(function(){
+"use strict";
+var KEY="hometayo.offline.web-public.v1",items=[],savedAt=0;
+var cards=document.getElementById("cards"),saved=document.getElementById("saved"),filter=document.getElementById("filter");
+document.getElementById("retry").addEventListener("click",function(){location.reload();});
+document.getElementById("back").addEventListener("click",function(){history.back();});
+document.getElementById("return").addEventListener("click",function(){document.getElementById("details").setAttribute("aria-hidden","true");document.getElementById("list").style.display="block";});
+function el(tag,text,cls){var node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=String(text);return node;}
+function price(item){var value=item.listingPurpose==="sale"?item.salePriceCentavos:item.monthlyRentCentavos;if(!Number.isFinite(value))return "Price unavailable";return "₱"+Math.round(value/100).toLocaleString("en-PH")+(item.listingPurpose==="sale"?"":" / month");}
+function show(item){
+ var box=document.getElementById("detail-card");box.replaceChildren();
+ box.append(el("h2",item.title||"Property"));
+ box.append(el("p",(item.barangay||"")+", "+(item.city||"")));
+ box.append(el("div",price(item),"price"));
+ box.append(el("p",item.description||"No description saved."));
+ box.append(el("p","Owner: "+(item.ownerName||"Not recorded")));
+ box.append(el("p","This is a saved public snapshot, not live availability. Reconnect to verify or contact the owner."));
+ document.getElementById("list").style.display="none";document.getElementById("details").setAttribute("aria-hidden","false");window.scrollTo(0,0);
+}
+function render(){
+ cards.replaceChildren();var term=filter.value.trim().toLowerCase();
+ var list=items.filter(function(item){return [item.title,item.city,item.barangay,item.propertyType].some(function(value){return String(value||"").toLowerCase().includes(term);});});
+ if(!list.length){cards.append(el("p",items.length?"No saved listings match this search.":"No saved properties yet. Browse rentals online once to save them for offline use."));return;}
+ list.forEach(function(item){var card=el("article",null,"card");card.append(el("div","PROPERTY SNAPSHOT","placeholder"));card.append(el("h3",item.title));card.append(el("small",(item.barangay||"")+", "+(item.city||"")));card.append(el("div",price(item),"price"));var button=el("button","View saved details");button.addEventListener("click",function(){show(item);});card.append(button);cards.append(card);});
+}
+try{var data=JSON.parse(localStorage.getItem(KEY)||"null");if(data&&data.version===1&&Array.isArray(data.items)){items=data.items.filter(function(x){return x&&typeof x.title==="string"&&typeof x.slug==="string";}).slice(0,80);savedAt=Number(data.savedAt)||0;}}catch{}
+saved.textContent=items.length?items.length+" saved properties • Last updated "+new Date(savedAt||Date.now()).toLocaleString("en-PH"):"Nothing saved on this browser yet.";
+filter.addEventListener("input",render);render();
+})();
+</script>
+</body></html>
