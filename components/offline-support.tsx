@@ -57,25 +57,12 @@ export function OfflineSupport(){
  },[]);
  useEffect(()=>{
   if(!navigator.onLine)return;
-  const isBrowse=pathname==="/rentals";
-  const detail=pathname?.match(/^\/rentals\/([a-z0-9][a-z0-9-]{0,119})$/);
-  if(!isBrowse&&!detail)return;
-  const params=new URLSearchParams();
-  let url="";
-  if(isBrowse){
-   const search=new URLSearchParams(window.location.search);
-   params.set("city",search.get("city")?.trim().slice(0,80)||"Koronadal City");
-   params.set("purpose","rent");
-   for(const key of ["type","maxRent","bedrooms"]){const value=search.get(key);if(value)params.set(key,value);}
-   url="/api/public/listings?"+params;
-  }else url="/api/public/listings/"+encodeURIComponent(detail![1]);
+  const detail=pathname?.match(/^\\/rentals\\/([a-z0-9][a-z0-9-]{0,119})$/);
+  if(!detail)return;
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),8000);
-  void fetch(url,{cache:"no-store",signal:controller.signal}).then(async response=>{
-   if(!response.ok)return;
-   const data=await response.json() as Record<string,unknown>;
-   if(isBrowse&&Array.isArray(data.listings))rememberPublicListings(data.listings);
-   else if(!isBrowse)rememberPublicListings([data]);
+  void fetch("/api/public/listings/"+encodeURIComponent(detail[1]),{cache:"no-store",signal:controller.signal}).then(async response=>{
+   if(response.ok)rememberPublicListings([await response.json()]);
   }).catch(()=>{}).finally(()=>clearTimeout(timeout));
   return ()=>{clearTimeout(timeout);controller.abort();};
  },[pathname]);
@@ -84,4 +71,10 @@ export function OfflineSupport(){
   <span>Offline — live HomeTayo actions are unavailable.</span>
   <a href="/offline.html" style={{color:"#fff",textDecoration:"underline",whiteSpace:"nowrap"}}>Saved rentals</a>
  </aside>;
+}
+
+/** Store only the already-visible public results, never authenticated rental operations. */
+export function RememberPublicRentals({items}:{items:unknown[]}){
+ useEffect(()=>{rememberPublicListings(items);},[items]);
+ return null;
 }
