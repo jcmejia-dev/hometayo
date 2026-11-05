@@ -8,10 +8,10 @@ if(origin.username || origin.password || (origin.protocol!=="https:" && !(origin
 let onExpired:(()=>void)|null=null;
 export function watchSessionExpired(callback:()=>void) {onExpired=callback;return()=>{if(onExpired===callback)onExpired=null;};}
 async function token(){return SecureStore.getItemAsync(KEY);}
-export async function api(path:string,body?:unknown,method?:"PATCH") {
+export async function api(path:string,body?:unknown,method?:"PATCH",timeoutMs=20000) {
   const saved=await token();
   const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),20000);
+  const timeout=setTimeout(()=>controller.abort(),timeoutMs);
   try{
     const response=await fetch(origin.origin+path,{signal:controller.signal,method:method || (body?"POST":"GET"),headers:{Accept:"application/json",...(body?{"Content-Type":"application/json"}:{}),...(saved?{Authorization:"Bearer "+saved}:{})},body:body?JSON.stringify(body):undefined});
     const data=await response.json().catch(()=>null);
@@ -59,7 +59,7 @@ export async function accountAction(body:unknown) {
 }
 export async function restoreAccount():Promise<Account|null> {
   if(!await SecureStore.getItemAsync(KEY))return null;
-  return (await api("/api/mobile/auth")).account;
+  return (await api("/api/mobile/auth",undefined,undefined,5000)).account;
 }
 export async function logOut() {
   await accountAction({action:"logout"});
