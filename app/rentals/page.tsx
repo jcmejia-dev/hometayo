@@ -11,6 +11,7 @@ import Image from "next/image";
 import {RentalSearchMap} from "@/components/rental-search-map";
 import {safePhotoUrls} from "@/lib/rental-photos";
 import {currentUser} from "@/lib/session-user";
+import {RememberPublicRentals} from "@/components/offline-support";
 
 export const dynamic="force-dynamic";
 export const metadata:Metadata={title:"Explore rentals",description:"Browse current owner-published rental listings on HomeTayo."};
@@ -23,6 +24,7 @@ export default async function Rentals({searchParams}:{searchParams:Promise<Param
  const filters=parseRentalFilters({...raw,purpose:"rent"}),result=await browsePublishedListings(filters);
  const type=first(raw.type),budget=first(raw.maxRent),bedrooms=first(raw.bedrooms),allowedTypes=["all","house","apartment","boarding_house","bedspace"],allowedBudgets=["","3000","5000","8000","12000","20000"],allowedRooms=["","1","2","3","4"];
  return <div className="container interior-page">
+  <RememberPublicRentals items={result.listings.map(listing=>({slug:listing.slug,title:listing.title,description:listing.description,propertyType:listing.propertyType,listingPurpose:listing.listingPurpose,salePriceCentavos:listing.salePriceCentavos,city:listing.city,barangay:listing.barangay,monthlyRentCentavos:listing.monthlyRentCentavos,ownerName:listing.ownerName}))}/>
   <div className="breadcrumb"><Link href="/">Home</Link><ArrowRight size={14}/> Explore rentals</div>
   <div className="interior-heading"><p className="section-kicker">EXPLORE HOMES</p><h1>Explore rentals</h1><p>Discover owner-published rentals, react to posts, and message owners directly.</p></div>
   <div id="rental-search"><SearchForm compact initialCity={filters.city} initialType={allowedTypes.includes(type)?type:"all"} initialBudget={allowedBudgets.includes(budget)?budget:""} initialBedrooms={allowedRooms.includes(bedrooms)?bedrooms:""}/></div>
