@@ -57,7 +57,7 @@ export function OfflineSupport(){
  },[]);
  useEffect(()=>{
   if(!navigator.onLine)return;
-  const detail=pathname?.match(/^\\/rentals\\/([a-z0-9][a-z0-9-]{0,119})$/);
+  const detail=pathname?.match(/^\/rentals\/([a-z0-9][a-z0-9-]{0,119})$/);
   if(!detail)return;
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),8000);
