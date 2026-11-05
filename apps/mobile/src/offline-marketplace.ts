@@ -88,7 +88,7 @@ function imageReadyListing(item:Rental):Rental{
  return {...item,photoUrl:savedPhoto(item.photoUrl)};
 }
 function imageReadyDetail(item:RentalDetail):RentalDetail{
- return {...imageReadyListing(item),photoUrls:item.photoUrls?.map(uri=>savedPhoto(uri)).filter((uri):uri is string=>Boolean(uri))};
+ return {...item,photoUrl:savedPhoto(item.photoUrl),photoUrls:item.photoUrls?.map(uri=>savedPhoto(uri)).filter((uri):uri is string=>Boolean(uri))};
 }
 async function timed<T>(operation:(signal:AbortSignal)=>Promise<T>,parent?:AbortSignal):Promise<T>{
  const controller=new AbortController();
