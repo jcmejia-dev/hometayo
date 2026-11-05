@@ -1,7 +1,8 @@
-import React,{useCallback,useEffect,useState} from "react";
+import React,{useCallback,useEffect,useRef,useState} from "react";
 import {ActivityIndicator,Image,ScrollView,StyleSheet,Text,TextInput,View} from "react-native";
 import {FeedbackPressable as Pressable} from "./feedback-pressable";
-import {fetchRentals,priceLabel,propertyLabel,type Rental} from "./api";
+import {priceLabel,propertyLabel,type Rental} from "./api";
+import {loadRentals} from "./offline-marketplace";
 import {NativeRentalSocial} from "./rental-workspace";
 import {Icon} from "./icons";
 import {usePalette} from "./theme";
@@ -9,23 +10,25 @@ import {VerifiedBadge} from "./verified-badge";
 
 type Purpose=""|"rent"|"sale";
 export function RentalFeed({city,onSelect,onInquiry}:{city:string;onSelect:(slug:string)=>void;onInquiry:(id:string)=>void}){
- const c=usePalette();const [query,setQuery]=useState(city||"Koronadal City"),[type,setType]=useState(""),[purpose,setPurpose]=useState<Purpose>(""),[items,setItems]=useState<Rental[]>([]),[busy,setBusy]=useState(true),[error,setError]=useState("");
- const load=useCallback(async()=>{setBusy(true);setError("");try{setItems(await fetchRentals(query,type,purpose));}catch(e){setError(e instanceof Error?e.message:"Could not load properties.");}finally{setBusy(false);}},[query,type,purpose]);
- useEffect(()=>{void load();},[load]);
+ const c=usePalette();const [query,setQuery]=useState(city||"Koronadal City"),[type,setType]=useState(""),[purpose,setPurpose]=useState<Purpose>(""),[items,setItems]=useState<Rental[]>([]),[busy,setBusy]=useState(true),[error,setError]=useState(""),[offline,setOffline]=useState(false),[cachedAt,setCachedAt]=useState<string|null>(null);
+ const loadId=useRef(0);
+ const load=useCallback(async()=>{const id=++loadId.current;setBusy(true);setError("");try{const result=await loadRentals(query,type,purpose);if(id!==loadId.current)return;setItems(result.data);setOffline(result.offline);setCachedAt(result.savedAt);}catch(e){if(id===loadId.current){setOffline(false);setError(e instanceof Error?e.message:"Could not load properties.");}}finally{if(id===loadId.current)setBusy(false);}},[query,type,purpose]);
+ useEffect(()=>{void load();return()=>{loadId.current++;};},[load]);
  return <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[s.body,{backgroundColor:c.soft}]}>
   <View style={[s.feedHeader,{backgroundColor:c.white,borderColor:c.border}]}><Text style={[s.eyebrow,{color:c.sage}]}>HOMETAYO MARKETPLACE</Text><Text style={[s.title,{color:c.green}]}>Find a place to rent or buy.</Text><Text style={{color:c.muted,lineHeight:19}}>A local property feed from HomeTayo owners — browse it like a social feed, then message the owner when a place interests you.</Text>
    <View style={[s.search,{borderColor:c.border}]}><TextInput value={query} onChangeText={setQuery} placeholder="City or municipality" placeholderTextColor={c.muted} style={[s.input,{color:c.green}]}/><Pressable onPress={()=>void load()} style={[s.searchButton,{backgroundColor:c.green}]}><Icon name="search" color="white"/></Pressable></View>
    <View style={s.purposeTabs}>{([['','All'],['rent','Rent'],['sale','Buy']] as Array<[Purpose,string]>).map(([id,label])=><Pressable key={label} onPress={()=>setPurpose(id)} style={[s.purposeTab,{backgroundColor:purpose===id?c.green:c.white,borderColor:purpose===id?c.green:c.border}]}><Text style={{color:purpose===id?"white":c.green,fontWeight:"900"}}>{label}</Text></Pressable>)}</View>
    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filters}>{["","house","apartment","boarding_house","bedspace"].map(v=><Pressable key={v} onPress={()=>setType(v)} style={[s.chip,{borderColor:c.border,backgroundColor:type===v?c.soft:c.white}]}><Text style={{color:c.green,fontWeight:"700"}}>{v?propertyLabel(v):"All types"}</Text></Pressable>)}</ScrollView>
   </View>
+  {offline&&<View accessibilityRole="alert" style={[s.empty,{backgroundColor:c.white,borderColor:c.border}]}><Text style={{color:c.green,fontWeight:"900"}}>Offline — saved properties</Text><Text style={{color:c.muted,lineHeight:19}}>Showing previously viewed properties (saved {cachedAt?new Date(cachedAt).toLocaleString("en-PH"):"on this device"}). Prices, availability and listing status may have changed. Messaging and reactions require internet.</Text><Pressable accessibilityRole="button" onPress={()=>void load()} style={{alignSelf:"flex-start",padding:12,borderRadius:12,backgroundColor:c.green}}><Text style={{color:"white",fontWeight:"800"}}>Try connecting again</Text></Pressable></View>}
   {busy&&<ActivityIndicator color={c.green} style={{marginTop:30}}/>}{!!error&&<Text style={{color:c.muted,paddingHorizontal:4}}>{error}</Text>}
   {!busy&&!items.length&&<View style={[s.empty,{backgroundColor:c.white,borderColor:c.border}]}><Text style={[s.cardTitle,{color:c.green}]}>No properties found</Text><Text style={{color:c.muted}}>Try another city, property type, or switch between Rent and Buy.</Text></View>}
   {items.map(item=><View key={item.slug} style={[s.post,{backgroundColor:c.white,borderColor:c.border}]}>
     <View style={s.ownerRow}>{item.ownerPhoto?<Image source={{uri:item.ownerPhoto}} style={s.avatar}/>:<View style={[s.avatarFallback,{backgroundColor:c.soft}]}><Icon name="user" size={20}/></View>}<View style={{flex:1}}><View style={s.ownerNameRow}><Text style={[s.ownerName,{color:c.green}]}>{item.ownerName||"Property owner"}</Text>{item.ownerVerified&&<VerifiedBadge compact/>}</View><Text style={{color:c.muted,fontSize:11}}>{item.barangay}, {item.city} · {item.listingPurpose==="sale"?"For sale":"For rent"}</Text></View><View style={[s.purposeBadge,{backgroundColor:item.listingPurpose==="sale"?"#FFF4D7":c.soft}]}><Text style={{color:c.green,fontSize:10,fontWeight:"900"}}>{item.listingPurpose==="sale"?"BUY":"RENT"}</Text></View></View>
     <Pressable onPress={()=>onSelect(item.slug)}><Text style={[s.postCopy,{color:c.green}]} numberOfLines={3}>{item.description}</Text></Pressable>
-    {item.photoUrl?<Pressable onPress={()=>onSelect(item.slug)}><Image source={{uri:item.photoUrl}} style={s.photo} resizeMode="cover"/></Pressable>:<Pressable onPress={()=>onSelect(item.slug)} style={[s.placeholder,{backgroundColor:c.soft}]}><Icon name="building" size={48}/><Text style={{color:c.muted}}>No property photo yet</Text></Pressable>}
+    {item.photoUrl?<Pressable onPress={()=>onSelect(item.slug)}><Image source={{uri:item.photoUrl}} style={s.photo} resizeMode="cover"/></Pressable>:<Pressable onPress={()=>onSelect(item.slug)} style={[s.placeholder,{backgroundColor:c.soft}]}><Icon name="building" size={48}/><Text style={{color:c.muted}}>{offline?"Photo not saved offline":"No property photo yet"}</Text></Pressable>}
     <Pressable onPress={()=>onSelect(item.slug)} style={s.propertyBlock}><Text style={[s.cardTitle,{color:c.green}]}>{item.title}</Text><Text style={[s.price,{color:c.green}]}>{priceLabel(item)}</Text><View style={s.facts}><Text style={{color:c.muted}}>{propertyLabel(item.propertyType)}</Text><Text style={{color:c.muted}}>·</Text><Text style={{color:c.muted}}>{item.bedrooms??"—"} bed</Text><Text style={{color:c.muted}}>·</Text><Text style={{color:c.muted}}>{item.bathrooms??"—"} bath</Text>{item.listingPurpose==="rent"&&item.unitCounts&&<><Text style={{color:c.muted}}>·</Text><Text style={{color:c.green,fontWeight:"800"}}>{item.unitCounts.available} available</Text></>}</View></Pressable>
-    <View style={[s.socialDivider,{backgroundColor:c.border}]}/><NativeRentalSocial slug={item.slug} onInquiry={onInquiry}/>
+    <View style={[s.socialDivider,{backgroundColor:c.border}]}/>{!offline?<NativeRentalSocial slug={item.slug} onInquiry={onInquiry}/>:<Text style={{color:c.muted,paddingHorizontal:15,fontSize:12}}>Connect to send a message or react to this listing.</Text>}
   </View>)}
  </ScrollView>;
 }
